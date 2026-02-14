@@ -31,9 +31,9 @@ export function Navbar() {
             <Image
               src="/images/logo.png"
               alt="The Pioneers High School Logo"
-              width={48}
-              height={48}
-              className="h-10 w-10 object-contain lg:h-12 lg:w-12"
+              width={64}
+              height={64}
+              className="h-10 w-10 object-contain transition-transform duration-300 hover:scale-110 lg:h-[52px] lg:w-[52px]"
               priority
             />
             <div className="hidden sm:block">

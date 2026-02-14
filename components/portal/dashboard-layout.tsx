@@ -43,7 +43,7 @@ export function DashboardLayout({ children, sidebarItems, userName, userRole }: 
         {/* Sidebar Header */}
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/images/logo.png" alt="Logo" width={36} height={36} className="h-9 w-9 object-contain" />
+            <Image src="/images/logo.png" alt="Logo" width={48} height={48} className="h-[42px] w-[42px] object-contain" />
             <div className="hidden sm:block">
               <p className="text-xs font-bold leading-tight text-foreground">Pioneers High</p>
               <p className="text-[10px] text-muted-foreground">{userRole}</p>
@@ -65,8 +65,8 @@ export function DashboardLayout({ children, sidebarItems, userName, userRole }: 
                     href={item.href}
                     onClick={() => setSidebarOpen(false)}
                     className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${isActive
-                        ? "border-l-2 border-primary bg-primary/5 text-primary"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      ? "border-l-2 border-primary bg-primary/5 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
                       }`}
                   >
                     <item.icon className="h-[18px] w-[18px]" />
