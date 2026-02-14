@@ -33,7 +33,7 @@ export function Footer() {
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3">
               <Image
-                src="/images/logo.jpeg"
+                src="/images/logo.png"
                 alt="The Pioneers High School Logo"
                 width={48}
                 height={48}

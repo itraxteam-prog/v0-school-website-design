@@ -29,11 +29,11 @@ export function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3" aria-label="The Pioneers High School Home">
             <Image
-              src="/images/logo.jpeg"
+              src="/images/logo.png"
               alt="The Pioneers High School Logo"
               width={48}
               height={48}
-              className="h-10 w-10 rounded-full object-cover lg:h-12 lg:w-12"
+              className="h-10 w-10 object-contain lg:h-12 lg:w-12"
               priority
             />
             <div className="hidden sm:block">

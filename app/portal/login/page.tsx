@@ -28,11 +28,11 @@ export default function LoginPage() {
           {/* Logo */}
           <div className="flex flex-col items-center gap-3 text-center">
             <Image
-              src="/images/logo.jpeg"
+              src="/images/logo.png"
               alt="The Pioneers High School Logo"
               width={64}
               height={64}
-              className="h-16 w-16 rounded-full object-cover"
+              className="h-16 w-16 object-contain"
             />
             <div>
               <p className="font-serif text-lg font-bold text-foreground">The Pioneers High School</p>
