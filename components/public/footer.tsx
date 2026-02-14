@@ -31,20 +31,20 @@ export function Footer() {
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
               <Image
                 src="/images/logo.png"
                 alt="The Pioneers High School Logo"
-                width={120}
-                height={120}
-                className="h-[120px] w-[120px] object-contain drop-shadow-lg"
+                width={160}
+                height={160}
+                className="h-[140px] w-[140px] object-contain drop-shadow-lg lg:h-[160px] lg:w-[160px]"
               />
               <div>
-                <p className="font-serif text-sm font-bold text-background">
+                <p className="font-serif text-lg font-bold text-background sm:text-xl">
                   The Pioneers High School
                 </p>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-background/60">
-                  Quality Education
+                <p className="text-xs font-medium uppercase tracking-wider text-background/60 sm:text-sm">
+                  The Institute for Quality Education
                 </p>
               </div>
             </div>
