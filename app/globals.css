@@ -59,24 +59,61 @@
 
   /* Responsive typography scale */
   .heading-1 {
-    @apply font-serif font-bold text-3xl leading-tight;
+    @apply font-serif font-bold text-4xl tracking-tight leading-[1.1];
   }
   .heading-2 {
-    @apply font-serif font-semibold text-2xl leading-snug;
+    @apply font-serif font-semibold text-3xl tracking-tight leading-[1.2];
   }
   .heading-3 {
-    @apply font-serif font-semibold text-lg leading-normal;
+    @apply font-serif font-semibold text-xl tracking-tight leading-[1.3];
   }
 
   @media (min-width: 640px) {
-    .heading-1 { @apply text-4xl; }
-    .heading-2 { @apply text-3xl; }
-    .heading-3 { @apply text-xl; }
-  }
-  @media (min-width: 1024px) {
     .heading-1 { @apply text-5xl; }
     .heading-2 { @apply text-4xl; }
     .heading-3 { @apply text-2xl; }
+  }
+  @media (min-width: 1024px) {
+    .heading-1 { @apply text-6xl; }
+    .heading-2 { @apply text-5xl; }
+    .heading-3 { @apply text-3xl; }
+  }
+
+  /* Glassmorphism Utilities */
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-xl;
+    box-shadow: 0 8px 32px 0 rgba(128, 0, 32, 0.05);
+  }
+  
+  .glass-card {
+    @apply bg-white/40 backdrop-blur-sm border border-white/30 shadow-lg transition-all duration-300;
+  }
+  
+  .glass-card:hover {
+    @apply bg-white/60 -translate-y-1 shadow-xl border-white/40;
+  }
+
+  .dark .glass-panel {
+    @apply bg-black/60 border-white/10;
+  }
+  
+  .dark .glass-card {
+    @apply bg-black/30 border-white/10;
+  }
+
+  /* Rich Gradient Utilities */
+  .bg-burgundy-gradient {
+    background: linear-gradient(135deg, #800020 0%, #4D0013 100%);
+  }
+  
+  .bg-burgundy-glow {
+    background: radial-gradient(circle at center, #800020 0%, #4D0013 100%);
+    box-shadow: 0 0 20px rgba(128, 0, 32, 0.3);
+  }
+
+  .text-burgundy-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #800020 0%, #4D0013 100%);
   }
 
   /* Animation helpers */

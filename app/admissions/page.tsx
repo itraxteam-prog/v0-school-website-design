@@ -2,7 +2,6 @@
 
 import { Navbar } from "@/components/public/navbar"
 import { Footer } from "@/components/public/footer"
-import { useScrollAnimation } from "@/hooks/use-scroll-animation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ClipboardCheck, FileText, UserCheck, CalendarDays } from "lucide-react"
+import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 
 const steps = [
   { icon: FileText, step: "01", title: "Submit Application", description: "Fill out the online inquiry form or collect an application from our admissions office." },
@@ -34,158 +34,157 @@ const dates = [
 ]
 
 function AdmissionsContent() {
-  const ref = useScrollAnimation()
-
   return (
-    <div ref={ref}>
+    <div>
       {/* Hero */}
-      <section className="bg-foreground py-16 md:py-24">
-        <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8">
-          <div className="animate-on-scroll max-w-2xl">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.15em] text-primary-foreground/50">Admissions</p>
-            <h1 className="heading-1 mb-4 text-balance text-primary-foreground">Join Our Community</h1>
-            <p className="text-base leading-relaxed text-primary-foreground/70 md:text-lg">
+      <section className="bg-foreground py-16 md:py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-burgundy-gradient opacity-90" />
+        <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8 relative z-10">
+          <AnimatedWrapper direction="down" className="max-w-2xl">
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-white/50">Admissions 2026</p>
+            <h1 className="heading-1 mb-4 text-balance text-white font-serif">Join Our Community</h1>
+            <p className="text-base leading-relaxed text-white/80 md:text-lg">
               Begin your journey at The Pioneers High School. We welcome students who are eager to learn, grow, and excel.
             </p>
-          </div>
+          </AnimatedWrapper>
         </div>
       </section>
 
       {/* Admission Steps */}
       <section className="bg-background py-16 md:py-24">
         <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8">
-          <div className="animate-on-scroll mb-12 text-center">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">Process</p>
-            <h2 className="heading-2 text-foreground">How to Apply</h2>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <AnimatedWrapper direction="up" className="mb-16 text-center">
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">The Pathway</p>
+            <h2 className="heading-2">Admission Process</h2>
+          </AnimatedWrapper>
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {steps.map((s, i) => (
-              <div key={s.step} className="animate-on-scroll relative flex flex-col items-center text-center" style={{ transitionDelay: `${i * 100}ms` }}>
-                {/* Connector line */}
-                {i < steps.length - 1 && (
-                  <div className="absolute left-[calc(50%+32px)] top-8 hidden h-px w-[calc(100%-64px)] bg-border lg:block" />
-                )}
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/5 text-primary">
-                  <s.icon className="h-6 w-6" />
+              <AnimatedWrapper key={s.step} delay={i * 0.1} className="relative flex flex-col items-center text-center group">
+                <div className="relative z-10 flex h-20 w-20 items-center justify-center rounded-2xl bg-burgundy-glow text-white shadow-xl transition-transform group-hover:scale-110">
+                  <s.icon className="h-8 w-8" />
                 </div>
-                <p className="mt-3 text-xs font-bold uppercase tracking-wider text-primary">{s.step}</p>
-                <h3 className="mt-1 font-serif text-base font-semibold text-foreground">{s.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.description}</p>
-              </div>
+                <p className="mt-4 text-xs font-bold uppercase tracking-widest text-primary">{s.step}</p>
+                <h3 className="mt-2 heading-3">{s.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground/80 font-medium">{s.description}</p>
+              </AnimatedWrapper>
             ))}
           </div>
         </div>
       </section>
 
       {/* Fee Structure */}
-      <section className="bg-secondary py-16 md:py-24">
+      <section className="bg-secondary/30 py-16 md:py-24">
         <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8">
-          <div className="animate-on-scroll mb-12 text-center">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">Fees</p>
-            <h2 className="heading-2 text-foreground">Fee Structure</h2>
-          </div>
-          <div className="animate-on-scroll overflow-x-auto rounded-lg border border-border bg-card">
-            <table className="w-full min-w-[500px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-border bg-muted">
-                  <th className="px-4 py-3 font-semibold text-foreground">Grade Level</th>
-                  <th className="px-4 py-3 font-semibold text-foreground">Admission Fee (PKR)</th>
-                  <th className="px-4 py-3 font-semibold text-foreground">Monthly Fee (PKR)</th>
-                  <th className="px-4 py-3 font-semibold text-foreground">Annual Fee (PKR)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {fees.map((f, i) => (
-                  <tr key={f.level} className={`border-b border-border transition-colors hover:bg-primary/5 ${i % 2 === 0 ? "bg-card" : "bg-muted/50"}`}>
-                    <td className="px-4 py-3 font-medium text-foreground">{f.level}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{f.admission}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{f.monthly}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{f.annual}</td>
+          <AnimatedWrapper direction="up" className="mb-12 text-center">
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">Investment</p>
+            <h2 className="heading-2">Fee Structure</h2>
+          </AnimatedWrapper>
+          <AnimatedWrapper direction="up" delay={0.2} className="overflow-hidden rounded-2xl border-none shadow-2xl glass-panel">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px] text-left text-sm">
+                <thead>
+                  <tr className="bg-burgundy-gradient text-white">
+                    <th className="px-6 py-4 font-bold uppercase tracking-wider">Grade Level</th>
+                    <th className="px-6 py-4 font-bold uppercase tracking-wider">Admission (PKR)</th>
+                    <th className="px-6 py-4 font-bold uppercase tracking-wider">Monthly (PKR)</th>
+                    <th className="px-6 py-4 font-bold uppercase tracking-wider">Annual (PKR)</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-primary/10">
+                  {fees.map((f, i) => (
+                    <tr key={f.level} className="transition-colors hover:bg-primary/5">
+                      <td className="px-6 py-4 font-bold text-foreground">{f.level}</td>
+                      <td className="px-6 py-4 text-muted-foreground font-medium">{f.admission}</td>
+                      <td className="px-6 py-4 text-muted-foreground font-medium">{f.monthly}</td>
+                      <td className="px-6 py-4 text-muted-foreground font-medium">{f.annual}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </AnimatedWrapper>
         </div>
       </section>
 
-      {/* Important Dates */}
+      {/* Important Dates & Inquiry */}
       <section className="bg-background py-16 md:py-24">
         <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8">
-          <div className="grid gap-12 lg:grid-cols-2">
+          <div className="grid gap-16 lg:grid-cols-2 lg:items-start">
             {/* Dates */}
             <div>
-              <div className="animate-on-scroll mb-8">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">Schedule</p>
-                <h2 className="heading-2 text-foreground">Important Dates</h2>
-              </div>
-              <div className="flex flex-col gap-4">
+              <AnimatedWrapper direction="left" className="mb-10">
+                <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">Important</p>
+                <h2 className="heading-2 mb-4">Calendar & Deadline</h2>
+                <p className="text-muted-foreground font-medium">Please track these dates carefully to ensure timely admission processing.</p>
+              </AnimatedWrapper>
+              <div className="flex flex-col gap-5">
                 {dates.map((d, i) => (
-                  <div key={d.event} className="animate-on-scroll flex items-center gap-4 rounded-lg border border-border bg-card p-4" style={{ transitionDelay: `${i * 80}ms` }}>
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/5 text-primary">
-                      <CalendarDays className="h-5 w-5" />
+                  <AnimatedWrapper key={d.event} direction="left" delay={i * 0.1} className="flex items-center gap-5 rounded-xl border border-primary/5 bg-secondary/20 p-5 group hover:bg-secondary/40 transition-colors">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                      <CalendarDays className="h-6 w-6" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-foreground">{d.event}</p>
-                      <p className="text-xs text-muted-foreground">{d.date}</p>
+                      <p className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">{d.event}</p>
+                      <p className="text-xs text-muted-foreground font-bold mt-1 uppercase tracking-wider">{d.date}</p>
                     </div>
-                  </div>
+                  </AnimatedWrapper>
                 ))}
               </div>
             </div>
 
             {/* Inquiry Form */}
             <div>
-              <div className="animate-on-scroll mb-8">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">Inquire</p>
-                <h2 className="heading-2 text-foreground">Admission Inquiry</h2>
-              </div>
-              <Card className="animate-on-scroll border-border">
-                <CardContent className="flex flex-col gap-4 p-6">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="flex flex-col gap-2">
-                      <Label htmlFor="parent-name">Parent / Guardian Name</Label>
-                      <Input id="parent-name" placeholder="Full name" className="h-11" />
+              <AnimatedWrapper direction="right" className="mb-10">
+                <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">Connect</p>
+                <h2 className="heading-2">Admission Inquiry</h2>
+              </AnimatedWrapper>
+              <AnimatedWrapper direction="right" delay={0.2}>
+                <Card className="glass-card border-none shadow-2xl">
+                  <CardContent className="flex flex-col gap-6 p-8">
+                    <div className="grid gap-6 sm:grid-cols-2">
+                      <div className="flex flex-col gap-2">
+                        <Label htmlFor="parent-name" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Parent Name</Label>
+                        <Input id="parent-name" placeholder="Full name" className="h-12 border-primary/10 focus-visible:ring-primary" />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Label htmlFor="student-name" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Student Name</Label>
+                        <Input id="student-name" placeholder="Student name" className="h-12 border-primary/10 focus-visible:ring-primary" />
+                      </div>
+                    </div>
+                    <div className="grid gap-6 sm:grid-cols-2">
+                      <div className="flex flex-col gap-2">
+                        <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email</Label>
+                        <Input id="email" type="email" placeholder="email@example.com" className="h-12 border-primary/10 focus-visible:ring-primary" />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Phone</Label>
+                        <Input id="phone" type="tel" placeholder="+92 3XX XXXXXXX" className="h-12 border-primary/10 focus-visible:ring-primary" />
+                      </div>
                     </div>
                     <div className="flex flex-col gap-2">
-                      <Label htmlFor="student-name">Student Name</Label>
-                      <Input id="student-name" placeholder="Student full name" className="h-11" />
+                      <Label htmlFor="grade" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Applying For</Label>
+                      <Select>
+                        <SelectTrigger className="h-12 border-primary/10 focus-visible:ring-primary">
+                          <SelectValue placeholder="Select level" />
+                        </SelectTrigger>
+                        <SelectContent className="glass-panel border-primary/10">
+                          <SelectItem value="1-5">Primary (Grade 1-5)</SelectItem>
+                          <SelectItem value="6-8">Middle (Grade 6-8)</SelectItem>
+                          <SelectItem value="9-10">O-Level (Grade 9-10)</SelectItem>
+                          <SelectItem value="11-12">A-Level (Grade 11-12)</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-2">
                     <div className="flex flex-col gap-2">
-                      <Label htmlFor="email">Email Address</Label>
-                      <Input id="email" type="email" placeholder="email@example.com" className="h-11" />
+                      <Label htmlFor="message" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Message</Label>
+                      <Textarea id="message" placeholder="Include any specific queries..." rows={4} className="border-primary/10 focus-visible:ring-primary resize-none" />
                     </div>
-                    <div className="flex flex-col gap-2">
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <Input id="phone" type="tel" placeholder="+92 300 0000000" className="h-11" />
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="grade">Grade Applying For</Label>
-                    <Select>
-                      <SelectTrigger className="h-11">
-                        <SelectValue placeholder="Select grade" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1-5">Primary (Grade 1-5)</SelectItem>
-                        <SelectItem value="6-8">Middle (Grade 6-8)</SelectItem>
-                        <SelectItem value="9-10">O-Level (Grade 9-10)</SelectItem>
-                        <SelectItem value="11-12">A-Level (Grade 11-12)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="message">Message</Label>
-                    <Textarea id="message" placeholder="Any additional information..." rows={4} />
-                  </div>
-                  <Button className="h-11 bg-primary text-primary-foreground hover:bg-primary/90">
-                    Submit Inquiry
-                  </Button>
-                  <p className="text-xs text-muted-foreground">This form is a visual mockup only. No data will be submitted.</p>
-                </CardContent>
-              </Card>
+                    <Button className="h-12 bg-burgundy-gradient text-white font-bold text-sm uppercase tracking-[0.2em] shadow-lg hover:shadow-primary/20 transition-all border-none">
+                      Submit Inquiry
+                    </Button>
+                  </CardContent>
+                </Card>
+              </AnimatedWrapper>
             </div>
           </div>
         </div>

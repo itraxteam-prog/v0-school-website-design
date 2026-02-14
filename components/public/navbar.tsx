@@ -7,6 +7,8 @@ import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
+import { ScrollProgress } from "@/components/ui/scroll-progress"
+
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
@@ -20,106 +22,107 @@ export function Navbar() {
   const pathname = usePathname()
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-      <nav className="mx-auto flex max-w-[1280px] items-center justify-between px-4 py-3 md:px-6 lg:px-8">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-3" aria-label="The Pioneers High School Home">
-          <Image
-            src="/images/logo.jpeg"
-            alt="The Pioneers High School Logo"
-            width={48}
-            height={48}
-            className="h-10 w-10 rounded-full object-cover lg:h-12 lg:w-12"
-            priority
-          />
-          <div className="hidden sm:block">
-            <p className="font-serif text-sm font-bold leading-tight text-foreground lg:text-base">
-              The Pioneers High School
-            </p>
-            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground lg:text-xs">
-              The Institute for Quality Education
-            </p>
-          </div>
-        </Link>
-
-        {/* Desktop Nav */}
-        <div className="hidden items-center gap-1 lg:flex">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-                pathname === link.href
-                  ? "text-primary"
-                  : "text-foreground hover:text-primary"
-              }`}
-            >
-              {link.label}
-              {pathname === link.href && (
-                <span className="mt-0.5 block h-0.5 rounded-full bg-primary" />
-              )}
-            </Link>
-          ))}
-        </div>
-
-        {/* Desktop CTA */}
-        <div className="hidden items-center gap-3 lg:flex">
-          <Link href="/portal/login">
-            <Button variant="outline" size="sm" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-              Login Portal
-            </Button>
+    <>
+      <ScrollProgress />
+      <header className="sticky top-0 z-50 glass-panel">
+        <nav className="mx-auto flex max-w-[1280px] items-center justify-between px-4 py-3 md:px-6 lg:px-8">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-3" aria-label="The Pioneers High School Home">
+            <Image
+              src="/images/logo.jpeg"
+              alt="The Pioneers High School Logo"
+              width={48}
+              height={48}
+              className="h-10 w-10 rounded-full object-cover lg:h-12 lg:w-12"
+              priority
+            />
+            <div className="hidden sm:block">
+              <p className="font-serif text-sm font-bold leading-tight text-foreground lg:text-base">
+                The Pioneers High School
+              </p>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground lg:text-xs">
+                The Institute for Quality Education
+              </p>
+            </div>
           </Link>
-          <Link href="/admissions">
-            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-              Apply Now
-            </Button>
-          </Link>
-        </div>
 
-        {/* Mobile Menu Toggle */}
-        <button
-          className="flex h-11 w-11 items-center justify-center rounded-md text-foreground lg:hidden"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label={mobileOpen ? "Close menu" : "Open menu"}
-          aria-expanded={mobileOpen}
-        >
-          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
-      </nav>
-
-      {/* Mobile Menu Overlay */}
-      {mobileOpen && (
-        <div className="fixed inset-0 top-[57px] z-40 bg-background lg:hidden">
-          <div className="flex flex-col gap-1 px-4 pt-4">
+          {/* Desktop Nav */}
+          <div className="hidden items-center gap-1 lg:flex">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className={`rounded-lg px-4 py-3 text-base font-medium transition-colors ${
-                  pathname === link.href
-                    ? "bg-primary/5 text-primary"
-                    : "text-foreground hover:bg-muted"
-                }`}
+                className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${pathname === link.href
+                  ? "text-primary"
+                  : "text-foreground hover:text-primary"
+                  }`}
               >
                 {link.label}
+                {pathname === link.href && (
+                  <span className="mt-0.5 block h-0.5 rounded-full bg-primary" />
+                )}
               </Link>
             ))}
-            <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4">
-              <Link href="/portal/login" onClick={() => setMobileOpen(false)}>
-                <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-                  Login Portal
-                </Button>
-              </Link>
-              <Link href="/admissions" onClick={() => setMobileOpen(false)}>
-                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                  Apply Now
-                </Button>
-              </Link>
+          </div>
+
+          {/* Desktop CTA */}
+          <div className="hidden items-center gap-3 lg:flex">
+            <Link href="/portal/login">
+              <Button variant="outline" size="sm" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                Login Portal
+              </Button>
+            </Link>
+            <Link href="/admissions">
+              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                Apply Now
+              </Button>
+            </Link>
+          </div>
+
+          {/* Mobile Menu Toggle */}
+          <button
+            className="flex h-11 w-11 items-center justify-center rounded-md text-foreground lg:hidden"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
+          >
+            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </nav>
+
+        {/* Mobile Menu Overlay */}
+        {mobileOpen && (
+          <div className="fixed inset-0 top-[57px] z-40 bg-background lg:hidden">
+            <div className="flex flex-col gap-1 px-4 pt-4">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={`rounded-lg px-4 py-3 text-base font-medium transition-colors ${pathname === link.href
+                    ? "bg-primary/5 text-primary"
+                    : "text-foreground hover:bg-muted"
+                    }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4">
+                <Link href="/portal/login" onClick={() => setMobileOpen(false)}>
+                  <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                    Login Portal
+                  </Button>
+                </Link>
+                <Link href="/admissions" onClick={() => setMobileOpen(false)}>
+                  <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+                    Apply Now
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </header>
+        )}
+      </header>
+    </>
   )
 }

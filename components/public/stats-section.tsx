@@ -1,7 +1,7 @@
 "use client"
 
 import { CountUp } from "@/components/public/count-up"
-import { useScrollAnimation } from "@/hooks/use-scroll-animation"
+import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 
 const stats = [
   { value: 28, suffix: "+", label: "Years of Excellence" },
@@ -11,25 +11,24 @@ const stats = [
 ]
 
 export function StatsSection() {
-  const ref = useScrollAnimation()
-
   return (
-    <section ref={ref} className="bg-foreground py-16 md:py-20">
-      <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8">
-        <div className="grid grid-cols-2 gap-6 lg:grid-cols-4 lg:gap-8">
+    <section className="bg-burgundy-glow py-16 md:py-24 relative overflow-hidden">
+      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,white_0%,transparent_70%)]" />
+      <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8 relative z-10">
+        <div className="grid grid-cols-2 gap-8 lg:grid-cols-4">
           {stats.map((stat, i) => (
-            <div
+            <AnimatedWrapper
               key={stat.label}
-              className="animate-on-scroll text-center"
-              style={{ transitionDelay: `${i * 100}ms` }}
+              delay={i * 0.1}
+              className="text-center"
             >
-              <p className="font-serif text-3xl font-bold text-primary-foreground md:text-4xl lg:text-5xl">
+              <p className="font-serif text-4xl font-bold text-white md:text-5xl lg:text-6xl drop-shadow-lg">
                 <CountUp end={stat.value} suffix={stat.suffix} />
               </p>
-              <p className="mt-2 text-xs font-medium uppercase tracking-wider text-primary-foreground/50 md:text-sm">
+              <p className="mt-3 text-xs font-bold uppercase tracking-widest text-white/60 md:text-sm">
                 {stat.label}
               </p>
-            </div>
+            </AnimatedWrapper>
           ))}
         </div>
       </div>

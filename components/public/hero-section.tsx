@@ -2,50 +2,57 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { useScrollAnimation } from "@/hooks/use-scroll-animation"
+import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 
 export function HeroSection() {
-  const ref = useScrollAnimation()
-
   return (
-    <section ref={ref} className="relative flex min-h-[70vh] items-center overflow-hidden bg-foreground lg:min-h-[80vh]">
+    <section className="relative flex min-h-[70vh] items-center overflow-hidden bg-foreground lg:min-h-[80vh]">
       {/* Background overlay pattern */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,hsl(345,100%,25%,0.15),transparent_60%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(0,0%,10%,0.95),hsl(0,0%,10%,0.7))]" />
+      <div className="absolute inset-0 bg-burgundy-gradient opacity-90" />
+      <div className="absolute inset-0 bg-black/40" />
 
       <div className="relative z-10 mx-auto w-full max-w-[1280px] px-4 py-16 md:px-6 md:py-24 lg:px-8">
         <div className="max-w-2xl">
-          <div className="animate-on-scroll">
-            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.15em] text-primary-foreground/50">
+          <AnimatedWrapper direction="down" delay={0.1}>
+            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-white/50">
               The Institute for Quality Education
             </p>
-          </div>
-          <h1 className="animate-on-scroll heading-1 mb-6 text-balance text-primary-foreground">
-            Shaping Tomorrow&apos;s Leaders Today
-          </h1>
-          <p className="animate-on-scroll mb-8 max-w-xl text-base leading-relaxed text-primary-foreground/70 md:text-lg">
-            The Pioneers High School is a premier K-12 academic institution committed
-            to academic excellence, discipline, and holistic student development.
-          </p>
-          <div className="animate-on-scroll flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Link href="/admissions">
-              <Button
-                size="lg"
-                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto"
-              >
-                Apply for Admission
-              </Button>
-            </Link>
-            <Link href="/portal/login">
-              <Button
-                size="lg"
-                variant="outline"
-                className="w-full border-primary-foreground/30 text-primary-foreground hover:border-primary-foreground hover:bg-primary-foreground/10 sm:w-auto"
-              >
-                Login Portal
-              </Button>
-            </Link>
-          </div>
+          </AnimatedWrapper>
+
+          <AnimatedWrapper direction="up" delay={0.2}>
+            <h1 className="heading-1 mb-6 text-balance text-white leading-tight">
+              Shaping <span className="text-white/80">Tomorrow&apos;s</span> <br /> Leaders Today
+            </h1>
+          </AnimatedWrapper>
+
+          <AnimatedWrapper direction="up" delay={0.3}>
+            <p className="mb-8 max-w-xl text-base leading-relaxed text-white/80 md:text-lg">
+              The Pioneers High School is a premier K-12 academic institution committed
+              to academic excellence, discipline, and holistic student development.
+            </p>
+          </AnimatedWrapper>
+
+          <AnimatedWrapper direction="up" delay={0.4}>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+              <Link href="/admissions">
+                <Button
+                  size="lg"
+                  className="w-full bg-white text-primary font-bold hover:bg-white/90 sm:w-auto shadow-xl"
+                >
+                  Apply for Admission
+                </Button>
+              </Link>
+              <Link href="/portal/login">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full border-white/30 text-white hover:border-white hover:bg-white/10 sm:w-auto"
+                >
+                  Login Portal
+                </Button>
+              </Link>
+            </div>
+          </AnimatedWrapper>
         </div>
       </div>
 
