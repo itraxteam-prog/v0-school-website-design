@@ -25,7 +25,7 @@ export function Navbar() {
     <>
       <ScrollProgress />
       <header className="sticky top-0 z-50 glass-panel">
-        <nav className="mx-auto flex max-w-[1280px] items-center justify-between px-4 py-0.5 md:px-6 lg:px-8">
+        <nav className="mx-auto flex max-w-[1280px] items-center justify-between px-4 py-0 md:px-6 lg:px-8">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3" aria-label="The Pioneers High School Home">
             <Image
@@ -33,7 +33,7 @@ export function Navbar() {
               alt="The Pioneers High School Logo"
               width={200}
               height={200}
-              className="h-[70px] w-[70px] object-contain transition-transform duration-300 hover:scale-110 lg:h-[100px] lg:w-[100px]"
+              className="h-[50px] w-[50px] object-contain transition-transform duration-300 hover:scale-110 lg:h-[70px] lg:w-[70px]"
               priority
             />
             <div className="hidden sm:block">
