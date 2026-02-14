@@ -37,7 +37,8 @@ export function Footer() {
                 alt="The Pioneers High School Logo"
                 width={160}
                 height={160}
-                className="h-[140px] w-[140px] object-contain drop-shadow-lg lg:h-[160px] lg:w-[160px]"
+                className="h-[140px] w-[140px] object-contain lg:h-[160px] lg:w-[160px]"
+                style={{ imageRendering: "optimizeQuality", filter: "blur(0.4px) drop-shadow(0 10px 15px rgba(0,0,0,0.3))" }}
               />
               <div>
                 <p className="font-serif text-lg font-bold text-background sm:text-xl">
