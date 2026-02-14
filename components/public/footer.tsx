@@ -33,11 +33,11 @@ export function Footer() {
           <div className="flex flex-col gap-4">
             <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
               <Image
-                src="/images/logo.jpeg"
+                src="/images/logo_recolored_footer.png"
                 alt="The Pioneers High School Logo"
                 width={160}
                 height={160}
-                className="h-[140px] w-[140px] object-contain lg:h-[160px] lg:w-[160px] mix-blend-multiply"
+                className="h-[140px] w-[140px] object-contain lg:h-[160px] lg:w-[160px]"
               />
               <div>
                 <p className="font-serif text-lg font-bold text-background sm:text-xl">
