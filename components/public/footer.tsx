@@ -33,12 +33,11 @@ export function Footer() {
           <div className="flex flex-col gap-4">
             <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
               <Image
-                src="/images/logo.png"
+                src="/images/logo_v2.png"
                 alt="The Pioneers High School Logo"
                 width={160}
                 height={160}
                 className="h-[140px] w-[140px] object-contain lg:h-[160px] lg:w-[160px]"
-                style={{ imageRendering: "optimizeQuality", filter: "blur(0.4px) drop-shadow(0 10px 15px rgba(0,0,0,0.3))" }}
               />
               <div>
                 <p className="font-serif text-lg font-bold text-background sm:text-xl">
