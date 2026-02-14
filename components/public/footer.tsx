@@ -37,8 +37,7 @@ export function Footer() {
                 alt="The Pioneers High School Logo"
                 width={160}
                 height={160}
-                className="h-[140px] w-[140px] object-contain lg:h-[160px] lg:w-[160px]"
-                style={{ maskImage: "radial-gradient(circle at center, black 65%, transparent 95%)" }}
+                className="h-[140px] w-[140px] object-contain lg:h-[160px] lg:w-[160px] mix-blend-multiply"
               />
               <div>
                 <p className="font-serif text-lg font-bold text-background sm:text-xl">
