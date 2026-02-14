@@ -25,8 +25,9 @@ const socialLinks = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-foreground text-background">
-      <div className="mx-auto max-w-[1280px] px-4 py-12 md:px-6 lg:px-8">
+    <footer className="bg-burgundy-glow text-background relative overflow-hidden">
+      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,white_0%,transparent_70%)]" />
+      <div className="mx-auto max-w-[1280px] px-4 py-12 md:px-6 lg:px-8 relative z-10">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="flex flex-col gap-4">
