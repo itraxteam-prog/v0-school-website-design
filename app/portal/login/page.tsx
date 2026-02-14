@@ -30,9 +30,9 @@ export default function LoginPage() {
             <Image
               src="/images/logo.png"
               alt="The Pioneers High School Logo"
-              width={80}
-              height={80}
-              className="h-20 w-20 object-contain"
+              width={160}
+              height={160}
+              className="h-40 w-40 object-contain drop-shadow-xl"
             />
             <div>
               <p className="font-serif text-lg font-bold text-foreground">The Pioneers High School</p>

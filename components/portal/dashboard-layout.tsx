@@ -43,7 +43,7 @@ export function DashboardLayout({ children, sidebarItems, userName, userRole }: 
         {/* Sidebar Header */}
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/images/logo.png" alt="Logo" width={48} height={48} className="h-[42px] w-[42px] object-contain" />
+            <Image src="/images/logo.png" alt="Logo" width={60} height={60} className="h-[60px] w-[60px] object-contain" />
             <div className="hidden sm:block">
               <p className="text-xs font-bold leading-tight text-foreground">Pioneers High</p>
               <p className="text-[10px] text-muted-foreground">{userRole}</p>

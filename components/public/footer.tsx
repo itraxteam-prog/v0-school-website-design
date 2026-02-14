@@ -35,9 +35,9 @@ export function Footer() {
               <Image
                 src="/images/logo.png"
                 alt="The Pioneers High School Logo"
-                width={64}
-                height={64}
-                className="h-16 w-16 object-contain"
+                width={120}
+                height={120}
+                className="h-[120px] w-[120px] object-contain drop-shadow-lg"
               />
               <div>
                 <p className="font-serif text-sm font-bold text-background">
