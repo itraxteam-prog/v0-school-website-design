@@ -1,5 +1,8 @@
 "use client"
 
+import { LayoutDashboard, BookOpen, CalendarCheck, Clock, Megaphone, User } from "lucide-react"
+import { DashboardLayout } from "@/components/portal/dashboard-layout"
+import { Card, CardContent } from "@/components/ui/card"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { AttendanceChart, PerformanceChart } from "@/components/portal/dashboard-charts"
 
