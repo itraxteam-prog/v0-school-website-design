@@ -45,8 +45,7 @@ export function HeroSection() {
               <Link href="/portal/login">
                 <Button
                   size="lg"
-                  variant="outline"
-                  className="w-full border-white/30 text-white hover:border-white hover:bg-white/10 sm:w-auto"
+                  className="w-full bg-white text-primary font-bold hover:bg-white/90 sm:w-auto shadow-xl"
                 >
                   Login Portal
                 </Button>
