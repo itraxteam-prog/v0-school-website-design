@@ -15,28 +15,25 @@ const sidebarItems = [
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
-// Generate mock calendar data
-function generateCalendar() {
-  const weeks: { day: number; status: "present" | "absent" | "late" | "none" }[][] = []
-  let day = 1
-  for (let w = 0; w < 5; w++) {
-    const week: { day: number; status: "present" | "absent" | "late" | "none" }[] = []
-    for (let d = 0; d < 6; d++) {
-      if (day > 28) {
-        week.push({ day: 0, status: "none" })
-      } else {
-        const rand = Math.random()
-        const status = rand > 0.15 ? "present" : rand > 0.08 ? "late" : "absent"
-        week.push({ day, status })
-        day++
-      }
-    }
-    weeks.push(week)
-  }
-  return weeks
-}
-
-const calendar = generateCalendar()
+// Static mock calendar data (deterministic to avoid hydration mismatch)
+type AttendanceStatus = "present" | "absent" | "late" | "none"
+const calendar: { day: number; status: AttendanceStatus }[][] = [
+  [
+    { day: 1, status: "present" }, { day: 2, status: "present" }, { day: 3, status: "present" }, { day: 4, status: "late" }, { day: 5, status: "present" }, { day: 6, status: "present" },
+  ],
+  [
+    { day: 7, status: "present" }, { day: 8, status: "present" }, { day: 9, status: "absent" }, { day: 10, status: "present" }, { day: 11, status: "present" }, { day: 12, status: "present" },
+  ],
+  [
+    { day: 13, status: "present" }, { day: 14, status: "present" }, { day: 15, status: "present" }, { day: 16, status: "late" }, { day: 17, status: "present" }, { day: 18, status: "present" },
+  ],
+  [
+    { day: 19, status: "present" }, { day: 20, status: "present" }, { day: 21, status: "present" }, { day: 22, status: "present" }, { day: 23, status: "late" }, { day: 24, status: "present" },
+  ],
+  [
+    { day: 25, status: "present" }, { day: 26, status: "present" }, { day: 27, status: "present" }, { day: 28, status: "present" }, { day: 0, status: "none" }, { day: 0, status: "none" },
+  ],
+]
 
 const statusColors = {
   present: "bg-green-100 text-green-800",
