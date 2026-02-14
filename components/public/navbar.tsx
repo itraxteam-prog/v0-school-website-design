@@ -34,6 +34,7 @@ export function Navbar() {
               width={200}
               height={200}
               className="h-[50px] w-[50px] object-contain transition-transform duration-300 hover:scale-110 lg:h-[70px] lg:w-[70px]"
+              style={{ mixBlendMode: 'multiply' }}
               priority
             />
             <div className="hidden sm:block">
