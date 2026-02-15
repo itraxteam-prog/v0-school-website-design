@@ -2,6 +2,7 @@ import { Student } from '../data/students';
 import { Teacher } from '../data/teachers';
 import { Class } from '../data/classes';
 import { Period } from '../data/periods';
+import { Role } from '../data/roles';
 
 // Validation Utility Functions
 
@@ -63,6 +64,26 @@ export const validatePeriod = (data: Partial<Period>): { isValid: boolean; error
 
     requiredFields.forEach((field) => {
         if (!data[field]) {
+            errors.push(`${field} is required`);
+        }
+    });
+
+    return {
+        isValid: errors.length === 0,
+        errors: errors.length > 0 ? errors : undefined,
+    };
+};
+
+export const validateRole = (data: Partial<Role>): { isValid: boolean; errors?: string[] } => {
+    const errors: string[] = [];
+    const requiredFields: (keyof Role)[] = ['name', 'permissions'];
+
+    requiredFields.forEach((field) => {
+        if (field === 'permissions') {
+            if (!data[field] || !Array.isArray(data[field])) {
+                errors.push(`${field} is required and must be an array`);
+            }
+        } else if (!data[field]) {
             errors.push(`${field} is required`);
         }
     });
