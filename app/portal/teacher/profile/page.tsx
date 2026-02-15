@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
 
 const sidebarItems = [
   { href: "/portal/teacher", label: "Dashboard", icon: LayoutDashboard },
