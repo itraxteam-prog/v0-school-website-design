@@ -31,10 +31,11 @@ export function Navbar() {
             <Image
               src="/images/logo-new.png"
               alt="The Pioneers High School Logo"
-              width={70}
-              height={70}
-              className="h-[50px] w-[50px] object-contain transition-transform duration-300 hover:scale-110 lg:h-[70px] lg:w-[70px]"
+              width={140}
+              height={140}
+              className="h-[60px] w-[60px] object-contain transition-transform duration-300 hover:scale-105 lg:h-[85px] lg:w-[85px]"
               priority
+              quality={100}
             />
             <div className="hidden sm:block">
               <p className="font-serif text-sm font-bold leading-tight text-foreground lg:text-base">
