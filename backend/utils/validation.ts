@@ -1,5 +1,6 @@
 import { Student } from '../data/students';
 import { Teacher } from '../data/teachers';
+import { Class } from '../data/classes';
 
 // Validation Utility Functions
 
@@ -29,6 +30,22 @@ export const validateTeacher = (data: Partial<Teacher>): { isValid: boolean; err
                 errors.push(`${field} is required and must be a non-empty array`);
             }
         } else if (!data[field]) {
+            errors.push(`${field} is required`);
+        }
+    });
+
+    return {
+        isValid: errors.length === 0,
+        errors: errors.length > 0 ? errors : undefined,
+    };
+};
+
+export const validateClass = (data: Partial<Class>): { isValid: boolean; errors?: string[] } => {
+    const errors: string[] = [];
+    const requiredFields: (keyof Class)[] = ['name', 'classTeacherId', 'roomNo'];
+
+    requiredFields.forEach((field) => {
+        if (!data[field]) {
             errors.push(`${field} is required`);
         }
     });
