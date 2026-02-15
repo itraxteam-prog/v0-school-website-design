@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { DashboardLayout } from "@/components/portal/dashboard-layout"
+import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent } from "@/components/ui/card"
 import { LayoutDashboard, BookOpen, CalendarCheck, Clock, Megaphone, User } from "lucide-react"
 
@@ -48,7 +48,7 @@ export default function TimetablePage() {
   const [mobileDay, setMobileDay] = useState("Monday")
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems} userName="Ahmed Khan" userRole="Student">
+    <AppLayout sidebarItems={sidebarItems} userName="Ahmed Khan" userRole="Student">
       <div className="flex flex-col gap-6">
         <div>
           <h1 className="font-serif text-xl font-bold text-foreground md:text-2xl">Timetable</h1>
@@ -61,9 +61,8 @@ export default function TimetablePage() {
             <button
               key={day}
               onClick={() => setMobileDay(day)}
-              className={`shrink-0 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
-                mobileDay === day ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-              }`}
+              className={`shrink-0 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${mobileDay === day ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                }`}
             >
               {day.slice(0, 3)}
             </button>
@@ -123,6 +122,6 @@ export default function TimetablePage() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </AppLayout>
   )
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { DashboardLayout } from "@/components/portal/dashboard-layout"
+import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -29,7 +29,7 @@ const teachers = [
 
 export default function AdminTeachersPage() {
   return (
-    <DashboardLayout sidebarItems={sidebarItems} userName="Dr. Ahmad Raza" userRole="Principal">
+    <AppLayout sidebarItems={sidebarItems} userName="Dr. Ahmad Raza" userRole="Principal">
       <div className="flex flex-col gap-6">
         <div>
           <h1 className="font-serif text-xl font-bold text-foreground md:text-2xl">Teachers</h1>
@@ -88,6 +88,6 @@ export default function AdminTeachersPage() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </AppLayout>
   )
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { DashboardLayout } from "@/components/portal/dashboard-layout"
+import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -40,7 +40,7 @@ export default function AdminStudentsPage() {
   )
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems} userName="Dr. Ahmad Raza" userRole="Principal">
+    <AppLayout sidebarItems={sidebarItems} userName="Dr. Ahmad Raza" userRole="Principal">
       <div className="flex flex-col gap-6">
         <div>
           <h1 className="font-serif text-xl font-bold text-foreground md:text-2xl">Students</h1>
@@ -117,6 +117,6 @@ export default function AdminStudentsPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </AppLayout>
   )
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { DashboardLayout } from "@/components/portal/dashboard-layout"
+import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent } from "@/components/ui/card"
 import { LayoutDashboard, Users, CalendarCheck, BookMarked, FileBarChart, User, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -53,7 +53,7 @@ export default function ClassesPage() {
   const activeClass = classesData.find((c) => c.name === selectedClass)
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems} userName="Mr. Usman Sheikh" userRole="Teacher">
+    <AppLayout sidebarItems={sidebarItems} userName="Mr. Usman Sheikh" userRole="Teacher">
       <div className="flex flex-col gap-6">
         <div>
           <h1 className="font-serif text-xl font-bold text-foreground md:text-2xl">My Classes</h1>
@@ -111,6 +111,6 @@ export default function ClassesPage() {
           </>
         )}
       </div>
-    </DashboardLayout>
+    </AppLayout>
   )
 }

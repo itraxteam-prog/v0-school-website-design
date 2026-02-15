@@ -1,6 +1,6 @@
 "use client"
 
-import { DashboardLayout } from "@/components/portal/dashboard-layout"
+import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -26,7 +26,7 @@ const students = [
 
 export default function GradebookPage() {
   return (
-    <DashboardLayout sidebarItems={sidebarItems} userName="Mr. Usman Sheikh" userRole="Teacher">
+    <AppLayout sidebarItems={sidebarItems} userName="Mr. Usman Sheikh" userRole="Teacher">
       <div className="flex flex-col gap-6">
         <div>
           <h1 className="font-serif text-xl font-bold text-foreground md:text-2xl">Gradebook</h1>
@@ -94,6 +94,6 @@ export default function GradebookPage() {
         </Button>
         <p className="text-xs text-muted-foreground">This is a visual mockup. No data will be saved.</p>
       </div>
-    </DashboardLayout>
+    </AppLayout>
   )
 }

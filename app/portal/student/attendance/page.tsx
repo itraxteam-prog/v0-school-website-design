@@ -1,6 +1,6 @@
 "use client"
 
-import { DashboardLayout } from "@/components/portal/dashboard-layout"
+import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent } from "@/components/ui/card"
 import { LayoutDashboard, BookOpen, CalendarCheck, Clock, Megaphone, User } from "lucide-react"
 
@@ -44,7 +44,7 @@ const statusColors = {
 
 export default function AttendancePage() {
   return (
-    <DashboardLayout sidebarItems={sidebarItems} userName="Ahmed Khan" userRole="Student">
+    <AppLayout sidebarItems={sidebarItems} userName="Ahmed Khan" userRole="Student">
       <div className="flex flex-col gap-6">
         <div>
           <h1 className="font-serif text-xl font-bold text-foreground md:text-2xl">Attendance</h1>
@@ -114,6 +114,6 @@ export default function AttendancePage() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </AppLayout>
   )
 }
