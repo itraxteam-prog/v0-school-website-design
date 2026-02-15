@@ -55,7 +55,7 @@ export function DashboardLayout({ children, sidebarItems, userName, userRole }: 
         </div>
 
         {/* Nav Items */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
+        <nav className="flex-1 overflow-y-auto px-3 py-4 scroll-smooth" style={{ WebkitOverflowScrolling: "touch" }}>
           <ul className="flex flex-col gap-1">
             {sidebarItems.map((item) => {
               const isActive = pathname === item.href
@@ -140,7 +140,7 @@ export function DashboardLayout({ children, sidebarItems, userName, userRole }: 
         </header>
 
         {/* Content Area */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6 scroll-smooth" style={{ WebkitOverflowScrolling: "touch" }}>
           {children}
         </main>
       </div>

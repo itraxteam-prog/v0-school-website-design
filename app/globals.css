@@ -44,8 +44,12 @@
   * {
     @apply border-border;
   }
+  html {
+    scroll-behavior: smooth;
+  }
   body {
     @apply bg-background text-foreground;
+    -webkit-overflow-scrolling: touch;
   }
   h1, h2, h3 {
     @apply font-serif;
