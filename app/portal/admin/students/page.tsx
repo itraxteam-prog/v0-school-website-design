@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { AppLayout } from "@/components/layout/app-layout"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
@@ -36,7 +36,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -51,7 +50,6 @@ import {
   FileBarChart,
   Settings,
   Search,
-  Plus,
   MoreVertical,
   Edit,
   Trash2,
@@ -118,7 +116,7 @@ export default function AdminStudentsPage() {
   })
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1200)
+    const timer = setTimeout(() => setLoading(false), 800)
     return () => clearTimeout(timer)
   }, [])
 
@@ -282,7 +280,7 @@ export default function AdminStudentsPage() {
                   </div>
                   <DialogFooter className="pt-4">
                     <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-                    <Button type="submit" className="bg-primary text-white hover:bg-primary/90">Save Student</Button>
+                    <Button type="submit" className="bg-primary text-white hover:bg-primary/90 shadow-burgundy-glow">Save Student</Button>
                   </DialogFooter>
                 </form>
               </Form>
@@ -347,7 +345,7 @@ export default function AdminStudentsPage() {
                   </TableHeader>
                   <TableBody>
                     {filteredStudents.length > 0 ? (
-                      filteredStudents.map((student, i) => (
+                      filteredStudents.map((student) => (
                         <TableRow key={student.rollNo} className="border-border/50 transition-colors hover:bg-primary/5">
                           <TableCell className="pl-6 font-medium py-4">{student.rollNo}</TableCell>
                           <TableCell className="font-semibold text-foreground py-4">{student.name}</TableCell>
@@ -384,7 +382,7 @@ export default function AdminStudentsPage() {
                                 <DropdownMenuItem className="flex items-center gap-2 cursor-pointer focus:bg-primary/5 focus:text-primary">
                                   <Edit size={14} />
                                   Edit Student
-                                </MenuItem>
+                                </DropdownMenuItem>
                                 <DropdownMenuItem className="flex items-center gap-2 cursor-pointer focus:bg-destructive/5 focus:text-destructive text-destructive">
                                   <Trash2 size={14} />
                                   Delete
