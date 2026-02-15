@@ -49,14 +49,9 @@ export function AppLayout({ children, sidebarItems, userName, userRole }: AppLay
         initial={false}
         animate={{
           x: sidebarOpen ? 0 : "-100%",
-          transition: { type: "spring", bounce: 0, duration: 0.4 }
         }}
-        // Reset transform on large screens to ensure visibility
-        style={{ x: undefined }}
-        className={`fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-border bg-background lg:static lg:translate-x-0 ${
-          // This class handles the desktop visibility override
-          "lg:!translate-x-0"
-          }`}
+        transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+        className="fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-border bg-background lg:static lg:!translate-x-0"
       >
         {/* Sidebar Header */}
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
@@ -67,9 +62,18 @@ export function AppLayout({ children, sidebarItems, userName, userRole }: AppLay
               <p className="text-[10px] text-muted-foreground">{userRole}</p>
             </div>
           </Link>
-          <button className="text-muted-foreground lg:hidden" onClick={() => setSidebarOpen(false)} aria-label="Close sidebar">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground lg:hidden"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSidebarOpen(false);
+            }}
+            aria-label="Close sidebar"
+          >
             <X className="h-5 w-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Nav Items */}
