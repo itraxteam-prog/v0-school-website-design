@@ -3,6 +3,7 @@ import { Teacher } from '../data/teachers';
 import { Class } from '../data/classes';
 import { Period } from '../data/periods';
 import { Role } from '../data/roles';
+import { Announcement } from '../data/announcements';
 
 // Validation Utility Functions
 
@@ -82,6 +83,26 @@ export const validateRole = (data: Partial<Role>): { isValid: boolean; errors?: 
         if (field === 'permissions') {
             if (!data[field] || !Array.isArray(data[field])) {
                 errors.push(`${field} is required and must be an array`);
+            }
+        } else if (!data[field]) {
+            errors.push(`${field} is required`);
+        }
+    });
+
+    return {
+        isValid: errors.length === 0,
+        errors: errors.length > 0 ? errors : undefined,
+    };
+};
+
+export const validateAnnouncement = (data: Partial<Announcement>): { isValid: boolean; errors?: string[] } => {
+    const errors: string[] = [];
+    const requiredFields: (keyof Announcement)[] = ['title', 'message', 'audience'];
+
+    requiredFields.forEach((field) => {
+        if (field === 'audience') {
+            if (!data[field] || !Array.isArray(data[field]) || (data[field] as any[]).length === 0) {
+                errors.push(`${field} is required and must be a non-empty array`);
             }
         } else if (!data[field]) {
             errors.push(`${field} is required`);
