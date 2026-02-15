@@ -327,8 +327,8 @@ export default function UserManagementPage() {
                     {filteredUsers.length > 0 ? (
                       filteredUsers.map((user) => (
                         <TableRow key={user.id} className="border-border/50 transition-colors hover:bg-primary/5 group">
-                          <TableCell className="pl-6 py-4 font-semibold text-foreground">{user.name}</TableCell>
-                          <TableCell className="py-4 text-muted-foreground">{user.email}</TableCell>
+                          <TableCell className="pl-6 py-4 font-semibold text-foreground truncate max-w-[150px]" title={user.name}>{user.name}</TableCell>
+                          <TableCell className="py-4 text-muted-foreground truncate max-w-[200px]" title={user.email}>{user.email}</TableCell>
                           <TableCell className="py-4">
                             <Badge
                               variant="outline"

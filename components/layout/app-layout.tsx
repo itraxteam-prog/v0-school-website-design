@@ -56,7 +56,7 @@ export function AppLayout({ children, sidebarItems, userName, userRole }: AppLay
         className={`fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-border bg-background lg:static lg:translate-x-0 ${
           // This class handles the desktop visibility override
           "lg:!translate-x-0"
-        }`}
+          }`}
       >
         {/* Sidebar Header */}
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
@@ -92,10 +92,9 @@ export function AppLayout({ children, sidebarItems, userName, userRole }: AppLay
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       />
                     )}
-                    <span 
-                      className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                        isActive ? "text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                      }`}
+                    <span
+                      className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${isActive ? "text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        }`}
                     >
                       <item.icon className="h-[18px] w-[18px]" />
                       {item.label}
@@ -146,9 +145,12 @@ export function AppLayout({ children, sidebarItems, userName, userRole }: AppLay
 
           <div className="flex items-center gap-3">
             {/* Search */}
-            <div className="relative hidden md:block">
+            <div className="relative hidden sm:block">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Search..." className="h-9 w-48 pl-9 text-sm lg:w-64" />
+              <Input
+                placeholder="Search..."
+                className="h-9 w-40 pl-9 text-xs transition-all focus:w-48 md:w-48 lg:w-64"
+              />
             </div>
             {/* Notification */}
             <Button variant="ghost" size="icon" className="relative h-9 w-9" aria-label="Notifications">

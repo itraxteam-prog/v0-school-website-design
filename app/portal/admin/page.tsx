@@ -139,7 +139,7 @@ export default function AdminDashboard() {
                       <stat.icon size={18} />
                     </div>
                     <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{stat.label}</p>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground truncate" title={stat.label}>{stat.label}</p>
                       <div className="flex items-baseline gap-1.5">
                         <h3 className="text-lg font-bold text-foreground">{stat.value}</h3>
                         {stat.change !== "0" && (

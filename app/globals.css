@@ -63,7 +63,7 @@
 
   /* Responsive typography scale */
   .heading-1 {
-    @apply font-serif font-bold text-4xl tracking-tight leading-[1.1];
+    @apply font-serif font-bold text-4xl tracking-tight leading-[1.2] py-1;
   }
   .heading-2 {
     @apply font-serif font-semibold text-3xl tracking-tight leading-[1.2];
