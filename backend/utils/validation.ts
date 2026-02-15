@@ -1,9 +1,21 @@
-// Validation Utility Functions
-// TODO: Implement schema validation (e.g., using Zod or Joi)
+import { Student } from '../data/students';
 
-export const validateStudent = (data: any) => {
-    // Add validation logic here
-    return true;
+// Validation Utility Functions
+
+export const validateStudent = (data: Partial<Student>): { isValid: boolean; errors?: string[] } => {
+    const errors: string[] = [];
+    const requiredFields: (keyof Student)[] = ['name', 'rollNo', 'classId', 'dob', 'guardianPhone'];
+
+    requiredFields.forEach((field) => {
+        if (!data[field]) {
+            errors.push(`${field} is required`);
+        }
+    });
+
+    return {
+        isValid: errors.length === 0,
+        errors: errors.length > 0 ? errors : undefined,
+    };
 };
 
 export const validateTeacher = (data: any) => {
