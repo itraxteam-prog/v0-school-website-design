@@ -18,7 +18,8 @@ import {
   Users2,
   BarChart as BarChartIcon,
   CalendarCheck,
-  PieChart as PieChartIcon
+  PieChart as PieChartIcon,
+  ShieldCheck,
 } from "lucide-react"
 import {
   BarChart,
@@ -42,6 +43,7 @@ const sidebarItems = [
   { href: "/portal/admin/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/portal/admin/reports", label: "Reports", icon: FileBarChart },
   { href: "/portal/admin/users", label: "User Management", icon: Settings },
+  { href: "/portal/admin/roles", label: "Roles & Permissions", icon: ShieldCheck },
 ]
 
 // Mock Data

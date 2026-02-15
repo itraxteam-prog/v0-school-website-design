@@ -31,6 +31,7 @@ import {
   ArrowUpDown,
   Bell,
   CheckCircle2,
+  ShieldCheck,
 } from "lucide-react"
 import {
   LineChart,
@@ -53,6 +54,7 @@ const sidebarItems = [
   { href: "/portal/admin/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/portal/admin/reports", label: "Reports", icon: FileBarChart },
   { href: "/portal/admin/users", label: "User Management", icon: Settings },
+  { href: "/portal/admin/roles", label: "Roles & Permissions", icon: ShieldCheck },
 ]
 
 // Dummy Data
