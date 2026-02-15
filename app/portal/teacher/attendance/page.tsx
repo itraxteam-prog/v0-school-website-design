@@ -150,8 +150,8 @@ export default function TeacherAttendancePage() {
                           !date && "text-muted-foreground"
                         )}
                       >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                        <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                        <span className="truncate">{date ? format(date, "PPP") : "Pick a date"}</span>
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -198,14 +198,14 @@ export default function TeacherAttendancePage() {
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
-                    className="flex-1 h-11 border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800"
+                    className="flex-1 h-11 border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800 text-[10px] sm:text-xs font-bold uppercase tracking-tight"
                     onClick={() => markAll("present")}
                   >
                     All Present
                   </Button>
                   <Button
                     variant="outline"
-                    className="flex-1 h-11 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
+                    className="flex-1 h-11 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800 text-[10px] sm:text-xs font-bold uppercase tracking-tight"
                     onClick={() => markAll("absent")}
                   >
                     All Absent
