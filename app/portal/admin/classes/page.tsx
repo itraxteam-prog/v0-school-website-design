@@ -48,6 +48,9 @@ import {
   DoorOpen,
   Trophy,
   CalendarCheck,
+  Filter,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -411,6 +414,23 @@ export default function AdminClassesPage() {
               )}
             </div>
           )}
+        </div>
+
+        {/* Pagination UI */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pt-4">
+          <p className="text-xs text-muted-foreground">
+            Showing <span className="font-semibold text-foreground">1-{filteredClasses.length}</span> of <span className="font-semibold text-foreground">{dummyClasses.length}</span> classes
+          </p>
+          <div className="flex items-center gap-1">
+            <Button variant="outline" size="icon" className="h-9 w-9 glass-card" disabled>
+              <ChevronLeft size={16} />
+            </Button>
+            <Button variant="ghost" size="sm" className="h-9 w-9 bg-primary text-white hover:bg-primary/90">1</Button>
+            <Button variant="ghost" size="sm" className="h-9 w-9 hover:bg-primary/5">2</Button>
+            <Button variant="outline" size="icon" className="h-9 w-9 glass-card">
+              <ChevronRight size={16} />
+            </Button>
+          </div>
         </div>
       </div>
     </AppLayout>
