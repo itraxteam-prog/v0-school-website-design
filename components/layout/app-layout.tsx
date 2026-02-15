@@ -4,10 +4,11 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
-import { Bell, ChevronRight, LogOut, Menu, Search, User, X } from "lucide-react"
+import { Bell, ChevronRight, LogOut, Menu, Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { LucideIcon } from "lucide-react"
+import { AnimatePresence, motion } from "framer-motion"
 
 export interface SidebarItem {
   href: string
@@ -15,14 +16,14 @@ export interface SidebarItem {
   icon: LucideIcon
 }
 
-interface DashboardLayoutProps {
+interface AppLayoutProps {
   children: React.ReactNode
   sidebarItems: SidebarItem[]
   userName: string
   userRole: string
 }
 
-export function DashboardLayout({ children, sidebarItems, userName, userRole }: DashboardLayoutProps) {
+export function AppLayout({ children, sidebarItems, userName, userRole }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const pathname = usePathname()
 
@@ -31,14 +32,31 @@ export function DashboardLayout({ children, sidebarItems, userName, userRole }: 
   return (
     <div className="flex h-screen overflow-hidden bg-secondary">
       {/* Sidebar Overlay (mobile) */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-foreground/50 lg:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSidebarOpen(false)}
+            className="fixed inset-0 z-40 bg-foreground/50 lg:hidden"
+          />
+        )}
+      </AnimatePresence>
 
       {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-border bg-background transition-transform duration-200 lg:static lg:z-auto lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+      <motion.aside
+        initial={false}
+        animate={{
+          x: sidebarOpen ? 0 : "-100%",
+          transition: { type: "spring", bounce: 0, duration: 0.4 }
+        }}
+        // Reset transform on large screens to ensure visibility
+        style={{ x: undefined }}
+        className={`fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-border bg-background lg:static lg:translate-x-0 ${
+          // This class handles the desktop visibility override
+          "lg:!translate-x-0"
+        }`}
       >
         {/* Sidebar Header */}
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
@@ -64,13 +82,24 @@ export function DashboardLayout({ children, sidebarItems, userName, userRole }: 
                   <Link
                     href={item.href}
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${isActive
-                      ? "border-l-2 border-primary bg-primary/5 text-primary"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                      }`}
+                    className="block relative"
                   >
-                    <item.icon className="h-[18px] w-[18px]" />
-                    {item.label}
+                    {isActive && (
+                      <motion.div
+                        layoutId="active-pill"
+                        className="absolute inset-0 rounded-lg bg-primary/5 border-l-2 border-primary"
+                        initial={false}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      />
+                    )}
+                    <span 
+                      className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                        isActive ? "text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      }`}
+                    >
+                      <item.icon className="h-[18px] w-[18px]" />
+                      {item.label}
+                    </span>
                   </Link>
                 </li>
               )
@@ -88,7 +117,7 @@ export function DashboardLayout({ children, sidebarItems, userName, userRole }: 
             Logout
           </Link>
         </div>
-      </aside>
+      </motion.aside>
 
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
@@ -141,7 +170,13 @@ export function DashboardLayout({ children, sidebarItems, userName, userRole }: 
 
         {/* Content Area */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-6 scroll-smooth" style={{ WebkitOverflowScrolling: "touch" }}>
-          {children}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
+            {children}
+          </motion.div>
         </main>
       </div>
     </div>

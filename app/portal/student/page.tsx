@@ -1,7 +1,7 @@
 "use client"
 
 import { LayoutDashboard, BookOpen, CalendarCheck, Clock, Megaphone, User } from "lucide-react"
-import { DashboardLayout } from "@/components/portal/dashboard-layout"
+import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent } from "@/components/ui/card"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { AttendanceChart, PerformanceChart } from "@/components/portal/dashboard-charts"
@@ -39,7 +39,7 @@ const events = [
 
 export default function StudentDashboard() {
   return (
-    <DashboardLayout sidebarItems={sidebarItems} userName="Ahmed Khan" userRole="Student">
+    <AppLayout sidebarItems={sidebarItems} userName="Ahmed Khan" userRole="Student">
       <div className="flex flex-col gap-8">
         {/* Welcome */}
         <AnimatedWrapper direction="down">
@@ -147,6 +147,6 @@ export default function StudentDashboard() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </AppLayout>
   )
 }
