@@ -1,10 +1,26 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import {
+  LayoutDashboard,
+  Users,
+  CalendarCheck,
+  BookMarked,
+  FileBarChart,
+  User,
+  MoreVertical,
+  GraduationCap,
+  MapPin,
+  TrendingUp,
+  ExternalLink,
+} from "lucide-react"
 import { AppLayout } from "@/components/layout/app-layout"
-import { Card, CardContent } from "@/components/ui/card"
-import { LayoutDashboard, Users, CalendarCheck, BookMarked, FileBarChart, User, ArrowLeft } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Badge } from "@/components/ui/badge"
+import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
+import { cn } from "@/lib/utils"
 
 const sidebarItems = [
   { href: "/portal/teacher", label: "Dashboard", icon: LayoutDashboard },
@@ -17,98 +33,181 @@ const sidebarItems = [
 
 const classesData = [
   {
+    id: "c1",
     name: "Grade 10-A",
     subject: "Mathematics",
-    students: [
-      { name: "Ahmed Khan", rollNo: "2025-0142", gpa: "3.75" },
-      { name: "Sara Ali", rollNo: "2025-0143", gpa: "3.90" },
-      { name: "Hamza Butt", rollNo: "2025-0144", gpa: "3.40" },
-      { name: "Fatima Noor", rollNo: "2025-0145", gpa: "3.85" },
-      { name: "Bilal Shah", rollNo: "2025-0146", gpa: "3.20" },
-    ],
+    studentCount: 32,
+    room: "Room 201",
+    performance: 88,
+    lastActive: "Today",
+    color: "from-blue-500/10 to-transparent",
   },
   {
+    id: "c2",
     name: "Grade 10-B",
     subject: "Mathematics",
-    students: [
-      { name: "Zain Malik", rollNo: "2025-0201", gpa: "3.60" },
-      { name: "Aisha Rehman", rollNo: "2025-0202", gpa: "3.95" },
-      { name: "Omar Farooq", rollNo: "2025-0203", gpa: "3.30" },
-      { name: "Hira Jamil", rollNo: "2025-0204", gpa: "3.70" },
-    ],
+    studentCount: 30,
+    room: "Room 201",
+    performance: 82,
+    lastActive: "Today",
+    color: "from-purple-500/10 to-transparent",
   },
   {
+    id: "c3",
     name: "Grade 9-A",
     subject: "Mathematics",
-    students: [
-      { name: "Ali Raza", rollNo: "2025-0301", gpa: "3.80" },
-      { name: "Maryam Iqbal", rollNo: "2025-0302", gpa: "3.55" },
-      { name: "Usman Tariq", rollNo: "2025-0303", gpa: "3.45" },
-    ],
+    studentCount: 35,
+    room: "Room 203",
+    performance: 79,
+    lastActive: "Yesterday",
+    color: "from-emerald-500/10 to-transparent",
+  },
+  {
+    id: "c4",
+    name: "Grade 11-C",
+    subject: "Advanced Calculus",
+    studentCount: 28,
+    room: "Lab 102",
+    performance: 91,
+    lastActive: "2 days ago",
+    color: "from-amber-500/10 to-transparent",
   },
 ]
 
-export default function ClassesPage() {
-  const [selectedClass, setSelectedClass] = useState<string | null>(null)
-  const activeClass = classesData.find((c) => c.name === selectedClass)
+export default function TeacherClassesPage() {
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 1200)
+    return () => clearTimeout(timer)
+  }, [])
 
   return (
-    <AppLayout sidebarItems={sidebarItems} userName="Mr. Usman Sheikh" userRole="Teacher">
-      <div className="flex flex-col gap-6">
-        <div>
-          <h1 className="font-serif text-xl font-bold text-foreground md:text-2xl">My Classes</h1>
-          <p className="text-sm text-muted-foreground">View class details and student lists.</p>
+    <AppLayout sidebarItems={sidebarItems} userName="Mr. Usman Sheikh" userRole="teacher">
+      <div className="flex flex-col gap-8 pb-8">
+        {/* Header */}
+        <AnimatedWrapper direction="down">
+          <div className="flex flex-col gap-1">
+            <h1 className="heading-2 text-burgundy-gradient">My Classes</h1>
+            <p className="text-sm text-muted-foreground">Manage your assigned classes and monitor student progress.</p>
+          </div>
+        </AnimatedWrapper>
+
+        {/* Classes Grid */}
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {loading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="glass-panel border-border/50 overflow-hidden">
+                <CardHeader className="pb-4">
+                  <div className="flex justify-between items-start">
+                    <Skeleton className="h-6 w-32" />
+                    <Skeleton className="h-4 w-4 rounded" />
+                  </div>
+                  <Skeleton className="h-4 w-24 mt-2" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-4 w-4 rounded-full" />
+                    <Skeleton className="h-4 w-28" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-4 w-4 rounded-full" />
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <Skeleton className="h-3 w-32" />
+                      <Skeleton className="h-3 w-8" />
+                    </div>
+                    <Skeleton className="h-2 w-full rounded-full" />
+                  </div>
+                </CardContent>
+                <CardFooter className="pt-2">
+                  <Skeleton className="h-10 w-full rounded-lg" />
+                </CardFooter>
+              </Card>
+            ))
+          ) : (
+            classesData.map((cls, index) => (
+              <AnimatedWrapper key={cls.id} delay={index * 0.1}>
+                <Card className={cn(
+                  "glass-card group overflow-hidden border-border/50 hover:border-primary/30",
+                  "bg-gradient-to-br", cls.color
+                )}>
+                  <CardHeader className="pb-4 relative">
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="heading-3 text-lg">{cls.name}</CardTitle>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2 text-muted-foreground hover:text-primary">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <p className="text-sm font-medium text-primary mt-0.5">{cls.subject}</p>
+                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                      <GraduationCap className="h-16 w-16" />
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="space-y-5">
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-2 text-sm text-foreground/80">
+                        <Users className="h-4 w-4 text-primary" />
+                        <span>{cls.studentCount} Students Enrolled</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-foreground/80">
+                        <MapPin className="h-4 w-4 text-primary" />
+                        <span>{cls.room}</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-end">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                          <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
+                          Average Performance
+                        </div>
+                        <span className="text-sm font-bold text-foreground">{cls.performance}%</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-muted/50 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-primary transition-all duration-1000 ease-out"
+                          style={{ width: `${cls.performance}%` }}
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+
+                  <CardFooter className="pt-2 border-t border-border/30 bg-muted/10">
+                    <Button variant="ghost" className="w-full justify-between items-center group-hover:bg-primary group-hover:text-white transition-all text-sm font-semibold">
+                      <span>Manage Class</span>
+                      <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </AnimatedWrapper>
+            ))
+          )}
         </div>
 
-        {!selectedClass ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {classesData.map((c) => (
-              <Card
-                key={c.name}
-                className="cursor-pointer border-border transition-all hover:border-primary/20 hover:shadow-md"
-                onClick={() => setSelectedClass(c.name)}
-              >
-                <CardContent className="p-5">
-                  <h3 className="font-serif text-base font-semibold text-foreground">{c.name}</h3>
-                  <p className="text-sm text-primary">{c.subject}</p>
-                  <p className="mt-2 text-xs text-muted-foreground">{c.students.length} students</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <>
-            <Button variant="ghost" className="w-fit gap-2 text-muted-foreground" onClick={() => setSelectedClass(null)}>
-              <ArrowLeft className="h-4 w-4" /> Back to Classes
-            </Button>
-            <Card className="border-border">
-              <CardContent className="p-0">
-                <div className="border-b border-border px-5 py-4">
-                  <h2 className="font-serif text-base font-semibold text-foreground">{activeClass?.name} - {activeClass?.subject}</h2>
+        {/* Info Box */}
+        {!loading && (
+          <AnimatedWrapper delay={0.5}>
+            <div className="mt-4 rounded-xl border border-primary/10 bg-primary/5 p-4 md:p-6 lg:flex lg:items-center lg:justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-lg">
+                  <CalendarCheck className="h-6 w-6" />
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[400px] text-left text-sm">
-                    <thead>
-                      <tr className="border-b border-border bg-muted">
-                        <th className="px-5 py-3 font-semibold text-foreground">Student Name</th>
-                        <th className="px-5 py-3 font-semibold text-foreground">Roll No.</th>
-                        <th className="px-5 py-3 font-semibold text-foreground">GPA</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {activeClass?.students.map((s, i) => (
-                        <tr key={s.rollNo} className={`border-b border-border transition-colors hover:bg-primary/5 ${i % 2 !== 0 ? "bg-muted/50" : ""}`}>
-                          <td className="px-5 py-3 font-medium text-foreground">{s.name}</td>
-                          <td className="px-5 py-3 text-muted-foreground">{s.rollNo}</td>
-                          <td className="px-5 py-3 text-muted-foreground">{s.gpa}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div>
+                  <h4 className="font-semibold text-foreground">Weekly Overview</h4>
+                  <p className="text-sm text-muted-foreground mt-0.5">You have 12 total teaching hours across {classesData.length} classes this week.</p>
                 </div>
-              </CardContent>
-            </Card>
-          </>
+              </div>
+              <Button className="mt-4 lg:mt-0 w-full lg:w-auto bg-primary text-white hover:bg-primary/90">
+                View Full Timetable
+              </Button>
+            </div>
+          </AnimatedWrapper>
         )}
       </div>
     </AppLayout>
