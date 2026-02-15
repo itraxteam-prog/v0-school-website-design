@@ -4,6 +4,7 @@ import { Class } from '../data/classes';
 import { Period } from '../data/periods';
 import { Role } from '../data/roles';
 import { Announcement } from '../data/announcements';
+import { SchoolSettings } from '../data/settings';
 
 // Validation Utility Functions
 
@@ -105,6 +106,22 @@ export const validateAnnouncement = (data: Partial<Announcement>): { isValid: bo
                 errors.push(`${field} is required and must be a non-empty array`);
             }
         } else if (!data[field]) {
+            errors.push(`${field} is required`);
+        }
+    });
+
+    return {
+        isValid: errors.length === 0,
+        errors: errors.length > 0 ? errors : undefined,
+    };
+};
+
+export const validateSettings = (data: Partial<SchoolSettings>): { isValid: boolean; errors?: string[] } => {
+    const errors: string[] = [];
+    const requiredFields: (keyof SchoolSettings)[] = ['termStructure', 'schoolHours', 'maxClassesPerDay', 'defaultFeeStructure'];
+
+    requiredFields.forEach((field) => {
+        if (!data[field]) {
             errors.push(`${field} is required`);
         }
     });
