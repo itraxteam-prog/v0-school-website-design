@@ -76,6 +76,7 @@ const sidebarItems = [
   { href: "/portal/admin/reports", label: "Reports", icon: FileBarChart },
   { href: "/portal/admin/users", label: "User Management", icon: Settings },
   { href: "/portal/admin/roles", label: "Roles & Permissions", icon: ShieldCheck },
+  { href: "/portal/admin/school-settings", label: "School Settings", icon: Settings },
 ]
 
 const userSchema = z.object({
