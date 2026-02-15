@@ -29,12 +29,11 @@ export function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3" aria-label="The Pioneers High School Home">
             <Image
-              src="/images/logo_recolored_nav.png"
+              src="/images/logo-new.png"
               alt="The Pioneers High School Logo"
-              width={200}
-              height={200}
+              width={70}
+              height={70}
               className="h-[50px] w-[50px] object-contain transition-transform duration-300 hover:scale-110 lg:h-[70px] lg:w-[70px]"
-              style={{ mixBlendMode: 'multiply' }}
               priority
             />
             <div className="hidden sm:block">
