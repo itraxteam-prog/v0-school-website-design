@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useToast } from "@/components/ui/use-toast"
 import {
   Table,
   TableBody,
@@ -58,10 +59,14 @@ import {
   Filter,
   UserPlus,
   ShieldCheck,
+  Loader2,
+  AlertCircle,
+  RefreshCcw,
 } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
+import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 
 const sidebarItems = [
   { href: "/portal/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -76,370 +81,435 @@ const sidebarItems = [
 ]
 
 const teacherSchema = z.object({
-  fullName: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   employeeId: z.string().min(4, { message: "Employee ID must be at least 4 characters." }),
-  email: z.string().email({ message: "Invalid email address." }),
-  phone: z.string().min(10, { message: "Invalid phone number." }),
-  subjects: z.string().min(1, { message: "Please enter subjects." }),
-  classesManaged: z.string().min(1, { message: "Please enter classes managed." }),
-  qualification: z.string().min(1, { message: "Please enter qualification." }),
-  dateOfJoining: z.string().min(1, { message: "Please select date of joining." }),
-  status: z.enum(["Active", "Inactive"]),
+  departments: z.string().min(1, { message: "Please enter departments." }),
+  assignedClasses: z.string().min(1, { message: "Please enter assigned classes." }),
 })
 
 type TeacherFormValues = z.infer<typeof teacherSchema>
 
-const dummyTeachers = [
-  { empId: "T-2024-001", name: "Mr. Usman Sheikh", subjects: "Mathematics, Stats", classes: "10-A, 10-B", contact: "0321-4567890", status: "Active" },
-  { empId: "T-2024-002", name: "Dr. Ayesha Siddiqui", subjects: "Physics", classes: "9-A, 10-A", contact: "0333-1234567", status: "Active" },
-  { empId: "T-2024-003", name: "Ms. Nadia Jamil", subjects: "English Literature", classes: "8-A, 8-B, 9-A", contact: "0300-9876543", status: "Active" },
-  { empId: "T-2024-004", name: "Mr. Bilal Ahmed", subjects: "Computer Science", classes: "10-B, 11-A", contact: "0345-5554433", status: "Active" },
-  { empId: "T-2024-005", name: "Dr. Zainab Rizvi", subjects: "Chemistry", classes: "9-B, 10-B", contact: "0312-3332211", status: "Active" },
-  { empId: "T-2024-006", name: "Ms. Hira Farooq", subjects: "Biology", classes: "9-A, 9-B", contact: "0322-1110099", status: "Active" },
-  { empId: "T-2024-007", name: "Mr. Tariq Mehmood", subjects: "Urdu", classes: "8-A, 10-A", contact: "0301-4445566", status: "Inactive" },
-]
+interface Teacher extends TeacherFormValues {
+  _id?: string;
+  id?: string;
+}
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AdminTeachersPage() {
+  const [teachers, setTeachers] = useState<Teacher[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const { toast } = useToast()
 
   const form = useForm<TeacherFormValues>({
     resolver: zodResolver(teacherSchema),
     defaultValues: {
-      fullName: "",
+      name: "",
       employeeId: "",
-      email: "",
-      phone: "",
-      subjects: "",
-      classesManaged: "",
-      qualification: "",
-      dateOfJoining: "",
-      status: "Active",
+      departments: "",
+      assignedClasses: "",
     },
   })
 
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800)
-    return () => clearTimeout(timer)
-  }, [])
+  const fetchTeachers = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await fetch(`${API_URL}/teachers`)
+      if (!response.ok) throw new Error("Failed to fetch teachers")
+      const data = await response.json()
+      setTeachers(data)
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred")
+      toast({
+        title: "Error",
+        description: "Could not load teachers. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }, [toast])
 
-  function onSubmit(data: TeacherFormValues) {
-    console.log(data)
-    setIsModalOpen(false)
-    form.reset()
+  useEffect(() => {
+    fetchTeachers()
+  }, [fetchTeachers])
+
+  useEffect(() => {
+    if (editingTeacher) {
+      form.reset({
+        name: editingTeacher.name,
+        employeeId: editingTeacher.employeeId,
+        departments: editingTeacher.departments,
+        assignedClasses: editingTeacher.assignedClasses,
+      })
+    } else {
+      form.reset({
+        name: "",
+        employeeId: "",
+        departments: "",
+        assignedClasses: "",
+      })
+    }
+  }, [editingTeacher, form])
+
+  const onSubmit = async (data: TeacherFormValues) => {
+    setIsSubmitting(true)
+    try {
+      const teacherId = editingTeacher?.id || editingTeacher?._id
+      const url = editingTeacher
+        ? `${API_URL}/teachers/${teacherId}`
+        : `${API_URL}/teachers`
+      const method = editingTeacher ? "PUT" : "POST"
+
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+
+      if (!response.ok) throw new Error(`Failed to ${editingTeacher ? 'update' : 'add'} teacher`)
+
+      toast({
+        title: "Success",
+        description: `Teacher ${editingTeacher ? 'updated' : 'added'} successfully.`,
+      })
+
+      setIsModalOpen(false)
+      setEditingTeacher(null)
+      fetchTeachers()
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
-  const filteredTeachers = dummyTeachers.filter(teacher =>
+  const handleDelete = async (teacher: Teacher) => {
+    const id = teacher.id || teacher._id
+    if (!confirm(`Are you sure you want to delete ${teacher.name}?`)) return
+
+    try {
+      const response = await fetch(`${API_URL}/teachers/${id}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) throw new Error("Failed to delete teacher")
+
+      toast({
+        title: "Deleted",
+        description: "Teacher has been removed from the system.",
+      })
+      fetchTeachers()
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleEdit = (teacher: Teacher) => {
+    setEditingTeacher(teacher)
+    setIsModalOpen(true)
+  }
+
+  const filteredTeachers = (teachers || []).filter(teacher =>
     teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    teacher.empId.toLowerCase().includes(searchTerm.toLowerCase())
+    teacher.employeeId.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   return (
     <AppLayout sidebarItems={sidebarItems} userName="Dr. Ahmad Raza" userRole="admin">
       <div className="flex flex-col gap-8 pb-8">
+        <AnimatedWrapper direction="down">
+          {/* Header Section */}
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-1">
+              <h1 className="heading-1 text-burgundy-gradient">Teacher Management</h1>
+              <p className="text-sm text-muted-foreground">Manage faculty records, assignments, and schedules.</p>
+            </div>
 
-        {/* Header Section */}
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-col gap-1">
-            <h1 className="heading-1 text-burgundy-gradient">Teacher Management</h1>
-            <p className="text-sm text-muted-foreground">Manage faculty records, assignments, and schedules.</p>
-          </div>
-
-          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-primary text-white hover:bg-primary/90 flex items-center gap-2 h-11 px-6 shadow-burgundy-glow">
-                <UserPlus className="h-4 w-4" />
-                Add New Teacher
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] glass-panel border-border/50 max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="heading-3">Add Teacher</DialogTitle>
-                <DialogDescription>
-                  Enter official teacher details below to add them to the faculty list.
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="fullName"
-                      render={({ field }) => (
-                        <FormItem className="sm:col-span-2">
-                          <FormLabel>Full Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Dr. Sarah Johnson" {...field} className="glass-card" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="employeeId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Employee ID</FormLabel>
-                          <FormControl>
-                            <Input placeholder="T-2024-XXXX" {...field} className="glass-card" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="status"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Status</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <Dialog open={isModalOpen} onOpenChange={(open) => {
+              setIsModalOpen(open)
+              if (!open) setEditingTeacher(null)
+            }}>
+              <DialogTrigger asChild>
+                <Button className="bg-primary text-white hover:bg-primary/90 flex items-center gap-2 h-11 px-6 shadow-burgundy-glow">
+                  <UserPlus className="h-4 w-4" />
+                  Add New Teacher
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px] glass-panel border-border/50">
+                <DialogHeader>
+                  <DialogTitle className="heading-3">{editingTeacher ? 'Edit Teacher' : 'Add Teacher'}</DialogTitle>
+                  <DialogDescription>
+                    {editingTeacher ? 'Update the faculty member details below.' : 'Enter official teacher details below to add them to the faculty list.'}
+                  </DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem className="col-span-2">
+                            <FormLabel>Full Name</FormLabel>
                             <FormControl>
-                              <SelectTrigger className="glass-card">
-                                <SelectValue placeholder="Select status" />
-                              </SelectTrigger>
+                              <Input placeholder="Dr. Sarah Johnson" {...field} className="glass-card" />
                             </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Active">Active</SelectItem>
-                              <SelectItem value="Inactive">Inactive</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email Address</FormLabel>
-                          <FormControl>
-                            <Input type="email" placeholder="sarah.j@school.edu" {...field} className="glass-card" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="phone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Phone Number</FormLabel>
-                          <FormControl>
-                            <Input placeholder="03XXXXXXXXX" {...field} className="glass-card" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="subjects"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Subjects</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Math, Physics" {...field} className="glass-card" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="classesManaged"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Classes Managed</FormLabel>
-                          <FormControl>
-                            <Input placeholder="10-A, 10-B" {...field} className="glass-card" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="qualification"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Qualification</FormLabel>
-                          <FormControl>
-                            <Input placeholder="M.Phil, Ph.D." {...field} className="glass-card" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="dateOfJoining"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Date of Joining</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} className="glass-card" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <DialogFooter className="pt-4">
-                    <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-                    <Button type="submit" className="bg-primary text-white hover:bg-primary/90 shadow-burgundy-glow">Add Teacher</Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-        </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="employeeId"
+                        render={({ field }) => (
+                          <FormItem className="col-span-2">
+                            <FormLabel>Employee ID</FormLabel>
+                            <FormControl>
+                              <Input placeholder="T-2024-XXXX" {...field} className="glass-card" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="departments"
+                        render={({ field }) => (
+                          <FormItem className="col-span-2">
+                            <FormLabel>Departments</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Mathematics, Physics" {...field} className="glass-card" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="assignedClasses"
+                        render={({ field }) => (
+                          <FormItem className="col-span-2">
+                            <FormLabel>Assigned Classes</FormLabel>
+                            <FormControl>
+                              <Input placeholder="10-A, 9-B, 11-C" {...field} className="glass-card" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <DialogFooter className="pt-4">
+                      <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+                      <Button type="submit" disabled={isSubmitting} className="bg-primary text-white hover:bg-primary/90 shadow-burgundy-glow min-w-[120px]">
+                        {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : (editingTeacher ? 'Update Record' : 'Add Teacher')}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </AnimatedWrapper>
 
         {/* Controls Section */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-center">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search by name or employee ID..."
-              className="h-11 pl-9 glass-card"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        <AnimatedWrapper delay={0.1}>
+          <div className="flex flex-col gap-4 md:flex-row md:items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search by name or employee ID..."
+                className="h-11 pl-9 glass-card"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={fetchTeachers}
+                className="h-11 w-11 glass-card"
+                title="Refresh Data"
+              >
+                <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              </Button>
+              <Select defaultValue="all">
+                <SelectTrigger className="h-11 w-[150px] glass-card">
+                  <SelectValue placeholder="All Subjects" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Subjects</SelectItem>
+                  <SelectItem value="math">Mathematics</SelectItem>
+                  <SelectItem value="physics">Physics</SelectItem>
+                  <SelectItem value="english">English</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="outline" className="h-11 flex items-center gap-2 glass-card">
+                <Filter className="h-4 w-4" />
+                More Filters
+              </Button>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Select defaultValue="all">
-              <SelectTrigger className="h-11 w-[150px] glass-card">
-                <SelectValue placeholder="All Subjects" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Subjects</SelectItem>
-                <SelectItem value="math">Mathematics</SelectItem>
-                <SelectItem value="physics">Physics</SelectItem>
-                <SelectItem value="english">English</SelectItem>
-                <SelectItem value="cs">Computer Science</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select defaultValue="all">
-              <SelectTrigger className="h-11 w-[120px] glass-card">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" className="h-11 flex items-center gap-2 glass-card">
-              <Filter className="h-4 w-4" />
-              More Filters
-            </Button>
-          </div>
-        </div>
+        </AnimatedWrapper>
 
         {/* Teachers Table */}
-        <Card className="glass-panel border-border/50 overflow-hidden">
-          <CardContent className="p-0">
-            {loading ? (
-              <div className="p-6 space-y-4">
-                <Skeleton className="h-10 w-full rounded-md" />
-                {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
-                ))}
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader className="bg-muted/30">
-                    <TableRow className="border-border/50 hover:bg-transparent">
-                      <TableHead className="pl-6 font-semibold h-12 uppercase text-[10px] tracking-wider">Emp ID</TableHead>
-                      <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Name</TableHead>
-                      <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Subjects</TableHead>
-                      <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider text-center">Classes</TableHead>
-                      <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Contact</TableHead>
-                      <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Status</TableHead>
-                      <TableHead className="pr-6 text-right font-semibold h-12 uppercase text-[10px] tracking-wider">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredTeachers.length > 0 ? (
-                      filteredTeachers.map((teacher) => (
-                        <TableRow key={teacher.empId} className="border-border/50 transition-colors hover:bg-primary/5">
-                          <TableCell className="pl-6 font-medium py-4">{teacher.empId}</TableCell>
-                          <TableCell className="font-semibold text-foreground py-4">{teacher.name}</TableCell>
-                          <TableCell className="py-4 text-muted-foreground">{teacher.subjects}</TableCell>
-                          <TableCell className="py-4 text-center">
-                            <Badge variant="secondary" className="bg-primary/5 text-primary border-none">
-                              {teacher.classes}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="py-4 text-muted-foreground">{teacher.contact}</TableCell>
-                          <TableCell className="py-4">
-                            <Badge
-                              className={teacher.status === "Active"
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                : "bg-amber-50 text-amber-700 border-amber-200"
-                              }
-                            >
-                              {teacher.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="pr-6 text-right py-4">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary">
-                                  <MoreVertical size={16} />
+        <AnimatedWrapper delay={0.2}>
+          <Card className="glass-panel border-border/50 overflow-hidden shadow-xl">
+            <CardContent className="p-0">
+              {loading ? (
+                <div className="p-6 space-y-4">
+                  <div className="flex gap-4">
+                    <Skeleton className="h-10 w-1/4" />
+                    <Skeleton className="h-10 w-1/4" />
+                    <Skeleton className="h-10 w-1/4" />
+                    <Skeleton className="h-10 w-1/4" />
+                  </div>
+                  {[...Array(5)].map((_, i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
+              ) : error ? (
+                <div className="p-12 flex flex-col items-center justify-center text-center gap-4">
+                  <div className="h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center text-destructive">
+                    <AlertCircle className="h-6 w-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="font-semibold text-lg">Failed to load data</h3>
+                    <p className="text-muted-foreground max-w-sm">{error}</p>
+                  </div>
+                  <Button onClick={fetchTeachers} variant="outline" className="gap-2">
+                    <RefreshCcw className="h-4 w-4" />
+                    Try Again
+                  </Button>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader className="bg-muted/30">
+                      <TableRow className="border-border/50 hover:bg-transparent">
+                        <TableHead className="pl-6 font-semibold h-12 uppercase text-[10px] tracking-wider">Name</TableHead>
+                        <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Employee ID</TableHead>
+                        <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Departments</TableHead>
+                        <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Assigned Classes</TableHead>
+                        <TableHead className="pr-6 text-right font-semibold h-12 uppercase text-[10px] tracking-wider">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredTeachers.length > 0 ? (
+                        filteredTeachers.map((teacher, index) => (
+                          <TableRow
+                            key={teacher.id || teacher._id || index}
+                            className="border-border/50 transition-colors hover:bg-primary/5 group"
+                          >
+                            <TableCell className="pl-6 font-semibold text-foreground py-4">{teacher.name}</TableCell>
+                            <TableCell className="font-medium">
+                              <span className="bg-primary/5 text-primary px-2 py-1 rounded text-xs font-bold">
+                                {teacher.employeeId}
+                              </span>
+                            </TableCell>
+                            <TableCell className="py-4 text-muted-foreground font-medium">{teacher.departments}</TableCell>
+                            <TableCell className="py-4 text-muted-foreground">
+                              <div className="flex flex-wrap gap-1">
+                                {teacher.assignedClasses.split(',').map((cls, idx) => (
+                                  <Badge key={idx} variant="secondary" className="bg-muted/50 text-[10px] h-5">
+                                    {cls.trim()}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </TableCell>
+                            <TableCell className="pr-6 text-right py-4">
+                              <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleEdit(teacher)}
+                                  className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                                >
+                                  <Edit size={16} />
                                 </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="glass-panel border-border/50">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuSeparator className="bg-border/50" />
-                                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer focus:bg-primary/5 focus:text-primary">
-                                  <Edit size={14} />
-                                  Edit Record
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer focus:bg-destructive/5 focus:text-destructive text-destructive">
-                                  <Trash2 size={14} />
-                                  Terminate Contract
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleDelete(teacher)}
+                                  className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                >
+                                  <Trash2 size={16} />
+                                </Button>
+                              </div>
+                              {/* Mobile view dropdown */}
+                              <div className="md:hidden">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                      <MoreVertical size={16} />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="glass-panel border-border/50">
+                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                    <DropdownMenuSeparator className="bg-border/50" />
+                                    <DropdownMenuItem onClick={() => handleEdit(teacher)} className="flex items-center gap-2 cursor-pointer">
+                                      <Edit size={14} />
+                                      Edit
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleDelete(teacher)} className="flex items-center gap-2 cursor-pointer text-destructive">
+                                      <Trash2 size={14} />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
+                            {searchTerm ? "No teachers found matching your search." : "No faculty members registered yet."}
                           </TableCell>
                         </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
-                          No teachers found matching your search criteria.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </AnimatedWrapper>
 
         {/* Pagination UI */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <p className="text-xs text-muted-foreground">
-            Showing <span className="font-semibold text-foreground">1-{filteredTeachers.length}</span> of <span className="font-semibold text-foreground">{dummyTeachers.length}</span> faculty members
-          </p>
-          <div className="flex items-center gap-1">
-            <Button variant="outline" size="icon" className="h-9 w-9 glass-card" disabled>
-              <ChevronLeft size={16} />
-            </Button>
-            <Button variant="ghost" size="sm" className="h-9 w-9 bg-primary text-white hover:bg-primary/90">1</Button>
-            <Button variant="ghost" size="sm" className="h-9 w-9 hover:bg-primary/5">2</Button>
-            <Button variant="outline" size="icon" className="h-9 w-9 glass-card">
-              <ChevronRight size={16} />
-            </Button>
+        <AnimatedWrapper delay={0.3}>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <p className="text-xs text-muted-foreground">
+              Showing <span className="font-semibold text-foreground">1-{filteredTeachers.length}</span> of <span className="font-semibold text-foreground">{teachers.length}</span> faculty members
+            </p>
+            <div className="flex items-center gap-1">
+              <Button variant="outline" size="icon" className="h-9 w-9 glass-card" disabled>
+                <ChevronLeft size={16} />
+              </Button>
+              <Button variant="ghost" size="sm" className="h-9 w-9 bg-primary text-white hover:bg-primary/90 rounded-md">1</Button>
+              <Button variant="ghost" size="sm" className="h-9 w-9 hover:bg-primary/5 rounded-md">2</Button>
+              <Button variant="outline" size="icon" className="h-9 w-9 glass-card">
+                <ChevronRight size={16} />
+              </Button>
+            </div>
           </div>
-        </div>
+        </AnimatedWrapper>
       </div>
     </AppLayout>
   )
