@@ -12,26 +12,62 @@ export interface AuthResponse {
 
 const resetTokens = new Map<string, { email: string; expires: number }>();
 
-export const AuthService = {
-    /**
-     * Validate password strength
-     * Min 8 chars, 1 number, 1 special character
-     */
-    validatePasswordStrength: (password: string): boolean => {
-        const regex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
-        return regex.test(password);
-    },
+export interface LoginResult {
+    user?: Omit<User, 'password'>;
+    token?: string;
+    error?: string;
+}
 
-    login: async (email: string, password: string, rememberMe: boolean = false): Promise<AuthResponse | null> => {
-        // ... (existing implementation)
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCK_TIME_MS = 15 * 60 * 1000; // 15 minutes
+
+export const AuthService = {
+    // ... (validatePasswordStrength remains above)
+
+    login: async (email: string, password: string, rememberMe: boolean = false): Promise<LoginResult> => {
+        // Simulate async database call
         await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Find user by email first
         const user = users.find(u => u.email === email);
-        if (!user) return null;
+
+        if (!user) {
+            return { error: 'Invalid email or password' };
+        }
+
+        // Check if account is locked
+        if (user.lockUntil && user.lockUntil > Date.now()) {
+            return { error: 'Account locked. Try again later.' };
+        }
+
+        // Verify password using bcrypt
         const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) return null;
+
+        if (!isPasswordValid) {
+            // Increment failed attempts
+            user.failedLoginAttempts += 1;
+
+            if (user.failedLoginAttempts >= MAX_FAILED_ATTEMPTS) {
+                user.lockUntil = Date.now() + LOCK_TIME_MS;
+                return { error: 'Account locked. Try again later.' };
+            }
+
+            return { error: 'Invalid email or password' };
+        }
+
+        // Reset failed attempts on successful login
+        user.failedLoginAttempts = 0;
+        user.lockUntil = null;
+
         const token = AuthService.generateToken(user, rememberMe);
+
+        // Return user without password
         const { password: _, ...userWithoutPassword } = user;
-        return { user: userWithoutPassword, token };
+
+        return {
+            user: userWithoutPassword,
+            token
+        };
     },
 
     changePassword: async (userId: string, currentPassword: string, newPassword: string): Promise<{ success: boolean; message: string }> => {

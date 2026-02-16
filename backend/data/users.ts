@@ -4,6 +4,8 @@ export interface User {
     password: string;
     name: string;
     role: 'admin' | 'teacher' | 'student' | 'parent';
+    failedLoginAttempts: number;
+    lockUntil: number | null;
 }
 
 export const users: User[] = [
@@ -13,7 +15,9 @@ export const users: User[] = [
         name: 'Dr. Ahmad Raza',
         // password123 hashed with bcrypt (saltRounds: 10)
         password: '$2b$10$8LzLLtOlFnrhhB5jxeMxhO3VVTr9de0cSKziDXopNSJaJx4g/1Bza',
-        role: 'admin'
+        role: 'admin',
+        failedLoginAttempts: 0,
+        lockUntil: null
     },
     {
         id: 'u-teacher-1',
@@ -21,7 +25,9 @@ export const users: User[] = [
         name: 'Mr. Usman Sheikh',
         // password123 hashed with bcrypt (saltRounds: 10)
         password: '$2b$10$8LzLLtOlFnrhhB5jxeMxhO3VVTr9de0cSKziDXopNSJaJx4g/1Bza',
-        role: 'teacher'
+        role: 'teacher',
+        failedLoginAttempts: 0,
+        lockUntil: null
     },
     {
         id: 'u-student-1',
@@ -29,6 +35,8 @@ export const users: User[] = [
         name: 'Ahmed Khan',
         // password123 hashed with bcrypt (saltRounds: 10)
         password: '$2b$10$8LzLLtOlFnrhhB5jxeMxhO3VVTr9de0cSKziDXopNSJaJx4g/1Bza',
-        role: 'student'
+        role: 'student',
+        failedLoginAttempts: 0,
+        lockUntil: null
     }
 ];

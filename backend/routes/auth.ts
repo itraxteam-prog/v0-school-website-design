@@ -11,8 +11,8 @@ export const authRoutes = {
             const { email, password, rememberMe } = credentials;
             const result = await AuthService.login(email, password, !!rememberMe);
 
-            if (!result) {
-                return { status: 401, error: 'Invalid email or password' };
+            if (result.error) {
+                return { status: 401, error: result.error };
             }
 
             return {
