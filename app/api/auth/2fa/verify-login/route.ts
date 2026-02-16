@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthService } from '@/backend/services/authService';
+import { AuditService } from '@/backend/services/auditService';
 
 export async function POST(req: NextRequest) {
+    const ip = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
+    const userAgent = req.headers.get('user-agent') || 'unknown';
+    const metadata = { ip, userAgent };
+
     try {
         const { tempToken, code, rememberMe } = await req.json();
 
@@ -12,10 +17,17 @@ export async function POST(req: NextRequest) {
         const result = await AuthService.verify2FALogin(tempToken, code);
 
         if (result.error || !result.token) {
+            // Log failed 2FA login
+            await AuditService.logLoginAttempt('pending_2fa', 'failure', { ...metadata, error: result.error || '2FA Verification failed' });
             return NextResponse.json({
                 success: false,
                 message: result.error || 'Verification failed'
             }, { status: result.status || 401 });
+        }
+
+        // Log successful 2FA login
+        if (result.user?.id) {
+            await AuditService.logLoginAttempt(result.user.id, 'success', { ...metadata, auth_type: '2fa' });
         }
 
         // Create response

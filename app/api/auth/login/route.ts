@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthService } from '@/backend/services/authService';
+import { AuditService } from '@/backend/services/auditService';
 
 export async function POST(req: NextRequest) {
+    const ip = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
+    const userAgent = req.headers.get('user-agent') || 'unknown';
+    const metadata = { ip, userAgent };
+
     try {
         const { email, password, rememberMe } = await req.json();
 
@@ -12,6 +17,8 @@ export async function POST(req: NextRequest) {
         const result = await AuthService.login(email, password);
 
         if (result.error) {
+            // Log failed login
+            await AuditService.logLoginAttempt(email, 'failure', { ...metadata, error: result.error });
             return NextResponse.json({
                 success: false,
                 message: result.error
@@ -20,6 +27,7 @@ export async function POST(req: NextRequest) {
 
         // Handle 2FA Required
         if (result.requires2FA) {
+            await AuditService.logLoginAttempt(email, 'failure', { ...metadata, requires2FA: true, note: 'Primary authentication success, 2FA required' });
             return NextResponse.json({
                 success: true,
                 requires2FA: true,
@@ -28,10 +36,16 @@ export async function POST(req: NextRequest) {
         }
 
         if (!result.token) {
+            await AuditService.logLoginAttempt(email, 'failure', { ...metadata, error: 'No token generated' });
             return NextResponse.json({
                 success: false,
                 message: 'Authentication failed'
             }, { status: 401 });
+        }
+
+        // Log successful login
+        if (result.user?.id) {
+            await AuditService.logLoginAttempt(result.user.id, 'success', metadata);
         }
 
         // Create response

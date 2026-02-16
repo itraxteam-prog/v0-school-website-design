@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authRoutes } from '@/backend/routes/auth';
 import { verifyJWT } from '@/backend/utils/auth';
+import { AuditService } from '@/backend/services/auditService';
 
 export async function POST(req: NextRequest) {
+    const ip = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
+    const userAgent = req.headers.get('user-agent') || 'unknown';
+    const metadata = { ip, userAgent };
+
     try {
         const payload = verifyJWT(req);
         if (!payload) {
@@ -19,11 +24,14 @@ export async function POST(req: NextRequest) {
         const result = await authRoutes.changePassword(payload.id, currentPassword, newPassword);
 
         if (result.status >= 400) {
+            await AuditService.logPasswordChange(payload.id, 'failure', { ...metadata, error: result.error });
             return NextResponse.json({
                 success: false,
                 message: result.error || 'Failed to change password'
             }, { status: result.status });
         }
+
+        await AuditService.logPasswordChange(payload.id, 'success', metadata);
 
         return NextResponse.json({
             success: true,
