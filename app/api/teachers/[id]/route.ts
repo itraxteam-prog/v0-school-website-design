@@ -2,15 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { teacherRoutes } from '@/backend/routes/teachers';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { AuditService } from '@/backend/services/auditService';
+import { LogService } from '@/backend/services/logService';
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
     const auth = await requireRole(req, ['admin']);
-    if (!auth.authorized) return auth.response;
+    if (!auth.authorized || !auth.user) return auth.response;
 
     const result = await teacherRoutes.getById(params.id);
     if (result.status >= 400) {
+        LogService.logAction(auth.user.id, auth.user.role, 'READ', 'TEACHER', params.id, 'failure', { error: result.error });
         return NextResponse.json({ error: result.error }, { status: result.status });
     }
+
+    LogService.logAction(auth.user.id, auth.user.role, 'READ', 'TEACHER', params.id, 'success');
     return NextResponse.json(result.data, { status: result.status });
 }
 
@@ -27,9 +31,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         const result = await teacherRoutes.update(params.id, body);
         if (result.status >= 400) {
             await AuditService.logUserUpdate(auth.user.id, 'failure', { ...metadata, error: result.error });
+            LogService.logAction(auth.user.id, auth.user.role, 'UPDATE', 'TEACHER', params.id, 'failure', { error: result.error, metadata });
             return NextResponse.json({ error: result.error }, { status: result.status });
         }
         await AuditService.logUserUpdate(auth.user.id, 'success', metadata);
+        LogService.logAction(auth.user.id, auth.user.role, 'UPDATE', 'TEACHER', params.id, 'success', metadata);
         return NextResponse.json(result.data, { status: result.status });
     } catch (error) {
         return NextResponse.json({ error: 'Failed to parse request body' }, { status: 400 });
@@ -47,8 +53,10 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     const result = await teacherRoutes.delete(params.id);
     if (result.status >= 400) {
         await AuditService.logEvent(auth.user.id, 'DELETE_TEACHER', 'failure', { ...metadata, error: result.error });
+        LogService.logAction(auth.user.id, auth.user.role, 'DELETE', 'TEACHER', params.id, 'failure', { error: result.error, metadata });
         return NextResponse.json({ error: result.error }, { status: result.status });
     }
     await AuditService.logEvent(auth.user.id, 'DELETE_TEACHER', 'success', metadata);
+    LogService.logAction(auth.user.id, auth.user.role, 'DELETE', 'TEACHER', params.id, 'success', metadata);
     return NextResponse.json(result.data, { status: result.status });
 }
