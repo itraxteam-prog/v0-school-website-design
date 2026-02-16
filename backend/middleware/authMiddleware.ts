@@ -7,13 +7,32 @@ export interface AuthPayload {
     id: string;
     email: string;
     role: string;
+    name?: string;
     iat: number;
     exp: number;
 }
 
-// Function to verify JWT token from request headers
+// Function to verify JWT token from request headers or cookies
 export async function verifyAuth(req: NextRequest | Request) {
-    const token = req.headers.get('authorization')?.replace('Bearer ', '');
+    let token = '';
+
+    // Check Authorization header
+    const authHeader = req.headers.get('authorization');
+    if (authHeader?.startsWith('Bearer ')) {
+        token = authHeader.replace('Bearer ', '');
+    }
+    // Check cookies if it's a NextRequest
+    else if ('cookies' in req) {
+        token = (req as NextRequest).cookies.get('token')?.value || '';
+    }
+    // Fallback for standard Request object (e.g. in some API handlers)
+    else {
+        const cookieHeader = req.headers.get('cookie');
+        if (cookieHeader) {
+            const match = cookieHeader.match(/token=([^;]+)/);
+            if (match) token = match[1];
+        }
+    }
 
     if (!token) {
         return null;
@@ -28,41 +47,33 @@ export async function verifyAuth(req: NextRequest | Request) {
 }
 
 // Middleware function compliant with Next.js Middleware (if used in middleware.ts)
-// Note: verifyAuth is better suited for individual API routes in Node runtime
-// For Edge runtime middleware, 'jose' library is recommended over 'jsonwebtoken'
 export async function authMiddleware(req: NextRequest) {
-    const token = req.headers.get('authorization')?.replace('Bearer ', '');
+    const user = await verifyAuth(req);
 
-    if (!token) {
-        return NextResponse.json(
-            { error: 'Authentication required' },
-            { status: 401 }
-        );
+    if (!user) {
+        // If it's an API route, return 401
+        if (req.nextUrl.pathname.startsWith('/api/')) {
+            return NextResponse.json(
+                { error: 'Authentication required' },
+                { status: 401 }
+            );
+        }
+
+        // If it's a page request, redirect to login
+        const url = new URL('/portal/login', req.url);
+        url.searchParams.set('from', req.nextUrl.pathname);
+        return NextResponse.redirect(url);
     }
 
-    try {
-        const decoded = jwt.verify(token, JWT_SECRET) as AuthPayload;
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set('x-user-id', user.id);
+    requestHeaders.set('x-user-role', user.role);
+    requestHeaders.set('x-user-email', user.email);
+    if (user.name) requestHeaders.set('x-user-name', user.name);
 
-        // In Next.js App Router, we can't easily 'attach' to the request object directly 
-        // for downstream use in the same way as Express.
-        // Instead, we usually return the user or set headers for the response.
-        // Here we return the success state, or you could clone headers.
-
-        const requestHeaders = new Headers(req.headers);
-        requestHeaders.set('x-user-id', decoded.id);
-        requestHeaders.set('x-user-role', decoded.role);
-        requestHeaders.set('x-user-email', decoded.email);
-
-        return NextResponse.next({
-            request: {
-                headers: requestHeaders,
-            },
-        });
-
-    } catch (error) {
-        return NextResponse.json(
-            { error: 'Invalid or expired token' },
-            { status: 401 }
-        );
-    }
+    return NextResponse.next({
+        request: {
+            headers: requestHeaders,
+        },
+    });
 }
