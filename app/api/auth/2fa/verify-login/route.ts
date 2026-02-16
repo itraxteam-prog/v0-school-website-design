@@ -3,35 +3,19 @@ import { AuthService } from '@/backend/services/authService';
 
 export async function POST(req: NextRequest) {
     try {
-        const { email, password, rememberMe } = await req.json();
+        const { tempToken, code, rememberMe } = await req.json();
 
-        if (!email || !password) {
-            return NextResponse.json({ success: false, message: 'Email and password are required' }, { status: 400 });
+        if (!tempToken || !code) {
+            return NextResponse.json({ success: false, message: 'Session and code are required' }, { status: 400 });
         }
 
-        const result = await AuthService.login(email, password);
+        const result = await AuthService.verify2FALogin(tempToken, code);
 
-        if (result.error) {
+        if (result.error || !result.token) {
             return NextResponse.json({
                 success: false,
-                message: result.error
+                message: result.error || 'Verification failed'
             }, { status: result.status || 401 });
-        }
-
-        // Handle 2FA Required
-        if (result.requires2FA) {
-            return NextResponse.json({
-                success: true,
-                requires2FA: true,
-                tempToken: result.tempToken
-            }, { status: 202 });
-        }
-
-        if (!result.token) {
-            return NextResponse.json({
-                success: false,
-                message: 'Authentication failed'
-            }, { status: 401 });
         }
 
         // Create response

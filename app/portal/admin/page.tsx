@@ -33,6 +33,7 @@ import {
   Bell,
   CheckCircle2,
   ShieldCheck,
+  User, // Added User icon as per instruction's Code Edit
 } from "lucide-react"
 import {
   LineChart,
@@ -58,6 +59,7 @@ const sidebarItems = [
   { href: "/portal/admin/users", label: "User Management", icon: Settings },
   { href: "/portal/admin/roles", label: "Roles & Permissions", icon: ShieldCheck },
   { href: "/portal/admin/school-settings", label: "School Settings", icon: Settings },
+  { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
 // Dummy Data
@@ -142,7 +144,7 @@ export default function AdminDashboard() {
                   </div>
                 ) : (
                   <div className="flex flex-col gap-3">
-                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${stat.bg} ${stat.color}`}>
+                    <div className={`flex h - 8 w - 8 items - center justify - center rounded - lg ${stat.bg} ${stat.color} `}>
                       <stat.icon size={18} />
                     </div>
                     <div>
@@ -327,7 +329,7 @@ export default function AdminDashboard() {
                               <div className="hidden sm:block h-1.5 w-16 overflow-hidden rounded-full bg-muted">
                                 <div
                                   className="h-full bg-primary"
-                                  style={{ width: `${teacher.performance}%` }}
+                                  style={{ width: `${teacher.performance}% ` }}
                                 />
                               </div>
                               <span className="text-xs font-bold text-primary">{teacher.performance}%</span>
@@ -373,7 +375,7 @@ export default function AdminDashboard() {
                 <div className="relative space-y-6 before:absolute before:left-[17px] before:top-2 before:h-[calc(100%-16px)] before:w-[1px] before:bg-border/60">
                   {recentActivityList.map((item) => (
                     <div key={item.id} className="relative flex gap-4 transition-all hover:translate-x-1">
-                      <div className={`z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/50 ${item.bg} ${item.color} shadow-sm ring-2 ring-background`}>
+                      <div className={`z - 10 flex h - 9 w - 9 shrink - 0 items - center justify - center rounded - full border border - white / 50 ${item.bg} ${item.color} shadow - sm ring - 2 ring - background`}>
                         <item.icon size={16} />
                       </div>
                       <div className="flex flex-col gap-0.5">

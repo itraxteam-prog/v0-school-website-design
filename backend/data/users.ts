@@ -4,8 +4,11 @@ export interface User {
     password: string;
     name: string;
     role: 'admin' | 'teacher' | 'student' | 'parent';
-    failedLoginAttempts: number;
-    lockUntil: number | null;
+    failed_login_attempts: number;
+    lock_until: string | null;
+    two_factor_enabled: boolean;
+    two_factor_secret?: string;
+    recovery_codes?: string[];
 }
 
 export const users: User[] = [
