@@ -29,11 +29,11 @@ export const authRoutes = {
         }
     },
 
-    // POST /auth/logout (Dummy endpoint as JWT is stateless)
+    // POST /auth/logout
     logout: async () => {
         return {
             status: 200,
-            data: { message: 'Logged out successfully' }
+            data: { success: true, message: 'Logged out successfully' }
         };
     }
 };

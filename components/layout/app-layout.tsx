@@ -172,11 +172,22 @@ export function AppLayout({ children, sidebarItems, userName, userRole }: AppLay
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
                 {userName.split(" ").map((n) => n[0]).join("")}
               </div>
-              <div className="hidden lg:block">
+              <div className="hidden lg:block mr-2">
                 <p className="text-xs font-semibold text-foreground">{userName}</p>
                 <p className="text-[10px] text-muted-foreground">{userRole}</p>
               </div>
             </div>
+
+            {/* Header Logout - Visible on desktop */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hidden h-9 w-9 text-muted-foreground hover:text-destructive md:flex"
+              onClick={handleLogout}
+              aria-label="Logout"
+            >
+              <LogOut className="h-[18px] w-[18px]" />
+            </Button>
           </div>
         </header>
 
