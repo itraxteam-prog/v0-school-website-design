@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthService } from '@/backend/services/authService';
-import { AuditService } from '@/backend/services/auditService';
+import { LogService } from '@/backend/services/logService';
 
 export async function POST(req: NextRequest) {
     const ip = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
         if (result.error) {
             // Log failed login
-            await AuditService.logLoginAttempt(email, 'failure', { ...metadata, error: result.error });
+            LogService.logAction('system', 'guest', 'LOGIN_ATTEMPT', 'AUTH', undefined, 'failure', { ...metadata, email, error: result.error });
             return NextResponse.json({
                 success: false,
                 message: result.error
@@ -27,7 +27,11 @@ export async function POST(req: NextRequest) {
 
         // Handle 2FA Required
         if (result.requires2FA) {
-            await AuditService.logLoginAttempt(email, 'failure', { ...metadata, requires2FA: true, note: 'Primary authentication success, 2FA required' });
+            // Log partial success / 2FA trigger
+            // Note: We might want to know WHO is trying. result likely doesn't have user object if standard login flow, 
+            // but AuthService.login probably found the user. 
+            // If result.tempToken exists, it's tied to a user.
+            LogService.logAction('system', 'guest', 'LOGIN_2FA_REQUIRED', 'AUTH', undefined, 'success', { ...metadata, email });
             return NextResponse.json({
                 success: true,
                 requires2FA: true,
@@ -36,7 +40,7 @@ export async function POST(req: NextRequest) {
         }
 
         if (!result.token) {
-            await AuditService.logLoginAttempt(email, 'failure', { ...metadata, error: 'No token generated' });
+            LogService.logAction('system', 'guest', 'LOGIN_ATTEMPT', 'AUTH', undefined, 'failure', { ...metadata, email, error: 'No token generated' });
             return NextResponse.json({
                 success: false,
                 message: 'Authentication failed'
@@ -45,7 +49,7 @@ export async function POST(req: NextRequest) {
 
         // Log successful login
         if (result.user?.id) {
-            await AuditService.logLoginAttempt(result.user.id, 'success', metadata);
+            LogService.logAction(result.user.id, result.user.role, 'LOGIN', 'AUTH', undefined, 'success', metadata);
         }
 
         // Create response

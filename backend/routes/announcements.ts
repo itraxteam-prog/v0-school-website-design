@@ -1,9 +1,7 @@
 import { AnnouncementService } from '../services/announcements';
 import { validateAnnouncement } from '../utils/validation';
 import { AuthPayload } from '../middleware/authMiddleware';
-
-// Announcements API Routes
-// Note: These are integrated into Next.js Route Handlers (app/api/announcements/route.ts)
+import { LogService } from '../services/logService';
 
 export const announcementRoutes = {
     // GET /announcements - RBAC Enforced
@@ -14,6 +12,7 @@ export const announcementRoutes = {
             const announcements = await AnnouncementService.getAll(filterRole);
             return { status: 200, data: announcements };
         } catch (error: any) {
+            LogService.logError(user.id, user.role, error, 'AnnouncementRoutes.getAll');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -37,12 +36,14 @@ export const announcementRoutes = {
                     // AnnouncementService.create: `audience: [newAnnouncement.targetAudience.replace(/s$/, '')]`
                     // So DB has "students", mapped object deals with "student".
                     // If user.role is 'student', and audience includes 'student', it's fine.
+                    LogService.logAction(user.id, user.role, 'ACCESS_DENIED', 'ANNOUNCEMENT', id, 'failure', { reason: 'Audience mismatch' });
                     return { status: 403, error: 'Forbidden' };
                 }
             }
 
             return { status: 200, data: announcement };
         } catch (error: any) {
+            LogService.logError(user.id, user.role, error, 'AnnouncementRoutes.getById');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -51,6 +52,7 @@ export const announcementRoutes = {
     create: async (data: any, user: AuthPayload) => {
         try {
             if (user.role !== 'admin') {
+                LogService.logAction(user.id, user.role, 'CREATE_ATTEMPT', 'ANNOUNCEMENT', undefined, 'failure', { error: 'Role not admin' });
                 return { status: 403, error: 'Forbidden: Only Admins can create announcements' };
             }
 
@@ -59,8 +61,12 @@ export const announcementRoutes = {
                 return { status: 400, errors: validation.errors };
             }
             const newAnnouncement = await AnnouncementService.create(data);
+
+            LogService.logAction(user.id, user.role, 'CREATED_ANNOUNCEMENT', 'ANNOUNCEMENT', (newAnnouncement as any).id, 'success');
+
             return { status: 201, data: newAnnouncement };
         } catch (error: any) {
+            LogService.logError(user.id, user.role, error, 'AnnouncementRoutes.create');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -72,13 +78,18 @@ export const announcementRoutes = {
                 // Requirement: "Teacher: ... update Announcements for their classes."
                 // Since we don't have ownership, restrict to Admin. 
                 // If we wanted to allow teachers, we'd check if audience='student'.
+                LogService.logAction(user.id, user.role, 'UPDATE_ATTEMPT', 'ANNOUNCEMENT', id, 'failure', { error: 'Role not admin' });
                 return { status: 403, error: 'Forbidden: Only Admins can update announcements' };
             }
 
             const updatedAnnouncement = await AnnouncementService.update(id, data);
             if (!updatedAnnouncement) return { status: 404, error: 'Announcement not found' };
+
+            LogService.logAction(user.id, user.role, 'UPDATED_ANNOUNCEMENT', 'ANNOUNCEMENT', id, 'success');
+
             return { status: 200, data: updatedAnnouncement };
         } catch (error: any) {
+            LogService.logError(user.id, user.role, error, 'AnnouncementRoutes.update');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -87,12 +98,17 @@ export const announcementRoutes = {
     delete: async (id: string, user: AuthPayload) => {
         try {
             if (user.role !== 'admin') {
+                LogService.logAction(user.id, user.role, 'DELETE_ATTEMPT', 'ANNOUNCEMENT', id, 'failure', { error: 'Role not admin' });
                 return { status: 403, error: 'Forbidden: Only Admins can delete announcements' };
             }
             const success = await AnnouncementService.delete(id);
             if (!success) return { status: 404, error: 'Announcement not found' };
+
+            LogService.logAction(user.id, user.role, 'DELETED_ANNOUNCEMENT', 'ANNOUNCEMENT', id, 'success');
+
             return { status: 200, data: { message: 'Announcement deleted successfully' } };
         } catch (error: any) {
+            LogService.logError(user.id, user.role, error, 'AnnouncementRoutes.delete');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     }

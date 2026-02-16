@@ -2,14 +2,14 @@ import { supabase } from '../utils/supabaseClient';
 
 export interface LogEntry {
     id?: string;
-    userId: string;
+    user_id: string; // Changed from userId to user_id to match DB
     role: string;
     action: string;
     entity: string;
-    entityId?: string;
-    timestamp?: string;
+    entity_id?: string; // Changed from entityId to entity_id to match DB
     status: 'success' | 'failure';
-    details?: any;
+    metadata?: any; // Changed from details to metadata to match DB
+    timestamp?: string;
 }
 
 export const LogService = {
@@ -26,20 +26,22 @@ export const LogService = {
         status: 'success' | 'failure' = 'success',
         details?: any
     ) => {
+        // Prepare the log entry matching the Supabase table schema
         const logEntry: LogEntry = {
-            userId,
-            role,
-            action,
-            entity,
-            entityId,
-            status,
-            details,
+            user_id: userId,
+            role: role,
+            action: action,
+            entity: entity,
+            entity_id: entityId,
+            status: status,
+            metadata: details,
             timestamp: new Date().toISOString()
         };
 
         // Fire and forget - don't await to keep it non-blocking
+        // Using 'activity_logs' table as requested
         supabase
-            .from('logs')
+            .from('activity_logs')
             .insert([logEntry])
             .then(({ error }) => {
                 if (error) {
