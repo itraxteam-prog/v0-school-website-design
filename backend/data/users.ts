@@ -16,30 +16,33 @@ export const users: User[] = [
         id: 'u-admin-1',
         email: 'admin@school.com',
         name: 'Dr. Ahmad Raza',
-        // password123 hashed with bcrypt (saltRounds: 10)
-        password: '$2b$10$8LzLLtOlFnrhhB5jxeMxhO3VVTr9de0cSKziDXopNSJaJx4g/1Bza',
+        // Admin@2024! hashed with bcrypt (saltRounds: 10)
+        password: '$2b$10$aUXP3ilFSUwvljx7WKGODe5RSl6Ifs2uM.G30NfzsmnCuWHHwrOYm',
         role: 'admin',
-        failedLoginAttempts: 0,
-        lockUntil: null
+        failed_login_attempts: 0,
+        lock_until: null,
+        two_factor_enabled: false
     },
     {
         id: 'u-teacher-1',
         email: 'teacher@school.com',
         name: 'Mr. Usman Sheikh',
-        // password123 hashed with bcrypt (saltRounds: 10)
-        password: '$2b$10$8LzLLtOlFnrhhB5jxeMxhO3VVTr9de0cSKziDXopNSJaJx4g/1Bza',
+        // Teacher@2024! hashed with bcrypt (saltRounds: 10)
+        password: '$2b$10$1p7fHeBWRZAx4EXBMo05iuutSO2H9wcAUN/PBb8DAsMuMVD0AG26m',
         role: 'teacher',
-        failedLoginAttempts: 0,
-        lockUntil: null
+        failed_login_attempts: 0,
+        lock_until: null,
+        two_factor_enabled: false
     },
     {
         id: 'u-student-1',
         email: 'student@school.com',
         name: 'Ahmed Khan',
-        // password123 hashed with bcrypt (saltRounds: 10)
-        password: '$2b$10$8LzLLtOlFnrhhB5jxeMxhO3VVTr9de0cSKziDXopNSJaJx4g/1Bza',
+        // Student@2024! hashed with bcrypt (saltRounds: 10)
+        password: '$2b$10$dr44IHTfKT.HpXKfs0yOXumHHHqD.CycCoKtK5nLQS/yAPzx5/bo.',
         role: 'student',
-        failedLoginAttempts: 0,
-        lockUntil: null
+        failed_login_attempts: 0,
+        lock_until: null,
+        two_factor_enabled: false
     }
 ];
