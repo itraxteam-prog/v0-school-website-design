@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { users, User } from '../data/users';
+import { users, User } from '@/backend/data/users';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-123';
 const TOKEN_EXPIRY = '24h';
