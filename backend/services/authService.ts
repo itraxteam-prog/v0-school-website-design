@@ -10,51 +10,96 @@ export interface AuthResponse {
     token: string;
 }
 
+const resetTokens = new Map<string, { email: string; expires: number }>();
+
 export const AuthService = {
+    /**
+     * Validate password strength
+     * Min 8 chars, 1 number, 1 special character
+     */
+    validatePasswordStrength: (password: string): boolean => {
+        const regex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
+        return regex.test(password);
+    },
+
     login: async (email: string, password: string, rememberMe: boolean = false): Promise<AuthResponse | null> => {
-        // Simulate async database call
+        // ... (existing implementation)
         await new Promise(resolve => setTimeout(resolve, 100));
-
-        // Find user by email first
         const user = users.find(u => u.email === email);
-
-        if (!user) {
-            return null;
-        }
-
-        // Verify password using bcrypt
+        if (!user) return null;
         const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) return null;
+        const token = AuthService.generateToken(user, rememberMe);
+        const { password: _, ...userWithoutPassword } = user;
+        return { user: userWithoutPassword, token };
+    },
 
-        if (!isPasswordValid) {
-            return null;
+    changePassword: async (userId: string, currentPassword: string, newPassword: string): Promise<{ success: boolean; message: string }> => {
+        const user = users.find(u => u.id === userId);
+        if (!user) return { success: false, message: 'User not found' };
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) return { success: false, message: 'Incorrect current password' };
+
+        if (!AuthService.validatePasswordStrength(newPassword)) {
+            return { success: false, message: 'Password must be at least 8 characters long and contain at least one number and one special character.' };
         }
 
-        const token = AuthService.generateToken(user, rememberMe);
+        user.password = await bcrypt.hash(newPassword, 10);
+        return { success: true, message: 'Password changed successfully' };
+    },
 
-        // Return user without password
-        const { password: _, ...userWithoutPassword } = user;
+    forgotPassword: async (email: string): Promise<{ success: boolean; message: string; resetLink?: string }> => {
+        const user = users.find(u => u.email === email);
+        if (!user) {
+            // Still return success for security reasons (don't reveal if email exists)
+            return { success: true, message: 'If an account exists with this email, a reset link has been sent.' };
+        }
 
+        const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        resetTokens.set(token, {
+            email,
+            expires: Date.now() + 3600000 // 1 hour
+        });
+
+        const resetLink = `/portal/reset-password?token=${token}`;
         return {
-            user: userWithoutPassword,
-            token
+            success: true,
+            message: 'A reset link has been sent to your email.',
+            resetLink // In a real app, this would be emailed
         };
     },
 
+    resetPassword: async (token: string, newPassword: string): Promise<{ success: boolean; message: string }> => {
+        const resetData = resetTokens.get(token);
+        if (!resetData || resetData.expires < Date.now()) {
+            return { success: false, message: 'Invalid or expired reset token' };
+        }
+
+        const user = users.find(u => u.email === resetData.email);
+        if (!user) return { success: false, message: 'User not found' };
+
+        if (!AuthService.validatePasswordStrength(newPassword)) {
+            return { success: false, message: 'Password must be at least 8 characters long and contain at least one number and one special character.' };
+        }
+
+        user.password = await bcrypt.hash(newPassword, 10);
+        resetTokens.delete(token);
+        return { success: true, message: 'Password reset successfully. You can now login with your new password.' };
+    },
+
     generateToken: (user: User, persistent: boolean = false): string => {
+        // ... (existing implementation)
         const expiresIn = persistent ? '30d' : TOKEN_EXPIRY;
         return jwt.sign(
-            {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                role: user.role
-            },
+            { id: user.id, email: user.email, name: user.name, role: user.role },
             JWT_SECRET,
             { expiresIn }
         );
     },
 
     verifyToken: (token: string): any => {
+        // ... (existing implementation)
         try {
             return jwt.verify(token, JWT_SECRET);
         } catch (error) {

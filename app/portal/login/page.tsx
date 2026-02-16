@@ -149,9 +149,11 @@ export default function LoginPage() {
                   Remember me
                 </Label>
               </div>
-              <button type="button" className="text-sm text-primary hover:underline">
-                Forgot Password?
-              </button>
+              <Link href="/portal/forgot-password">
+                <span className="text-sm text-primary hover:underline cursor-pointer">
+                  Forgot Password?
+                </span>
+              </Link>
             </div>
 
             <Button
