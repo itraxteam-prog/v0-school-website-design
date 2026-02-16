@@ -44,13 +44,17 @@ export const AuthService = {
         try {
             const { data: user, error } = await supabase
                 .from('users')
-                .select('*')
+                .select('*, roles(name)')
                 .eq('email', email)
                 .single();
 
             if (error || !user) {
                 return { error: 'Invalid email or password', status: 401 };
             }
+
+            // Map joined role name back to user.role for consistency
+            const roleData = Array.isArray(user.roles) ? user.roles[0] : user.roles;
+            user.role = roleData?.name || user.role; // Fallback to existing role column if join fails
 
             if (user.lock_until && new Date(user.lock_until).getTime() > Date.now()) {
                 return { error: 'Account locked. Try again later.', status: 403 };

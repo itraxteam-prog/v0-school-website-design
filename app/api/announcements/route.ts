@@ -15,8 +15,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-    // POST -> admin only
-    const auth = await requireRole(req, ['admin']);
+    // POST -> admin and teacher
+    const auth = await requireRole(req, ['admin', 'teacher']);
     if (!auth.authorized) return auth.response;
 
     try {
