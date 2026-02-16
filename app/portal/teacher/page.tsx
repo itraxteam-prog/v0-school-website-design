@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRequireAuth } from "@/hooks/useRequireAuth"
-import { LayoutDashboard, Users, CalendarCheck, BookMarked, FileBarChart, User, ClipboardList, PlusCircle, TrendingUp, UserCheck, FileText } from "lucide-react"
+import { LayoutDashboard, Users, CalendarCheck, BookMarked, FileBarChart, User, ClipboardList, PlusCircle, TrendingUp, UserCheck, FileText, ShieldCheck } from "lucide-react"
 import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -19,6 +19,7 @@ const sidebarItems = [
   { href: "/portal/teacher/gradebook", label: "Gradebook", icon: BookMarked },
   { href: "/portal/teacher/reports", label: "Reports", icon: FileBarChart },
   { href: "/portal/teacher/profile", label: "Profile", icon: User },
+  { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
 // Dummy data

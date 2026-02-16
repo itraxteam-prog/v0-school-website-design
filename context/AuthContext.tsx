@@ -13,7 +13,8 @@ interface User {
 interface AuthContextType {
     user: User | null;
     loading: boolean;
-    login: (email: string, password: string, rememberMe: boolean) => Promise<void>;
+    login: (email: string, password: string, rememberMe: boolean) => Promise<{ requires2FA?: boolean; tempToken?: string } | void>;
+    verify2FA: (tempToken: string, code: string, rememberMe: boolean) => Promise<void>;
     logout: () => Promise<void>;
 }
 
@@ -81,6 +82,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             const data = await res.json();
 
+            if (res.status === 202 && data.requires2FA) {
+                return { requires2FA: true, tempToken: data.tempToken };
+            }
+
             if (!res.ok || !data.success) {
                 throw new Error(data.message || 'Login failed');
             }
@@ -90,12 +95,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             // Redirect based on role
             const role = data.user.role;
-            if (role === 'admin') {
-                router.push('/portal/admin');
-            } else if (role === 'teacher') {
-                router.push('/portal/teacher');
-            } else if (role === 'student') {
-                router.push('/portal/student');
+            const rolePortalMap: Record<string, string> = {
+                'admin': '/portal/admin',
+                'teacher': '/portal/teacher',
+                'student': '/portal/student'
+            };
+
+            if (rolePortalMap[role]) {
+                router.push(rolePortalMap[role]);
+            }
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    };
+
+    const verify2FA = async (tempToken: string, code: string, rememberMe: boolean) => {
+        try {
+            const res = await fetch('/api/auth/2fa/verify-login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ tempToken, code, rememberMe }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok || !data.success) {
+                throw new Error(data.message || '2FA Verification failed');
+            }
+
+            setUser(data.user);
+
+            // Redirect based on role
+            const role = data.user.role;
+            const rolePortalMap: Record<string, string> = {
+                'admin': '/portal/admin',
+                'teacher': '/portal/teacher',
+                'student': '/portal/student'
+            };
+
+            if (rolePortalMap[role]) {
+                router.push(rolePortalMap[role]);
             }
         } catch (error) {
             console.error(error);
@@ -118,7 +159,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, verify2FA, logout }}>
             {children}
         </AuthContext.Provider>
     );

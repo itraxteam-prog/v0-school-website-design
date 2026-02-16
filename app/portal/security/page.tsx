@@ -1,0 +1,83 @@
+"use client"
+
+import { useAuth } from "@/context/AuthContext"
+import { AppLayout } from "@/components/layout/app-layout"
+import TwoFactorSetup from "@/components/portal/2fa-setup"
+import {
+    LayoutDashboard,
+    GraduationCap,
+    Users,
+    School,
+    Clock,
+    BarChart3,
+    FileBarChart,
+    Settings,
+    ShieldCheck,
+    BookOpen,
+    Calendar,
+    MessageSquare,
+    ClipboardList
+} from "lucide-react"
+
+export default function SecurityPage() {
+    const { user, loading } = useAuth()
+
+    if (loading || !user) {
+        return null
+    }
+
+    // Get sidebar items based on role
+    const getSidebarItems = () => {
+        switch (user.role) {
+            case 'admin':
+                return [
+                    { href: "/portal/admin", label: "Dashboard", icon: LayoutDashboard },
+                    { href: "/portal/admin/students", label: "Students", icon: GraduationCap },
+                    { href: "/portal/admin/teachers", label: "Teachers", icon: Users },
+                    { href: "/portal/admin/classes", label: "Classes", icon: School },
+                    { href: "/portal/admin/users", label: "User Management", icon: Settings },
+                    { href: "/portal/admin/school-settings", label: "School Settings", icon: Settings },
+                    { href: "/portal/security", label: "Security", icon: ShieldCheck },
+                ]
+            case 'teacher':
+                return [
+                    { href: "/portal/teacher", label: "Dashboard", icon: LayoutDashboard },
+                    { href: "/portal/teacher/classes", label: "My Classes", icon: School },
+                    { href: "/portal/teacher/students", label: "Students", icon: GraduationCap },
+                    { href: "/portal/teacher/attendance", label: "Attendance", icon: Calendar },
+                    { href: "/portal/teacher/grades", label: "Grades", icon: ClipboardList },
+                    { href: "/portal/security", label: "Security", icon: ShieldCheck },
+                ]
+            case 'student':
+                return [
+                    { href: "/portal/student", label: "Dashboard", icon: LayoutDashboard },
+                    { href: "/portal/student/courses", label: "My Courses", icon: BookOpen },
+                    { href: "/portal/student/grades", label: "My Grades", icon: ClipboardList },
+                    { href: "/portal/student/attendance", label: "Attendance", icon: Calendar },
+                    { href: "/portal/student/schedule", label: "Schedule", icon: Clock },
+                    { href: "/portal/security", label: "Security", icon: ShieldCheck },
+                ]
+            default:
+                return [
+                    { href: "/portal/security", label: "Security", icon: ShieldCheck },
+                ]
+        }
+    }
+
+    return (
+        <AppLayout
+            sidebarItems={getSidebarItems()}
+            userName={user.name}
+            userRole={user.role}
+        >
+            <div className="flex flex-col gap-8 pb-8">
+                <div className="flex flex-col gap-1">
+                    <h1 className="heading-1 text-burgundy-gradient">Security Settings</h1>
+                    <p className="text-sm text-muted-foreground">Manage your account security and two-factor authentication.</p>
+                </div>
+
+                <TwoFactorSetup />
+            </div>
+        </AppLayout>
+    )
+}
