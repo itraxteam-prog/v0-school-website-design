@@ -10,7 +10,19 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: result.error }, { status: result.status });
         }
 
-        return NextResponse.json(result.data, { status: result.status });
+        // Create response with JSON data
+        const response = NextResponse.json(result.data, { status: result.status });
+
+        // Set HTTP-only cookie
+        response.cookies.set('token', result.data.token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            path: '/',
+            maxAge: 60 * 60 * 24 // 24 hours
+        });
+
+        return response;
     } catch (error) {
         return NextResponse.json({ error: 'Failed to parse request body' }, { status: 400 });
     }
