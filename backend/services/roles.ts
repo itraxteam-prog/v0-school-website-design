@@ -1,40 +1,69 @@
-import { Role, roles } from '../data/roles';
+import { supabase } from '../utils/supabaseClient';
+import { handleSupabaseError } from '../utils/errors';
 
-// Role Service Logic
-// In-memory array to simulate database for now
-let roleList = [...roles];
+export interface Role {
+    id: string;
+    name: string;
+    description?: string;
+    permissions: string[];
+}
 
 export const RoleService = {
-    getAll: () => {
-        return roleList;
+    getAll: async () => {
+        const { data, error } = await supabase
+            .from('roles')
+            .select('*');
+        if (error) throw new Error(handleSupabaseError(error));
+        return data as Role[];
     },
 
-    getById: (id: string) => {
-        return roleList.find(r => r.id === id);
+    getById: async (id: string) => {
+        const { data, error } = await supabase
+            .from('roles')
+            .select('*')
+            .eq('id', id)
+            .single();
+        if (error) return null;
+        return data as Role;
     },
 
-    create: (data: Omit<Role, 'id'>) => {
-        const newRole: Role = {
-            ...data,
-            id: `role-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`
-        };
-        roleList.push(newRole);
-        return newRole;
+    getByName: async (name: string) => {
+        const { data, error } = await supabase
+            .from('roles')
+            .select('*')
+            .eq('name', name)
+            .single();
+        if (error) return null;
+        return data as Role;
     },
 
-    update: (id: string, data: Partial<Role>) => {
-        const index = roleList.findIndex(r => r.id === id);
-        if (index === -1) return null;
-
-        roleList[index] = { ...roleList[index], ...data };
-        return roleList[index];
+    create: async (data: Omit<Role, 'id'>) => {
+        const { data: newRole, error } = await supabase
+            .from('roles')
+            .insert([data])
+            .select()
+            .single();
+        if (error) throw new Error(handleSupabaseError(error));
+        return newRole as Role;
     },
 
-    delete: (id: string) => {
-        const index = roleList.findIndex(r => r.id === id);
-        if (index === -1) return false;
+    update: async (id: string, data: Partial<Role>) => {
+        const { data: updatedRole, error } = await supabase
+            .from('roles')
+            .update(data)
+            .eq('id', id)
+            .select()
+            .single();
+        if (error) return null;
+        return updatedRole as Role;
+    },
 
-        roleList.splice(index, 1);
+    delete: async (id: string) => {
+        const { error } = await supabase
+            .from('roles')
+            .delete()
+            .eq('id', id);
+        if (error) return false;
         return true;
     }
 };
