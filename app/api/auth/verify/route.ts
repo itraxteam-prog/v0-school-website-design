@@ -8,13 +8,15 @@ export async function GET(req: NextRequest) {
         const token = cookieStore.get('token')?.value;
 
         if (!token) {
-            return NextResponse.json({ user: null }, { status: 200 });
+            // No access token - return 401 to trigger refresh flow in client
+            return NextResponse.json({ user: null, message: 'Authentication required' }, { status: 401 });
         }
 
         const decoded = AuthService.verifyToken(token);
 
         if (!decoded) {
-            return NextResponse.json({ user: null }, { status: 200 });
+            // Invalid or expired access token - return 401
+            return NextResponse.json({ user: null, message: 'Invalid or expired token' }, { status: 401 });
         }
 
         return NextResponse.json({
@@ -26,6 +28,6 @@ export async function GET(req: NextRequest) {
             }
         }, { status: 200 });
     } catch (error) {
-        return NextResponse.json({ user: null }, { status: 200 });
+        return NextResponse.json({ user: null, message: 'Error verifying session' }, { status: 500 });
     }
 }
