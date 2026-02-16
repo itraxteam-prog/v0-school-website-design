@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { studentRoutes } from '@/backend/routes/students';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { LogService } from '@/backend/services/logService';
+import { NotificationService } from '@/backend/services/notificationService';
 
 export async function GET(req: NextRequest) {
     // GET -> admin, teacher
@@ -31,7 +32,12 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: result.error || result.errors }, { status: result.status });
         }
 
-        LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'STUDENT', (result.data as any)?.id, 'success', result.data);
+        const newStudent = result.data as any;
+        LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'STUDENT', newStudent?.id, 'success', result.data);
+
+        // Welcome notification
+        NotificationService.sendEmailNotification(newStudent.id, 'WELCOME', `Welcome to Pioneers High, ${newStudent.name}! Your account has been created.`, 'student');
+
         return NextResponse.json(result.data, { status: result.status });
     } catch (error) {
         return NextResponse.json({ error: 'Failed to parse request body' }, { status: 400 });
