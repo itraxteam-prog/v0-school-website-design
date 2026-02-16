@@ -1,40 +1,58 @@
-import { Teacher, teachers } from '../data/teachers';
-
-// Teacher Service Logic
-// In-memory array to simulate database for now
-let teacherList = [...teachers];
+import { Teacher } from '../data/teachers';
+import { supabase } from '../utils/supabaseClient';
+import { handleSupabaseError } from '../utils/errors';
 
 export const TeacherService = {
-    getAll: () => {
-        return teacherList;
+    getAll: async () => {
+        const { data, error } = await supabase
+            .from('teachers')
+            .select('*');
+
+        if (error) throw new Error(handleSupabaseError(error));
+        return data as Teacher[];
     },
 
-    getById: (id: string) => {
-        return teacherList.find(t => t.id === id);
+    getById: async (id: string) => {
+        const { data, error } = await supabase
+            .from('teachers')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) return null;
+        return data as Teacher;
     },
 
-    create: (data: Omit<Teacher, 'id'>) => {
-        const newTeacher: Teacher = {
-            ...data,
-            id: `tch-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`
-        };
-        teacherList.push(newTeacher);
-        return newTeacher;
+    create: async (data: Omit<Teacher, 'id'>) => {
+        const { data: newTeacher, error } = await supabase
+            .from('teachers')
+            .insert([data])
+            .select()
+            .single();
+
+        if (error) throw new Error(handleSupabaseError(error));
+        return newTeacher as Teacher;
     },
 
-    update: (id: string, data: Partial<Teacher>) => {
-        const index = teacherList.findIndex(t => t.id === id);
-        if (index === -1) return null;
+    update: async (id: string, data: Partial<Teacher>) => {
+        const { data: updatedTeacher, error } = await supabase
+            .from('teachers')
+            .update(data)
+            .eq('id', id)
+            .select()
+            .single();
 
-        teacherList[index] = { ...teacherList[index], ...data };
-        return teacherList[index];
+        if (error) return null;
+        return updatedTeacher as Teacher;
     },
 
-    delete: (id: string) => {
-        const index = teacherList.findIndex(t => t.id === id);
-        if (index === -1) return false;
+    delete: async (id: string) => {
+        const { error } = await supabase
+            .from('teachers')
+            .delete()
+            .eq('id', id);
 
-        teacherList.splice(index, 1);
+        if (error) return false;
         return true;
     }
 };

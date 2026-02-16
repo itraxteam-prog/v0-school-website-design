@@ -1,40 +1,58 @@
-import { Student, students } from '../data/students';
-
-// Student Service Logic
-// In-memory array to simulate database for now
-let studentList = [...students];
+import { Student } from '../data/students';
+import { supabase } from '../utils/supabaseClient';
+import { handleSupabaseError } from '../utils/errors';
 
 export const StudentService = {
-    getAll: () => {
-        return studentList;
+    getAll: async () => {
+        const { data, error } = await supabase
+            .from('students')
+            .select('*');
+
+        if (error) throw new Error(handleSupabaseError(error));
+        return data as Student[];
     },
 
-    getById: (id: string) => {
-        return studentList.find(s => s.id === id);
+    getById: async (id: string) => {
+        const { data, error } = await supabase
+            .from('students')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) return null;
+        return data as Student;
     },
 
-    create: (data: Omit<Student, 'id'>) => {
-        const newStudent: Student = {
-            ...data,
-            id: `std-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`
-        };
-        studentList.push(newStudent);
-        return newStudent;
+    create: async (data: Omit<Student, 'id'>) => {
+        const { data: newStudent, error } = await supabase
+            .from('students')
+            .insert([data])
+            .select()
+            .single();
+
+        if (error) throw new Error(handleSupabaseError(error));
+        return newStudent as Student;
     },
 
-    update: (id: string, data: Partial<Student>) => {
-        const index = studentList.findIndex(s => s.id === id);
-        if (index === -1) return null;
+    update: async (id: string, data: Partial<Student>) => {
+        const { data: updatedStudent, error } = await supabase
+            .from('students')
+            .update(data)
+            .eq('id', id)
+            .select()
+            .single();
 
-        studentList[index] = { ...studentList[index], ...data };
-        return studentList[index];
+        if (error) return null;
+        return updatedStudent as Student;
     },
 
-    delete: (id: string) => {
-        const index = studentList.findIndex(s => s.id === id);
-        if (index === -1) return false;
+    delete: async (id: string) => {
+        const { error } = await supabase
+            .from('students')
+            .delete()
+            .eq('id', id);
 
-        studentList.splice(index, 1);
+        if (error) return false;
         return true;
     }
 };

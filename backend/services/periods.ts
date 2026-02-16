@@ -1,40 +1,58 @@
-import { Period, periods } from '../data/periods';
-
-// Period Service Logic
-// In-memory array to simulate database for now
-let periodList = [...periods];
+import { Period } from '../data/periods';
+import { supabase } from '../utils/supabaseClient';
+import { handleSupabaseError } from '../utils/errors';
 
 export const PeriodService = {
-    getAll: () => {
-        return periodList;
+    getAll: async () => {
+        const { data, error } = await supabase
+            .from('periods')
+            .select('*');
+
+        if (error) throw new Error(handleSupabaseError(error));
+        return data as Period[];
     },
 
-    getById: (id: string) => {
-        return periodList.find(p => p.id === id);
+    getById: async (id: string) => {
+        const { data, error } = await supabase
+            .from('periods')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) return null;
+        return data as Period;
     },
 
-    create: (data: Omit<Period, 'id'>) => {
-        const newPeriod: Period = {
-            ...data,
-            id: `prd-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`
-        };
-        periodList.push(newPeriod);
-        return newPeriod;
+    create: async (data: Omit<Period, 'id'>) => {
+        const { data: newPeriod, error } = await supabase
+            .from('periods')
+            .insert([data])
+            .select()
+            .single();
+
+        if (error) throw new Error(handleSupabaseError(error));
+        return newPeriod as Period;
     },
 
-    update: (id: string, data: Partial<Period>) => {
-        const index = periodList.findIndex(p => p.id === id);
-        if (index === -1) return null;
+    update: async (id: string, data: Partial<Period>) => {
+        const { data: updatedPeriod, error } = await supabase
+            .from('periods')
+            .update(data)
+            .eq('id', id)
+            .select()
+            .single();
 
-        periodList[index] = { ...periodList[index], ...data };
-        return periodList[index];
+        if (error) return null;
+        return updatedPeriod as Period;
     },
 
-    delete: (id: string) => {
-        const index = periodList.findIndex(p => p.id === id);
-        if (index === -1) return false;
+    delete: async (id: string) => {
+        const { error } = await supabase
+            .from('periods')
+            .delete()
+            .eq('id', id);
 
-        periodList.splice(index, 1);
+        if (error) return false;
         return true;
     }
 };

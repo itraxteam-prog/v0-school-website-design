@@ -1,41 +1,95 @@
-import { Announcement, announcements } from '../data/announcements';
-
-// Announcement Service Logic
-// In-memory array to simulate database for now
-let announcementList = [...announcements];
+import { Announcement } from '../data/announcements';
+import { supabase } from '../utils/supabaseClient';
+import { handleSupabaseError } from '../utils/errors';
 
 export const AnnouncementService = {
-    getAll: () => {
-        return announcementList;
+    getAll: async () => {
+        const { data, error } = await supabase
+            .from('announcements')
+            .select('*');
+
+        if (error) throw new Error(handleSupabaseError(error));
+
+        return (data as any[]).map(a => ({
+            id: a.id,
+            title: a.title,
+            message: a.content,
+            createdAt: a.createdAt,
+            audience: [a.targetAudience.replace(/s$/, '')] // Map 'students' to 'student' etc.
+        })) as Announcement[];
     },
 
-    getById: (id: string) => {
-        return announcementList.find(a => a.id === id);
+    getById: async (id: string) => {
+        const { data, error } = await supabase
+            .from('announcements')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) return null;
+
+        return {
+            id: data.id,
+            title: data.title,
+            message: data.content,
+            createdAt: data.createdAt,
+            audience: [data.targetAudience.replace(/s$/, '')]
+        } as Announcement;
     },
 
-    create: (data: Omit<Announcement, 'id' | 'createdAt'>) => {
-        const newAnnouncement: Announcement = {
-            ...data,
-            id: `ann-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
-            createdAt: new Date().toISOString()
-        };
-        announcementList.push(newAnnouncement);
-        return newAnnouncement;
+    create: async (data: Omit<Announcement, 'id' | 'createdAt'>) => {
+        const { data: newAnnouncement, error } = await supabase
+            .from('announcements')
+            .insert([{
+                title: data.title,
+                content: data.message,
+                targetAudience: data.audience[0] + 's' // Simple mapping back
+            }])
+            .select()
+            .single();
+
+        if (error) throw new Error(handleSupabaseError(error));
+
+        return {
+            id: newAnnouncement.id,
+            title: newAnnouncement.title,
+            message: newAnnouncement.content,
+            createdAt: newAnnouncement.createdAt,
+            audience: [newAnnouncement.targetAudience.replace(/s$/, '')]
+        } as Announcement;
     },
 
-    update: (id: string, data: Partial<Announcement>) => {
-        const index = announcementList.findIndex(a => a.id === id);
-        if (index === -1) return null;
+    update: async (id: string, data: Partial<Announcement>) => {
+        const updateData: any = {};
+        if (data.title) updateData.title = data.title;
+        if (data.message) updateData.content = data.message;
+        if (data.audience) updateData.targetAudience = data.audience[0] + 's';
 
-        announcementList[index] = { ...announcementList[index], ...data };
-        return announcementList[index];
+        const { data: updated, error } = await supabase
+            .from('announcements')
+            .update(updateData)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) return null;
+
+        return {
+            id: updated.id,
+            title: updated.title,
+            message: updated.content,
+            createdAt: updated.createdAt,
+            audience: [updated.targetAudience.replace(/s$/, '')]
+        } as Announcement;
     },
 
-    delete: (id: string) => {
-        const index = announcementList.findIndex(a => a.id === id);
-        if (index === -1) return false;
+    delete: async (id: string) => {
+        const { error } = await supabase
+            .from('announcements')
+            .delete()
+            .eq('id', id);
 
-        announcementList.splice(index, 1);
+        if (error) return false;
         return true;
     }
 };

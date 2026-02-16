@@ -8,21 +8,21 @@ export const periodRoutes = {
     // GET /periods
     getAll: async () => {
         try {
-            const periods = PeriodService.getAll();
+            const periods = await PeriodService.getAll();
             return { status: 200, data: periods };
-        } catch (error) {
-            return { status: 500, error: 'Internal Server Error' };
+        } catch (error: any) {
+            return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
 
     // GET /periods/:id
     getById: async (id: string) => {
         try {
-            const period = PeriodService.getById(id);
+            const period = await PeriodService.getById(id);
             if (!period) return { status: 404, error: 'Period not found' };
             return { status: 200, data: period };
-        } catch (error) {
-            return { status: 500, error: 'Internal Server Error' };
+        } catch (error: any) {
+            return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
 
@@ -33,32 +33,32 @@ export const periodRoutes = {
             if (!validation.isValid) {
                 return { status: 400, errors: validation.errors };
             }
-            const newPeriod = PeriodService.create(data);
+            const newPeriod = await PeriodService.create(data);
             return { status: 201, data: newPeriod };
-        } catch (error) {
-            return { status: 500, error: 'Internal Server Error' };
+        } catch (error: any) {
+            return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
 
     // PUT /periods/:id
     update: async (id: string, data: any) => {
         try {
-            const updatedPeriod = PeriodService.update(id, data);
+            const updatedPeriod = await PeriodService.update(id, data);
             if (!updatedPeriod) return { status: 404, error: 'Period not found' };
             return { status: 200, data: updatedPeriod };
-        } catch (error) {
-            return { status: 500, error: 'Internal Server Error' };
+        } catch (error: any) {
+            return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
 
     // DELETE /periods/:id
     delete: async (id: string) => {
         try {
-            const success = PeriodService.delete(id);
+            const success = await PeriodService.delete(id);
             if (!success) return { status: 404, error: 'Period not found' };
             return { status: 200, data: { message: 'Period deleted successfully' } };
-        } catch (error) {
-            return { status: 500, error: 'Internal Server Error' };
+        } catch (error: any) {
+            return { status: 500, error: error.message || 'Internal Server Error' };
         }
     }
 };

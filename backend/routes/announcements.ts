@@ -8,21 +8,21 @@ export const announcementRoutes = {
     // GET /announcements
     getAll: async () => {
         try {
-            const announcements = AnnouncementService.getAll();
+            const announcements = await AnnouncementService.getAll();
             return { status: 200, data: announcements };
-        } catch (error) {
-            return { status: 500, error: 'Internal Server Error' };
+        } catch (error: any) {
+            return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
 
     // GET /announcements/:id
     getById: async (id: string) => {
         try {
-            const announcement = AnnouncementService.getById(id);
+            const announcement = await AnnouncementService.getById(id);
             if (!announcement) return { status: 404, error: 'Announcement not found' };
             return { status: 200, data: announcement };
-        } catch (error) {
-            return { status: 500, error: 'Internal Server Error' };
+        } catch (error: any) {
+            return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
 
@@ -33,32 +33,32 @@ export const announcementRoutes = {
             if (!validation.isValid) {
                 return { status: 400, errors: validation.errors };
             }
-            const newAnnouncement = AnnouncementService.create(data);
+            const newAnnouncement = await AnnouncementService.create(data);
             return { status: 201, data: newAnnouncement };
-        } catch (error) {
-            return { status: 500, error: 'Internal Server Error' };
+        } catch (error: any) {
+            return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
 
     // PUT /announcements/:id
     update: async (id: string, data: any) => {
         try {
-            const updatedAnnouncement = AnnouncementService.update(id, data);
+            const updatedAnnouncement = await AnnouncementService.update(id, data);
             if (!updatedAnnouncement) return { status: 404, error: 'Announcement not found' };
             return { status: 200, data: updatedAnnouncement };
-        } catch (error) {
-            return { status: 500, error: 'Internal Server Error' };
+        } catch (error: any) {
+            return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
 
     // DELETE /announcements/:id
     delete: async (id: string) => {
         try {
-            const success = AnnouncementService.delete(id);
+            const success = await AnnouncementService.delete(id);
             if (!success) return { status: 404, error: 'Announcement not found' };
             return { status: 200, data: { message: 'Announcement deleted successfully' } };
-        } catch (error) {
-            return { status: 500, error: 'Internal Server Error' };
+        } catch (error: any) {
+            return { status: 500, error: error.message || 'Internal Server Error' };
         }
     }
 };
