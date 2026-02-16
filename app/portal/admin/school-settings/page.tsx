@@ -24,7 +24,8 @@ import {
     Globe,
     Bell,
     Moon,
-    BookOpen
+    BookOpen,
+    Clock
 } from "lucide-react"
 import { motion } from "framer-motion"
 
@@ -33,6 +34,7 @@ const sidebarItems = [
     { href: "/portal/admin/students", label: "Students", icon: GraduationCap },
     { href: "/portal/admin/teachers", label: "Teachers", icon: Users },
     { href: "/portal/admin/classes", label: "Classes", icon: School },
+    { href: "/portal/admin/periods", label: "Periods", icon: Clock },
     { href: "/portal/admin/analytics", label: "Analytics", icon: BarChart3 },
     { href: "/portal/admin/reports", label: "Reports", icon: FileBarChart },
     { href: "/portal/admin/users", label: "User Management", icon: Settings },
