@@ -31,11 +31,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const checkAuth = async () => {
         try {
-            // Call a verify endpoint to check if the cookie is valid
-            const res = await fetch('/api/auth/verify', {
+            // 1. Try to verify current access token
+            let res = await fetch('/api/auth/verify', {
                 method: 'GET',
-                credentials: 'include', // Important for cookies
+                credentials: 'include',
             });
+
+            if (!res.ok) {
+                // 2. If verify fails, try to refresh the session
+                const refreshRes = await fetch('/api/auth/refresh', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                if (refreshRes.ok) {
+                    // 3. If refresh succeeds, try verifying again
+                    res = await fetch('/api/auth/verify', {
+                        method: 'GET',
+                        credentials: 'include',
+                    });
+                } else {
+                    setUser(null);
+                    return;
+                }
+            }
 
             if (res.ok) {
                 const data = await res.json();
@@ -45,6 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
         } catch (error) {
             console.error('Auth check failed:', error);
+            setUser(null);
         } finally {
             setLoading(false);
         }
@@ -55,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const res = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                credentials: 'include', // Important for cookies
+                credentials: 'include',
                 body: JSON.stringify({ email, password, rememberMe }),
             });
 
@@ -65,20 +85,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 throw new Error(data.message || 'Login failed');
             }
 
-            // Set user from response
-            setUser({
-                id: data.id || email,
-                role: data.role,
-                email: email,
-                name: data.name || ''
-            });
+            // Set user from response (tokens are handled as HttpOnly cookies by the server)
+            setUser(data.user);
 
             // Redirect based on role
-            if (data.role === 'admin') {
+            const role = data.user.role;
+            if (role === 'admin') {
                 router.push('/portal/admin');
-            } else if (data.role === 'teacher') {
+            } else if (role === 'teacher') {
                 router.push('/portal/teacher');
-            } else if (data.role === 'student') {
+            } else if (role === 'student') {
                 router.push('/portal/student');
             }
         } catch (error) {
