@@ -22,13 +22,19 @@ export async function POST(req: NextRequest) {
         }, { status: result.status });
 
         // Set HTTP-only, secure cookie
-        response.cookies.set('token', result.data.token, {
+        // rememberMe = true -> 30 days, else session cookie (undefined maxAge)
+        const cookieOptions: any = {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
             path: '/',
-            maxAge: 60 * 60 * 24 // 24 hours
-        });
+        };
+
+        if (result.rememberMe) {
+            cookieOptions.maxAge = 60 * 60 * 24 * 30; // 30 days
+        }
+
+        response.cookies.set('token', result.data.token, cookieOptions);
 
         return response;
     } catch (error) {

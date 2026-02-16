@@ -11,7 +11,7 @@ export interface AuthResponse {
 }
 
 export const AuthService = {
-    login: async (email: string, password: string): Promise<AuthResponse | null> => {
+    login: async (email: string, password: string, rememberMe: boolean = false): Promise<AuthResponse | null> => {
         // Simulate async database call
         await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -29,7 +29,7 @@ export const AuthService = {
             return null;
         }
 
-        const token = AuthService.generateToken(user);
+        const token = AuthService.generateToken(user, rememberMe);
 
         // Return user without password
         const { password: _, ...userWithoutPassword } = user;
@@ -40,7 +40,8 @@ export const AuthService = {
         };
     },
 
-    generateToken: (user: User): string => {
+    generateToken: (user: User, persistent: boolean = false): string => {
+        const expiresIn = persistent ? '30d' : TOKEN_EXPIRY;
         return jwt.sign(
             {
                 id: user.id,
@@ -49,7 +50,7 @@ export const AuthService = {
                 role: user.role
             },
             JWT_SECRET,
-            { expiresIn: TOKEN_EXPIRY }
+            { expiresIn }
         );
     },
 

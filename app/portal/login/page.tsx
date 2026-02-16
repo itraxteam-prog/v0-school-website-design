@@ -1,23 +1,52 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { useAuth } from "@/context/AuthContext"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, EyeOff, User, Lock } from "lucide-react"
+import { Eye, EyeOff, User, Lock, Loader2 } from "lucide-react"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
+  const { login, user, loading: authLoading } = useAuth()
+  const router = useRouter()
+
+  // Auto-login: Redirect if user is already authenticated
+  useEffect(() => {
+    if (!authLoading && user) {
+      const rolePortalMap: Record<string, string> = {
+        'admin': '/portal/admin',
+        'teacher': '/portal/teacher',
+        'student': '/portal/student'
+      }
+      const userPortal = rolePortalMap[user.role]
+      if (userPortal) {
+        router.push(userPortal)
+      }
+    }
+  }, [user, authLoading, router])
+
+  if (authLoading || (user && !authLoading)) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-secondary">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-sm font-medium text-muted-foreground">Checking authentication...</p>
+        </div>
+      </div>
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,7 +54,7 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      await login(email, password)
+      await login(email, password, rememberMe)
       // Redirect is handled in the login function
     } catch (err: any) {
       setError(err.message || "Login failed. Please check your credentials.")
@@ -111,8 +140,12 @@ export default function LoginPage() {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Checkbox id="remember" />
-                <Label htmlFor="remember" className="text-sm font-normal text-muted-foreground">
+                <Checkbox
+                  id="remember"
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                />
+                <Label htmlFor="remember" className="text-sm font-normal text-muted-foreground cursor-pointer">
                   Remember me
                 </Label>
               </div>
