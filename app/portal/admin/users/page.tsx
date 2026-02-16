@@ -85,7 +85,14 @@ const userSchema = z.object({
   fullName: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Invalid email address." }),
   role: z.enum(["Admin", "Teacher", "Student"]),
-  password: z.string().min(6, { message: "Password must be at least 6 characters." }).optional(),
+  password: z.string()
+    .min(8, { message: "Password must be at least 8 characters." })
+    .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter." })
+    .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter." })
+    .regex(/[0-9]/, { message: "Password must contain at least one number." })
+    .regex(/[^A-Za-z0-9]/, { message: "Password must contain at least one special character." })
+    .optional()
+    .or(z.literal("")),
   status: z.enum(["Active", "Suspended"]),
 })
 
@@ -248,6 +255,9 @@ export default function UserManagementPage() {
                         <FormControl>
                           <Input type="password" placeholder="••••••••" {...field} className="glass-card" />
                         </FormControl>
+                        <p className="text-[10px] text-muted-foreground mt-1 px-1">
+                          Min 8 characters, with uppercase, lowercase, number, and special character.
+                        </p>
                         <FormMessage />
                       </FormItem>
                     )}

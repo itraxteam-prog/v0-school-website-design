@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import { User } from '@/backend/data/users';
 import { supabase } from '../utils/supabaseClient';
 import { handleSupabaseError } from '../utils/errors';
+import { validatePassword } from '@/utils/validation';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-123';
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret-key-123';
@@ -31,7 +32,7 @@ const LOCK_TIME_MS = 15 * 60 * 1000; // 15 minutes
 
 export const AuthService = {
     validatePasswordStrength: (password: string): boolean => {
-        return password.length >= 8 && /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password);
+        return validatePassword(password).isValid;
     },
 
     login: async (email: string, password: string): Promise<LoginResult> => {
@@ -166,8 +167,9 @@ export const AuthService = {
             const isMatch = await bcrypt.compare(currentPassword, user.password);
             if (!isMatch) return { success: false, message: 'Incorrect current password' };
 
-            if (!AuthService.validatePasswordStrength(newPassword)) {
-                return { success: false, message: 'Password must be at least 8 characters long and contain at least one number and one special character.' };
+            const validation = validatePassword(newPassword);
+            if (!validation.isValid) {
+                return { success: false, message: `Weak password: ${validation.feedback.join(", ")}` };
             }
 
             const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -176,6 +178,58 @@ export const AuthService = {
             return { success: true, message: 'Password changed successfully' };
         } catch (error) {
             return { success: false, message: 'Failed to change password' };
+        }
+    },
+
+    forgotPassword: async (email: string): Promise<{ success: boolean; message: string; resetLink?: string }> => {
+        try {
+            const { data: user, error } = await supabase
+                .from('users')
+                .select('id, email')
+                .eq('email', email)
+                .single();
+
+            if (error || !user) {
+                return { success: true, message: 'If an account exists with this email, a reset link has been sent.' };
+            }
+
+            // Reset token expires in 1 hour
+            const resetToken = jwt.sign({ userId: user.id, type: 'reset' }, JWT_SECRET, { expiresIn: '1h' });
+            const resetLink = `/portal/reset-password?token=${resetToken}`;
+
+            return {
+                success: true,
+                message: 'A reset link has been sent to your email.',
+                resetLink
+            };
+        } catch (error) {
+            return { success: false, message: 'Failed to process forgot password request' };
+        }
+    },
+
+    resetPassword: async (token: string, newPassword: string): Promise<{ success: boolean; message: string }> => {
+        try {
+            const decoded = jwt.verify(token, JWT_SECRET) as { userId: string, type: string };
+            if (!decoded || decoded.type !== 'reset') {
+                return { success: false, message: 'Invalid or expired reset token' };
+            }
+
+            const validation = validatePassword(newPassword);
+            if (!validation.isValid) {
+                return { success: false, message: `Weak password: ${validation.feedback.join(", ")}` };
+            }
+
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            const { error: updateError } = await supabase
+                .from('users')
+                .update({ password: hashedPassword, failed_login_attempts: 0, lock_until: null })
+                .eq('id', decoded.userId);
+
+            if (updateError) return { success: false, message: 'Failed to reset password' };
+
+            return { success: true, message: 'Password reset successfully.' };
+        } catch (error) {
+            return { success: false, message: 'Invalid or expired reset token' };
         }
     }
 };

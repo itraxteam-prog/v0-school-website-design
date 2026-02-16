@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Lock, Eye, EyeOff, CheckCircle2, AlertTriangle } from "lucide-react"
 
+import { validatePassword } from "@/utils/validation"
+
 export default function ResetPasswordClient() {
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -31,8 +33,9 @@ export default function ResetPasswordClient() {
             return
         }
 
-        if (password.length < 8) {
-            setError("Password must be at least 8 characters long")
+        const validation = validatePassword(password)
+        if (!validation.isValid) {
+            setError(`Weak password: ${validation.feedback[0]}`)
             return
         }
 
@@ -145,10 +148,27 @@ export default function ResetPasswordClient() {
 
                             <div className="rounded-lg bg-muted/50 p-3 text-[11px] text-muted-foreground">
                                 <p className="font-semibold mb-1 uppercase tracking-wider">Password Requirements:</p>
-                                <ul className="list-disc pl-4 space-y-0.5">
-                                    <li className={password.length >= 8 ? "text-green-600 font-medium" : ""}>At least 8 characters</li>
-                                    <li className={/[0-9]/.test(password) ? "text-green-600 font-medium" : ""}>At least one number</li>
-                                    <li className={/[!@#$%^&*]/.test(password) ? "text-green-600 font-medium" : ""}>At least one special character (!@#$%^&*)</li>
+                                <ul className="grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-2">
+                                    <li className={`flex items-center gap-1.5 ${password.length >= 8 ? "text-green-600 font-medium" : ""}`}>
+                                        <div className={`h-1 w-1 rounded-full ${password.length >= 8 ? "bg-green-600" : "bg-muted-foreground"}`} />
+                                        At least 8 characters
+                                    </li>
+                                    <li className={`flex items-center gap-1.5 ${/[A-Z]/.test(password) ? "text-green-600 font-medium" : ""}`}>
+                                        <div className={`h-1 w-1 rounded-full ${/[A-Z]/.test(password) ? "bg-green-600" : "bg-muted-foreground"}`} />
+                                        One uppercase letter
+                                    </li>
+                                    <li className={`flex items-center gap-1.5 ${/[a-z]/.test(password) ? "text-green-600 font-medium" : ""}`}>
+                                        <div className={`h-1 w-1 rounded-full ${/[a-z]/.test(password) ? "bg-green-600" : "bg-muted-foreground"}`} />
+                                        One lowercase letter
+                                    </li>
+                                    <li className={`flex items-center gap-1.5 ${/[0-9]/.test(password) ? "text-green-600 font-medium" : ""}`}>
+                                        <div className={`h-1 w-1 rounded-full ${/[0-9]/.test(password) ? "bg-green-600" : "bg-muted-foreground"}`} />
+                                        One number
+                                    </li>
+                                    <li className={`flex items-center gap-1.5 ${/[^A-Za-z0-9]/.test(password) ? "text-green-600 font-medium" : ""}`}>
+                                        <div className={`h-1 w-1 rounded-full ${/[^A-Za-z0-9]/.test(password) ? "bg-green-600" : "bg-muted-foreground"}`} />
+                                        One special character
+                                    </li>
                                 </ul>
                             </div>
 
