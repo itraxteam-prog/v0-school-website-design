@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
     const auth = await requireRole(req, ['admin', 'teacher', 'student', 'parent']);
     if (!auth.authorized || !auth.user) return auth.response;
 
-    const result = await announcementRoutes.getAll();
+    const result = await announcementRoutes.getAll(auth.user);
     if (result.status >= 400) {
         LogService.logAction(auth.user.id, auth.user.role, 'READ_LIST', 'ANNOUNCEMENT', undefined, 'failure', { error: result.error });
         return NextResponse.json({ error: result.error }, { status: result.status });
@@ -19,13 +19,13 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-    // POST -> admin and teacher
+    // POST -> admin and teacher (backend checks permissions)
     const auth = await requireRole(req, ['admin', 'teacher']);
     if (!auth.authorized || !auth.user) return auth.response;
 
     try {
         const body = await req.json();
-        const result = await announcementRoutes.create(body);
+        const result = await announcementRoutes.create(body, auth.user);
         if (result.status >= 400) {
             LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'ANNOUNCEMENT', undefined, 'failure', { error: result.error || result.errors });
             return NextResponse.json({ error: result.error || result.errors }, { status: result.status });

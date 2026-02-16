@@ -5,11 +5,11 @@ import { AuditService } from '@/backend/services/auditService';
 import { LogService } from '@/backend/services/logService';
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-    // GET -> admin, teacher
-    const auth = await requireRole(req, ['admin', 'teacher']);
+    // GET -> admin, teacher, student
+    const auth = await requireRole(req, ['admin', 'teacher', 'student']);
     if (!auth.authorized || !auth.user) return auth.response;
 
-    const result = await studentRoutes.getById(params.id);
+    const result = await studentRoutes.getById(params.id, auth.user);
     if (result.status >= 400) {
         LogService.logAction(auth.user.id, auth.user.role, 'READ', 'STUDENT', params.id, 'failure', { error: result.error });
         return NextResponse.json({ error: result.error }, { status: result.status });
@@ -30,7 +30,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     try {
         const body = await req.json();
-        const result = await studentRoutes.update(params.id, body);
+        const result = await studentRoutes.update(params.id, body, auth.user);
         if (result.status >= 400) {
             await AuditService.logUserUpdate(auth.user.id, 'failure', { ...metadata, error: result.error });
             LogService.logAction(auth.user.id, auth.user.role, 'UPDATE', 'STUDENT', params.id, 'failure', { error: result.error, metadata });
@@ -53,7 +53,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     const userAgent = req.headers.get('user-agent') || 'unknown';
     const metadata = { ip, userAgent, targetStudentId: params.id };
 
-    const result = await studentRoutes.delete(params.id);
+    const result = await studentRoutes.delete(params.id, auth.user);
     if (result.status >= 400) {
         await AuditService.logEvent(auth.user.id, 'DELETE_STUDENT', 'failure', { ...metadata, error: result.error });
         LogService.logAction(auth.user.id, auth.user.role, 'DELETE', 'STUDENT', params.id, 'failure', { error: result.error, metadata });

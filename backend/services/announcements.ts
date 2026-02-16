@@ -4,7 +4,33 @@ import { handleSupabaseError } from '../utils/errors';
 import { NotificationService } from './notificationService';
 
 export const AnnouncementService = {
-    // ... (getAll, getById)
+    getAll: async (filterByRole?: string) => {
+        let query = supabase.from('announcements').select('*');
+
+        if (filterByRole) {
+            // Check if audience is 'students', 'teachers', or 'all' if we had it. 
+            // Current schema stores audience as 'students' or 'teachers'.
+            // We'll filter for matching audience OR 'all' if we add that later.
+            // For now, simple exact match or contained in logic.
+            query = query.in('targetAudience', [filterByRole + 's', 'all', 'everyone']);
+        }
+
+        const { data, error } = await query.order('createdAt', { ascending: false });
+
+        if (error) throw new Error(handleSupabaseError(error));
+        return data as Announcement[];
+    },
+
+    getById: async (id: string) => {
+        const { data, error } = await supabase
+            .from('announcements')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) return null;
+        return data as Announcement;
+    },
 
     create: async (data: Omit<Announcement, 'id' | 'createdAt'>) => {
         const targetAudience = data.audience[0] + 's';
