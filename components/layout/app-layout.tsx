@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
+import { useAuth } from "@/context/AuthContext"
 import { Bell, ChevronRight, LogOut, Menu, Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,6 +27,11 @@ interface AppLayoutProps {
 export function AppLayout({ children, sidebarItems, userName, userRole }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const pathname = usePathname()
+  const { logout } = useAuth()
+
+  const handleLogout = async () => {
+    await logout()
+  }
 
   const breadcrumbs = pathname.split("/").filter(Boolean).slice(1)
 
@@ -112,13 +118,13 @@ export function AppLayout({ children, sidebarItems, userName, userRole }: AppLay
 
         {/* Sidebar Footer */}
         <div className="border-t border-border px-3 py-3">
-          <Link
-            href="/portal/login"
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          <button
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <LogOut className="h-[18px] w-[18px]" />
             Logout
-          </Link>
+          </button>
         </div>
       </motion.aside>
 
