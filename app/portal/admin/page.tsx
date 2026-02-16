@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRequireAuth } from "@/hooks/useRequireAuth"
 import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -105,12 +106,17 @@ const kpiStats = [
 ]
 
 export default function AdminDashboard() {
+  const { user, loading: authLoading } = useRequireAuth(['admin']);
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1200)
     return () => clearTimeout(timer)
   }, [])
+
+  if (authLoading) {
+    return null;
+  }
 
   return (
     <AppLayout sidebarItems={sidebarItems} userName="Dr. Ahmad Raza" userRole="admin">

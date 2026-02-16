@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRequireAuth } from "@/hooks/useRequireAuth"
 import { LayoutDashboard, BookOpen, CalendarCheck, Clock, Megaphone, User, TrendingUp, Book, AlertCircle } from "lucide-react"
 import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,6 +21,7 @@ const sidebarItems = [
 ]
 
 export default function StudentDashboard() {
+  const { user, loading: authLoading } = useRequireAuth(['student']);
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -29,6 +31,10 @@ export default function StudentDashboard() {
     }, 1500)
     return () => clearTimeout(timer)
   }, [])
+
+  if (authLoading) {
+    return null;
+  }
 
   return (
     <AppLayout sidebarItems={sidebarItems} userName="Ahmed Khan" userRole="Student">

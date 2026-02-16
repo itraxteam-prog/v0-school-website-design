@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRequireAuth } from "@/hooks/useRequireAuth"
 import { LayoutDashboard, Users, CalendarCheck, BookMarked, FileBarChart, User, ClipboardList, PlusCircle, TrendingUp, UserCheck, FileText } from "lucide-react"
 import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -31,6 +32,7 @@ const todaySchedule = [
 ]
 
 export default function TeacherDashboard() {
+  const { user, loading: authLoading } = useRequireAuth(['teacher']);
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -40,6 +42,10 @@ export default function TeacherDashboard() {
     }, 1500)
     return () => clearTimeout(timer)
   }, [])
+
+  if (authLoading) {
+    return null;
+  }
 
   return (
     <AppLayout sidebarItems={sidebarItems} userName="Mr. Usman Sheikh" userRole="Teacher">
@@ -175,8 +181,8 @@ export default function TeacherDashboard() {
                             <TableRow
                               key={i}
                               className={`group border-border/50 transition-colors ${item.class === "Free Period"
-                                  ? "bg-muted/30 hover:bg-muted/40"
-                                  : "hover:bg-primary/5"
+                                ? "bg-muted/30 hover:bg-muted/40"
+                                : "hover:bg-primary/5"
                                 }`}
                             >
                               <TableCell className="font-medium text-sm">{item.time}</TableCell>
