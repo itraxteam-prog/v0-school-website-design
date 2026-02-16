@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { AuthService } from '@/backend/services/authService';
-import { AuditService } from '@/backend/services/auditService';
+import { LogService } from '@/backend/services/logService';
+import { createResponse, createErrorResponse } from '@/backend/utils/apiResponse';
 
 export async function POST(req: NextRequest) {
     const ip = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
@@ -8,40 +9,41 @@ export async function POST(req: NextRequest) {
     const metadata = { ip, userAgent };
 
     try {
-        const { tempToken, code, rememberMe } = await req.json();
+        let body;
+        try {
+            body = await req.json();
+        } catch (e) {
+            return createErrorResponse('Invalid JSON body', 400);
+        }
+
+        const { tempToken, code, rememberMe } = body;
 
         if (!tempToken || !code) {
-            return NextResponse.json({ success: false, message: 'Session and code are required' }, { status: 400 });
+            return createErrorResponse('Session and code are required', 400);
         }
 
         const result = await AuthService.verify2FALogin(tempToken, code);
 
         if (result.error || !result.token) {
             // Log failed 2FA login
-            await AuditService.logLoginAttempt('pending_2fa', 'failure', { ...metadata, error: result.error || '2FA Verification failed' });
-            return NextResponse.json({
-                success: false,
-                message: result.error || 'Verification failed'
-            }, { status: result.status || 401 });
+            LogService.logAction('system', 'guest', 'LOGIN_2FA_ATTEMPT', 'AUTH', undefined, 'failure', { ...metadata, error: result.error || '2FA Verification failed' });
+            return createErrorResponse(result.error || 'Verification failed', result.status || 401);
         }
 
         // Log successful 2FA login
         if (result.user?.id) {
-            await AuditService.logLoginAttempt(result.user.id, 'success', { ...metadata, auth_type: '2fa' });
+            LogService.logAction(result.user.id, result.user.role, 'LOGIN_2FA', 'AUTH', undefined, 'success', metadata);
         }
 
-        // Create response
-        const response = NextResponse.json({
-            success: true,
-            user: {
-                id: result.user?.id,
-                name: result.user?.name,
-                role: result.user?.role,
-                email: result.user?.email
-            }
-        }, { status: 200 });
+        const userData = {
+            id: result.user?.id,
+            name: result.user?.name,
+            role: result.user?.role,
+            email: result.user?.email
+        };
 
-        // Cookie options for security
+        const response = createResponse({ user: userData }, 200);
+
         const cookieOptions: any = {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -65,9 +67,7 @@ export async function POST(req: NextRequest) {
 
         return response;
     } catch (error) {
-        return NextResponse.json({
-            success: false,
-            message: 'An internal error occurred'
-        }, { status: 500 });
+        console.error('2FA Verify Route Error:', error);
+        return createErrorResponse('Internal server error', 500);
     }
 }
