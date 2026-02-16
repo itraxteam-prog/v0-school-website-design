@@ -6,6 +6,7 @@ import { User } from '@/backend/data/users';
 import { supabase } from '../utils/supabaseClient';
 import { handleSupabaseError } from '../utils/errors';
 import { validatePassword } from '@/utils/validation';
+import { NotificationService } from './notificationService';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-123';
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret-key-123';
@@ -223,6 +224,9 @@ export const AuthService = {
                 recovery_codes: recoveryCodes
             }).eq('id', userId);
 
+            // Notify user
+            NotificationService.sendEmailNotification(userId, '2FA_ENABLED', 'Two-factor authentication has been successfully enabled for your account.', user.role);
+
             return { success: true, message: '2FA enabled successfully', recoveryCodes };
         } catch (error) {
             return { success: false, message: 'Verification failed' };
@@ -328,6 +332,9 @@ export const AuthService = {
             const hashedPassword = await bcrypt.hash(newPassword, 10);
             await supabase.from('users').update({ password: hashedPassword }).eq('id', userId);
 
+            // Notify user
+            NotificationService.sendEmailNotification(userId, 'PASSWORD_CHANGED', 'Your password has been successfully changed.', user.role);
+
             return { success: true, message: 'Password changed successfully' };
         } catch (error) {
             return { success: false, message: 'Failed to change password' };
@@ -338,7 +345,7 @@ export const AuthService = {
         try {
             const { data: user, error } = await supabase
                 .from('users')
-                .select('id, email')
+                .select('id, email, role')
                 .eq('email', email)
                 .single();
 
@@ -349,6 +356,9 @@ export const AuthService = {
             // Reset token expires in 1 hour
             const resetToken = jwt.sign({ userId: user.id, type: 'reset' }, JWT_SECRET, { expiresIn: '1h' });
             const resetLink = `/portal/reset-password?token=${resetToken}`;
+
+            // Send notification
+            NotificationService.sendEmailNotification(user.id, 'PASSWORD_RESET_REQUEST', `You requested a password reset. Use this link: ${resetLink}`, user.role);
 
             return {
                 success: true,
@@ -373,12 +383,17 @@ export const AuthService = {
             }
 
             const hashedPassword = await bcrypt.hash(newPassword, 10);
+            const { data: user, error: userError } = await supabase.from('users').select('role').eq('id', decoded.userId).single();
+
             const { error: updateError } = await supabase
                 .from('users')
                 .update({ password: hashedPassword, failed_login_attempts: 0, lock_until: null })
                 .eq('id', decoded.userId);
 
             if (updateError) return { success: false, message: 'Failed to reset password' };
+
+            // Notify user
+            NotificationService.sendEmailNotification(decoded.userId, 'PASSWORD_RESET_SUCCESS', 'Your password has been successfully reset.', user?.role || 'user');
 
             return { success: true, message: 'Password reset successfully.' };
         } catch (error) {
