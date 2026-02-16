@@ -8,19 +8,19 @@ export const authRoutes = {
                 return { status: 400, error: 'Email and password are required' };
             }
 
-            const { email, password, rememberMe } = credentials;
-            const result = await AuthService.login(email, password, !!rememberMe);
+            const { email, password } = credentials;
+            const result = await AuthService.login(email, password);
 
             if (result.error) {
-                return { status: 401, error: result.error };
+                return { status: result.status || 401, error: result.error };
             }
 
             return {
                 status: 200,
-                rememberMe: !!rememberMe,
                 data: {
                     user: result.user,
-                    token: result.token
+                    token: result.token,
+                    refreshToken: result.refreshToken
                 }
             };
         } catch (error) {
