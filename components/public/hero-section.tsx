@@ -3,8 +3,13 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
+import { useAuth } from "@/context/AuthContext"
 
 export function HeroSection() {
+  const { user } = useAuth()
+  const portalHref = user ? `/portal/${user.role}` : "/portal/login"
+  const portalLabel = user ? "Dashboard" : "Login Portal"
+
   return (
     <section className="relative flex min-h-[70vh] items-center overflow-hidden bg-foreground lg:min-h-[80vh]">
       {/* Background overlay pattern */}
@@ -42,12 +47,12 @@ export function HeroSection() {
                   Apply for Admission
                 </Button>
               </Link>
-              <Link href="/portal/login">
+              <Link href={portalHref}>
                 <Button
                   size="lg"
                   className="w-full bg-white text-primary font-bold hover:bg-white/90 sm:w-auto shadow-xl"
                 >
-                  Login Portal
+                  {portalLabel}
                 </Button>
               </Link>
             </div>

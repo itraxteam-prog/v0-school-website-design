@@ -1,16 +1,13 @@
 import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import jwt from 'jsonwebtoken';
+import { JWTPayload, withAuth } from './withAuth';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-123';
 
-export interface JWTPayload {
-    id: string;
-    email: string;
-    role: string;
-    iat: number;
-    exp: number;
-}
+export { withAuth };
+export type { JWTPayload };
 
 /**
  * Verify JWT from cookies

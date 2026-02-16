@@ -1,19 +1,15 @@
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import { verifyJWTWithRole } from '@/backend/utils/auth';
+import { withAuth } from '@/backend/utils/withAuth';
 
 /**
  * Server-side auth guard for protecting pages
  * Use this in Server Components
  * @param allowedRoles - Array of roles that can access the page
- * @returns Decoded JWT payload if authorized, otherwise redirects to login
+ * @returns Decoded JWT payload if authorized, otherwise redirects
+ * 
+ * @example
+ * // In a Server Component
+ * const user = await requireAuth(['admin']);
  */
-export function requireAuth(allowedRoles: string[]) {
-    const payload = verifyJWTWithRole(undefined, allowedRoles);
-
-    if (!payload) {
-        redirect('/portal/login');
-    }
-
-    return payload;
+export async function requireAuth(allowedRoles: string[]) {
+    return await withAuth(allowedRoles);
 }

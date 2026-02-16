@@ -7,6 +7,7 @@ interface User {
     id: string;
     role: string;
     email: string;
+    name: string;
 }
 
 interface AuthContextType {
@@ -66,9 +67,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             // Set user from response
             setUser({
-                id: data.id || email, // fallback to email if no id
+                id: data.id || email,
                 role: data.role,
-                email: data.name || email
+                email: email,
+                name: data.name || ''
             });
 
             // Redirect based on role

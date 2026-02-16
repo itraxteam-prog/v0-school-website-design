@@ -21,7 +21,8 @@ export async function GET(req: NextRequest) {
             user: {
                 id: decoded.id,
                 role: decoded.role,
-                email: decoded.email
+                email: decoded.email,
+                name: decoded.name
             }
         }, { status: 200 });
     } catch (error) {

@@ -4,8 +4,9 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
-import { Menu, X } from "lucide-react"
+import { Menu, X, LayoutDashboard } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useAuth } from "@/context/AuthContext"
 
 import { ScrollProgress } from "@/components/ui/scroll-progress"
 
@@ -20,6 +21,10 @@ const navLinks = [
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = usePathname()
+  const { user } = useAuth()
+
+  const portalHref = user ? `/portal/${user.role}` : "/portal/login"
+  const portalLabel = user ? "Dashboard" : "Login Portal"
 
   return (
     <>
@@ -68,9 +73,10 @@ export function Navbar() {
 
           {/* Desktop CTA */}
           <div className="hidden items-center gap-3 lg:flex">
-            <Link href="/portal/login">
-              <Button variant="outline" size="sm" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-                Login Portal
+            <Link href={portalHref}>
+              <Button variant="outline" size="sm" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground flex items-center gap-2">
+                {user && <LayoutDashboard className="h-4 w-4" />}
+                {portalLabel}
               </Button>
             </Link>
             <Link href="/admissions">
@@ -109,9 +115,10 @@ export function Navbar() {
                 </Link>
               ))}
               <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4">
-                <Link href="/portal/login" onClick={() => setMobileOpen(false)}>
-                  <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-                    Login Portal
+                <Link href={portalHref} onClick={() => setMobileOpen(false)}>
+                  <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground flex items-center justify-center gap-2">
+                    {user && <LayoutDashboard className="h-4 w-4" />}
+                    {portalLabel}
                   </Button>
                 </Link>
                 <Link href="/admissions" onClick={() => setMobileOpen(false)}>

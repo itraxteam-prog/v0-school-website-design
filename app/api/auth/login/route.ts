@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const result = await authRoutes.login(body);
 
-        if (result.status >= 400) {
+        if (result.status >= 400 || !result.data) {
             return NextResponse.json({
                 success: false,
                 message: result.error || 'Invalid credentials'
@@ -17,7 +17,8 @@ export async function POST(req: NextRequest) {
         const response = NextResponse.json({
             success: true,
             role: result.data.user.role,
-            name: result.data.user.email // or use a name field if available
+            name: result.data.user.name,
+            id: result.data.user.id
         }, { status: result.status });
 
         // Set HTTP-only, secure cookie
