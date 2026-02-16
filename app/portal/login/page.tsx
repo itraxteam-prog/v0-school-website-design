@@ -1,9 +1,29 @@
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import Image from 'next/image';
+import Link from 'next/link';
+import {
+  Loader2,
+  User,
+  Lock,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  ArrowLeft
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
-} from "@/components/ui/input-otp"
-import { ShieldCheck, ArrowLeft } from "lucide-react"
+} from "@/components/ui/input-otp";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
