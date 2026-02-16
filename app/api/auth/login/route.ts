@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthService } from '@/backend/services/authService';
 import { LogService } from '@/backend/services/logService';
+import { createResponse, createErrorResponse } from '@/backend/utils/apiResponse';
 
 export async function POST(req: NextRequest) {
     const ip = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
@@ -8,10 +9,17 @@ export async function POST(req: NextRequest) {
     const metadata = { ip, userAgent };
 
     try {
-        const { email, password, rememberMe } = await req.json();
+        let body;
+        try {
+            body = await req.json();
+        } catch (e) {
+            return createErrorResponse('Invalid JSON body', 400);
+        }
+
+        const { email, password, rememberMe } = body;
 
         if (!email || !password) {
-            return NextResponse.json({ success: false, message: 'Email and password are required' }, { status: 400 });
+            return createErrorResponse('Email and password are required', 400);
         }
 
         const result = await AuthService.login(email, password);
@@ -19,32 +27,18 @@ export async function POST(req: NextRequest) {
         if (result.error) {
             // Log failed login
             LogService.logAction('system', 'guest', 'LOGIN_ATTEMPT', 'AUTH', undefined, 'failure', { ...metadata, email, error: result.error });
-            return NextResponse.json({
-                success: false,
-                message: result.error
-            }, { status: result.status || 401 });
+            return createErrorResponse(result.error, result.status || 401);
         }
 
         // Handle 2FA Required
         if (result.requires2FA) {
-            // Log partial success / 2FA trigger
-            // Note: We might want to know WHO is trying. result likely doesn't have user object if standard login flow, 
-            // but AuthService.login probably found the user. 
-            // If result.tempToken exists, it's tied to a user.
             LogService.logAction('system', 'guest', 'LOGIN_2FA_REQUIRED', 'AUTH', undefined, 'success', { ...metadata, email });
-            return NextResponse.json({
-                success: true,
-                requires2FA: true,
-                tempToken: result.tempToken
-            }, { status: 202 });
+            return createResponse({ requires2FA: true, tempToken: result.tempToken }, 202);
         }
 
         if (!result.token) {
             LogService.logAction('system', 'guest', 'LOGIN_ATTEMPT', 'AUTH', undefined, 'failure', { ...metadata, email, error: 'No token generated' });
-            return NextResponse.json({
-                success: false,
-                message: 'Authentication failed'
-            }, { status: 401 });
+            return createErrorResponse('Authentication failed', 401);
         }
 
         // Log successful login
@@ -52,16 +46,15 @@ export async function POST(req: NextRequest) {
             LogService.logAction(result.user.id, result.user.role, 'LOGIN', 'AUTH', undefined, 'success', metadata);
         }
 
-        // Create response
-        const response = NextResponse.json({
-            success: true,
-            user: {
-                id: result.user?.id,
-                name: result.user?.name,
-                role: result.user?.role,
-                email: result.user?.email
-            }
-        }, { status: 200 });
+        // Create response with user data
+        const userData = {
+            id: result.user?.id,
+            name: result.user?.name,
+            role: result.user?.role,
+            email: result.user?.email
+        };
+
+        const response = createResponse({ user: userData }, 200);
 
         // Cookie options for security
         const cookieOptions: any = {
@@ -86,10 +79,8 @@ export async function POST(req: NextRequest) {
         }
 
         return response;
-    } catch (error) {
-        return NextResponse.json({
-            success: false,
-            message: 'An internal error occurred'
-        }, { status: 500 });
+    } catch (error: any) {
+        console.error('Login Route Error:', error);
+        return createErrorResponse('Internal server error', 500);
     }
 }

@@ -1,40 +1,31 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { authRoutes } from '@/backend/routes/auth';
-import { AuditService } from '@/backend/services/auditService';
+import { createResponse, createErrorResponse } from '@/backend/utils/apiResponse';
 
 export async function POST(req: NextRequest) {
-    const ip = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
-    const userAgent = req.headers.get('user-agent') || 'unknown';
-    const metadata = { ip, userAgent };
-
     try {
-        const body = await req.json();
+        let body;
+        try {
+            body = await req.json();
+        } catch (e) {
+            return createErrorResponse('Invalid JSON body', 400);
+        }
+
         const { token, newPassword } = body;
 
         if (!token || !newPassword) {
-            return NextResponse.json({ success: false, message: 'Invalid request' }, { status: 400 });
+            return createErrorResponse('Invalid request: Token and new password are required', 400);
         }
 
         const result = await authRoutes.resetPassword(token, newPassword);
 
         if (result.status >= 400) {
-            await AuditService.logPasswordChange('token_reset', 'failure', { ...metadata, error: result.error });
-            return NextResponse.json({
-                success: false,
-                message: result.error || 'Failed to reset password'
-            }, { status: result.status });
+            return createErrorResponse(result.error || 'Failed to reset password', result.status);
         }
 
-        await AuditService.logPasswordChange('token_reset', 'success', metadata);
-
-        return NextResponse.json({
-            success: true,
-            message: 'Password reset successfully'
-        }, { status: 200 });
+        return createResponse({ message: 'Password reset successfully' }, 200);
     } catch (error) {
-        return NextResponse.json({
-            success: false,
-            message: 'Internal Server Error'
-        }, { status: 500 });
+        console.error('Reset Password Route Error:', error);
+        return createErrorResponse('Internal server error', 500);
     }
 }
