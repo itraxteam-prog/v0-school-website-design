@@ -20,6 +20,10 @@ export const SettingsService = {
             defaultFeeStructure: {
                 ...currentSettings.defaultFeeStructure,
                 ...(data.defaultFeeStructure || {}),
+            },
+            portalPreferences: {
+                ...currentSettings.portalPreferences,
+                ...(data.portalPreferences || {}),
             }
         };
         return currentSettings;
