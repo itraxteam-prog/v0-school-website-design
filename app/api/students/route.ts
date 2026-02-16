@@ -5,11 +5,11 @@ import { LogService } from '@/backend/services/logService';
 import { NotificationService } from '@/backend/services/notificationService';
 
 export async function GET(req: NextRequest) {
-    // GET -> admin, teacher
-    const auth = await requireRole(req, ['admin', 'teacher']);
+    // GET -> admin, teacher, student
+    const auth = await requireRole(req, ['admin', 'teacher', 'student']);
     if (!auth.authorized || !auth.user) return auth.response;
 
-    const result = await studentRoutes.getAll();
+    const result = await studentRoutes.getAll(auth.user);
     if (result.status >= 400) {
         LogService.logAction(auth.user.id, auth.user.role, 'READ_LIST', 'STUDENT', undefined, 'failure', { error: result.error });
         return NextResponse.json({ error: result.error }, { status: result.status });
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json();
-        const result = await studentRoutes.create(body);
+        const result = await studentRoutes.create(body, auth.user);
         if (result.status >= 400) {
             LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'STUDENT', undefined, 'failure', { error: result.error || result.errors });
             return NextResponse.json({ error: result.error || result.errors }, { status: result.status });

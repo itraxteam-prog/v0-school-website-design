@@ -5,16 +5,14 @@ import { LogService } from '@/backend/services/logService';
 
 export async function GET(req: NextRequest) {
     // GET -> admin, teacher
-    const auth = await requireRole(req, ['admin', 'teacher']);
+    const auth = await requireRole(req, ['admin', 'teacher', 'student']);
     if (!auth.authorized || !auth.user) return auth.response;
 
-    const result = await periodRoutes.getAll();
+    const result = await periodRoutes.getAll(auth.user);
     if (result.status >= 400) {
-        LogService.logAction(auth.user.id, auth.user.role, 'READ_LIST', 'PERIOD', undefined, 'failure', { error: result.error });
         return NextResponse.json({ error: result.error }, { status: result.status });
     }
 
-    LogService.logAction(auth.user.id, auth.user.role, 'READ_LIST', 'PERIOD', undefined, 'success');
     return NextResponse.json(result.data, { status: result.status });
 }
 
@@ -25,7 +23,7 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json();
-        const result = await periodRoutes.create(body);
+        const result = await periodRoutes.create(body, auth.user);
         if (result.status >= 400) {
             LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'PERIOD', undefined, 'failure', { error: result.error || result.errors });
             return NextResponse.json({ error: result.error || result.errors }, { status: result.status });

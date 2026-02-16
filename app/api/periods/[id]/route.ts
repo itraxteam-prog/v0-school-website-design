@@ -3,11 +3,10 @@ import { periodRoutes } from '@/backend/routes/periods';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-    // GET -> admin, teacher
-    const auth = await requireRole(req, ['admin', 'teacher']);
-    if (!auth.authorized) return auth.response;
+    const auth = await requireRole(req, ['admin', 'teacher', 'student']);
+    if (!auth.authorized || !auth.user) return auth.response;
 
-    const result = await periodRoutes.getById(params.id);
+    const result = await periodRoutes.getById(params.id, auth.user);
     if (result.status >= 400) {
         return NextResponse.json({ error: result.error }, { status: result.status });
     }
@@ -15,13 +14,12 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-    // PUT -> admin only
     const auth = await requireRole(req, ['admin']);
-    if (!auth.authorized) return auth.response;
+    if (!auth.authorized || !auth.user) return auth.response;
 
     try {
         const body = await req.json();
-        const result = await periodRoutes.update(params.id, body);
+        const result = await periodRoutes.update(params.id, body, auth.user);
         if (result.status >= 400) {
             return NextResponse.json({ error: result.error }, { status: result.status });
         }
@@ -32,11 +30,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-    // DELETE -> admin only
     const auth = await requireRole(req, ['admin']);
-    if (!auth.authorized) return auth.response;
+    if (!auth.authorized || !auth.user) return auth.response;
 
-    const result = await periodRoutes.delete(params.id);
+    const result = await periodRoutes.delete(params.id, auth.user);
     if (result.status >= 400) {
         return NextResponse.json({ error: result.error }, { status: result.status });
     }
