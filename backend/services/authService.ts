@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 import { users, User } from '@/backend/data/users';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-123';
@@ -14,9 +15,17 @@ export const AuthService = {
         // Simulate async database call
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        const user = users.find(u => u.email === email && u.password === password);
+        // Find user by email first
+        const user = users.find(u => u.email === email);
 
         if (!user) {
+            return null;
+        }
+
+        // Verify password using bcrypt
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
             return null;
         }
 
