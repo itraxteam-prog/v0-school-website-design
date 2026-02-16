@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthService } from '@/backend/services/authService';
 import { verifyAuth } from '@/backend/middleware/authMiddleware';
-import { AuditService } from '@/backend/services/auditService';
+import { LogService } from '@/backend/services/logService';
 
 export async function POST(req: NextRequest) {
     const ip = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     const user = await verifyAuth(req);
     if (user) {
         await AuthService.logout(user.id);
-        await AuditService.logEvent(user.id, 'LOGOUT', 'success', metadata);
+        LogService.logAction(user.id, user.role, 'LOGOUT', 'AUTH', undefined, 'success', metadata);
     }
 
     // 2. Clear cookies
