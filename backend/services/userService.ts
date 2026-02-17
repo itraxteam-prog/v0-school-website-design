@@ -21,7 +21,10 @@ export const UserService = {
                     .select('id, email, name, role, status, last_login, created_at')
                     .order('created_at', { ascending: false });
 
-                if (error) throw new Error(handleSupabaseError(error));
+                if (error) {
+                    console.error("Supabase Error [UserService.getAll]:", error);
+                    throw new Error(handleSupabaseError(error));
+                }
                 return data as User[];
             },
             ['users-list'],
