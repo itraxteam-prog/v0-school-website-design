@@ -2,34 +2,56 @@ import { Announcement } from '../data/announcements';
 import { supabase } from '../utils/supabaseClient';
 import { handleSupabaseError } from '../utils/errors';
 import { NotificationService } from './notificationService';
+import { unstable_cache, revalidateTag } from 'next/cache';
 
 export const AnnouncementService = {
     getAll: async (filterByRole?: string) => {
-        let query = supabase.from('announcements').select('*');
+        return unstable_cache(
+            async (role?: string) => {
+                let query = supabase.from('announcements')
+                    .select('id, title, content, targetAudience, createdAt');
 
-        if (filterByRole) {
-            // Check if audience is 'students', 'teachers', or 'all' if we had it. 
-            // Current schema stores audience as 'students' or 'teachers'.
-            // We'll filter for matching audience OR 'all' if we add that later.
-            // For now, simple exact match or contained in logic.
-            query = query.in('targetAudience', [filterByRole + 's', 'all', 'everyone']);
-        }
+                if (role) {
+                    query = query.in('targetAudience', [role + 's', 'all', 'everyone']);
+                }
 
-        const { data, error } = await query.order('createdAt', { ascending: false });
+                const { data, error } = await query.order('createdAt', { ascending: false });
 
-        if (error) throw new Error(handleSupabaseError(error));
-        return data as Announcement[];
+                if (error) throw new Error(handleSupabaseError(error));
+                return (data as any[]).map(ann => ({
+                    id: ann.id,
+                    title: ann.title,
+                    message: ann.content,
+                    createdAt: ann.createdAt,
+                    audience: [ann.targetAudience.replace(/s$/, '')]
+                })) as Announcement[];
+            },
+            [`announcements-list-${filterByRole || 'all'}`],
+            { tags: ['announcements'], revalidate: 3600 }
+        )(filterByRole);
     },
 
     getById: async (id: string) => {
-        const { data, error } = await supabase
-            .from('announcements')
-            .select('*')
-            .eq('id', id)
-            .single();
+        return unstable_cache(
+            async (annId: string) => {
+                const { data, error } = await supabase
+                    .from('announcements')
+                    .select('id, title, content, targetAudience, createdAt')
+                    .eq('id', annId)
+                    .single();
 
-        if (error) return null;
-        return data as Announcement;
+                if (error) return null;
+                return {
+                    id: data.id,
+                    title: data.title,
+                    message: data.content,
+                    createdAt: data.createdAt,
+                    audience: [data.targetAudience.replace(/s$/, '')]
+                } as Announcement;
+            },
+            [`announcement-${id}`],
+            { tags: ['announcements', `announcement-${id}`], revalidate: 3600 }
+        )(id);
     },
 
     create: async (data: Omit<Announcement, 'id' | 'createdAt'>) => {
@@ -45,6 +67,9 @@ export const AnnouncementService = {
             .single();
 
         if (error) throw new Error(handleSupabaseError(error));
+
+        // Invalidate cache
+        revalidateTag('announcements');
 
         const mappedAnnouncement = {
             id: newAnnouncement.id,
@@ -96,6 +121,10 @@ export const AnnouncementService = {
 
         if (error) return null;
 
+        // Invalidate cache
+        revalidateTag('announcements');
+        revalidateTag(`announcement-${id}`);
+
         return {
             id: updated.id,
             title: updated.title,
@@ -112,6 +141,11 @@ export const AnnouncementService = {
             .eq('id', id);
 
         if (error) return false;
+
+        // Invalidate cache
+        revalidateTag('announcements');
+        revalidateTag(`announcement-${id}`);
+
         return true;
     }
 };
