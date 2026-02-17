@@ -3,6 +3,8 @@ import { cookies } from 'next/headers';
 import { AuthService } from '@/backend/services/authService';
 import { createResponse, createErrorResponse } from '@/backend/utils/apiResponse';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
     try {
         const cookieStore = cookies();

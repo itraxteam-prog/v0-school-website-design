@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SubjectService } from '@/backend/services/subjectService';
-import { requireRole } from '@/backend/utils/auth';
+import { requireRole } from '@/backend/middleware/roleMiddleware';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
     try {
@@ -12,8 +14,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-    const authError = await requireRole(request, ['admin']);
-    if (authError) return authError;
+    const auth = await requireRole(request, ['admin']);
+    if (!auth.authorized) return auth.response;
 
     try {
         const body = await request.json();

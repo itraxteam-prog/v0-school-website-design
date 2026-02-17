@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AttendanceService } from '@/backend/services/attendanceService';
-import { requireRole } from '@/backend/utils/auth';
+import { requireRole } from '@/backend/middleware/roleMiddleware';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
-    const authError = await requireRole(request, ['admin', 'teacher']);
-    if (authError) return authError;
+    const auth = await requireRole(request, ['admin', 'teacher']);
+    if (!auth.authorized) return auth.response;
 
     try {
         const stats = await AttendanceService.getInstitutionalAttendanceStats();
