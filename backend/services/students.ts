@@ -1,151 +1,152 @@
 import { Student } from '../data/students';
-import { supabase } from '../utils/supabaseClient';
-import { handleSupabaseError } from '../utils/errors';
-import { unstable_cache, revalidateTag } from 'next/cache';
+import { sql } from '../utils/db';
+import { revalidateTag } from 'next/cache';
 
 export const StudentService = {
     getAll: async () => {
-        return unstable_cache(
-            async () => {
-                const { data, error } = await supabase
-                    .from('students')
-                    .select('id, name, rollNo, classId, email, phone, gender, dob, enrollmentDate, address, guardianName, guardianPhone');
-
-                if (error) throw new Error(handleSupabaseError(error));
-                return data as Student[];
-            },
-            ['students-list'],
-            { tags: ['students'], revalidate: 3600 }
-        )();
+        try {
+            const result = await sql`
+                SELECT id, name, roll_no as "rollNo", class_id as "classId", dob, guardian_phone as "guardianPhone", address 
+                FROM public.students 
+                ORDER BY name ASC
+            `;
+            return result as unknown as Student[];
+        } catch (error: any) {
+            console.error('StudentService.getAll Error:', error);
+            throw error;
+        }
     },
 
     getByTeacherId: async (teacherId: string) => {
-        return unstable_cache(
-            async (id: string) => {
-                // 1. Get classes taught by teacher
-                const { data: classes, error: classError } = await supabase
-                    .from('classes')
-                    .select('id')
-                    .eq('classTeacherId', id);
-
-                if (classError || !classes) return [];
-                const classIds = classes.map(c => c.id);
-
-                if (classIds.length === 0) return [];
-
-                // 2. Get students in those classes
-                const { data, error } = await supabase
-                    .from('students')
-                    .select('id, name, rollNo, classId, email, phone, gender, dob, enrollmentDate, address, guardianName, guardianPhone')
-                    .in('classId', classIds);
-
-                if (error) return [];
-                return data as Student[];
-            },
-            [`students-teacher-${teacherId}`],
-            { tags: ['students', 'classes'], revalidate: 3600 }
-        )(teacherId);
+        try {
+            // Get students in classes taught by this teacher
+            const result = await sql`
+                SELECT s.id, s.name, s.roll_no as "rollNo", s.class_id as "classId", s.dob, s.guardian_phone as "guardianPhone", s.address 
+                FROM public.students s
+                JOIN public.classes c ON s.class_id = c.id
+                WHERE c.class_teacher_id = ${teacherId}
+                ORDER BY s.name ASC
+            `;
+            return result as unknown as Student[];
+        } catch (error: any) {
+            console.error('StudentService.getByTeacherId Error:', error);
+            return [];
+        }
     },
 
     getByClassId: async (classId: string) => {
-        return unstable_cache(
-            async (cid: string) => {
-                const { data, error } = await supabase
-                    .from('students')
-                    .select('id, name, rollNo, classId, email, phone, gender, dob, enrollmentDate, address, guardianName, guardianPhone')
-                    .eq('classId', cid)
-                    .order('name');
-
-                if (error) return [];
-                return data as Student[];
-            },
-            [`students-class-${classId}`],
-            { tags: ['students', `class-students-${classId}`], revalidate: 3600 }
-        )(classId);
+        try {
+            const result = await sql`
+                SELECT id, name, roll_no as "rollNo", class_id as "classId", dob, guardian_phone as "guardianPhone", address 
+                FROM public.students 
+                WHERE class_id = ${classId}
+                ORDER BY name ASC
+            `;
+            return result as unknown as Student[];
+        } catch (error: any) {
+            console.error('StudentService.getByClassId Error:', error);
+            return [];
+        }
     },
 
     isStudentInTeacherClass: async (teacherId: string, studentId: string) => {
-        // Get student's class
-        const { data: student, error: studentError } = await supabase
-            .from('students')
-            .select('classId')
-            .eq('id', studentId)
-            .single();
-
-        if (studentError || !student) return false;
-
-        // Check if teacher teaches this class
-        const { data: classData, error: classError } = await supabase
-            .from('classes')
-            .select('id')
-            .eq('id', student['classId'])
-            .eq('classTeacherId', teacherId)
-            .single();
-
-        return !!classData && !classError;
+        try {
+            const result = await sql`
+                SELECT 1 FROM public.students s
+                JOIN public.classes c ON s.class_id = c.id
+                WHERE s.id = ${studentId} AND c.class_teacher_id = ${teacherId}
+            `;
+            return result.length > 0;
+        } catch (error: any) {
+            console.error('StudentService.isStudentInTeacherClass Error:', error);
+            return false;
+        }
     },
 
     getById: async (id: string) => {
-        return unstable_cache(
-            async (studentId: string) => {
-                const { data, error } = await supabase
-                    .from('students')
-                    .select('id, name, rollNo, classId, email, phone, gender, dob, enrollmentDate, address, guardianName, guardianPhone')
-                    .eq('id', studentId)
-                    .single();
-
-                if (error) return null;
-                return data as Student;
-            },
-            [`student-${id}`],
-            { tags: ['students', `student-${id}`], revalidate: 3600 }
-        )(id);
+        try {
+            const result = await sql`
+                SELECT id, name, roll_no as "rollNo", class_id as "classId", dob, guardian_phone as "guardianPhone", address 
+                FROM public.students 
+                WHERE id = ${id}
+            `;
+            return result.length > 0 ? (result[0] as unknown as Student) : null;
+        } catch (error: any) {
+            console.error('StudentService.getById Error:', error);
+            throw error;
+        }
     },
 
     create: async (data: Omit<Student, 'id'>) => {
-        const { data: newStudent, error } = await supabase
-            .from('students')
-            .insert([data])
-            .select()
-            .single();
+        try {
+            console.log('StudentService.create - Data received:', data);
+            const id = `std-${Math.random().toString(36).substr(2, 9)}`;
 
-        if (error) throw new Error(handleSupabaseError(error));
+            const result = await sql`
+                INSERT INTO public.students (
+                    id, name, roll_no, class_id, dob, guardian_phone, address
+                ) VALUES (
+                    ${id}, ${data.name}, ${data.rollNo}, ${data.classId}, ${data.dob}, ${data.guardianPhone}, ${data.address}
+                ) RETURNING id, name, roll_no as "rollNo", class_id as "classId", dob, guardian_phone as "guardianPhone", address
+            `;
 
-        // Invalidate cache
-        revalidateTag('students');
+            if (!result || result.length === 0) {
+                throw new Error('Failed to insert student');
+            }
 
-        return newStudent as Student;
+            console.log('StudentService.create - Student created successfully:', result[0].id);
+            revalidateTag('students');
+            return result[0] as unknown as Student;
+        } catch (error: any) {
+            console.error('StudentService.create Error:', error);
+            throw error;
+        }
     },
 
     update: async (id: string, data: Partial<Student>) => {
-        const { data: updatedStudent, error } = await supabase
-            .from('students')
-            .update(data)
-            .eq('id', id)
-            .select()
-            .single();
+        try {
+            const existing = await StudentService.getById(id);
+            if (!existing) return null;
 
-        if (error) return null;
+            const updateData = { ...existing, ...data };
 
-        // Invalidate cache
-        revalidateTag('students');
-        revalidateTag(`student-${id}`);
+            const result = await sql`
+                UPDATE public.students SET
+                    name = ${updateData.name},
+                    roll_no = ${updateData.rollNo},
+                    class_id = ${updateData.classId},
+                    dob = ${updateData.dob},
+                    guardian_phone = ${updateData.guardianPhone},
+                    address = ${updateData.address},
+                    updated_at = NOW()
+                WHERE id = ${id}
+                RETURNING id, name, roll_no as "rollNo", class_id as "classId", dob, guardian_phone as "guardianPhone", address
+            `;
 
-        return updatedStudent as Student;
+            revalidateTag('students');
+            revalidateTag(`student-${id}`);
+
+            return result[0] as unknown as Student;
+        } catch (error: any) {
+            console.error('StudentService.update Error:', error);
+            throw error;
+        }
     },
 
     delete: async (id: string) => {
-        const { error } = await supabase
-            .from('students')
-            .delete()
-            .eq('id', id);
+        try {
+            const result = await sql`
+                DELETE FROM public.students WHERE id = ${id}
+            `;
 
-        if (error) return false;
+            revalidateTag('students');
+            revalidateTag(`student-${id}`);
 
-        // Invalidate cache
-        revalidateTag('students');
-        revalidateTag(`student-${id}`);
-
-        return true;
+            return true;
+        } catch (error: any) {
+            console.error('StudentService.delete Error:', error);
+            return false;
+        }
     }
 };
+

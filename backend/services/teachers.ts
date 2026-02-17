@@ -1,85 +1,104 @@
 import { Teacher } from '../data/teachers';
-import { supabase } from '../utils/supabaseClient';
-import { handleSupabaseError } from '../utils/errors';
-import { unstable_cache, revalidateTag } from 'next/cache';
+import { sql } from '../utils/db';
+import { revalidateTag } from 'next/cache';
 
 export const TeacherService = {
     getAll: async () => {
-        return unstable_cache(
-            async () => {
-                const { data, error } = await supabase
-                    .from('teachers')
-                    .select('id, name, email, phone, subjects, classIds, profilePhoto');
-
-                if (error) throw new Error(handleSupabaseError(error));
-                return data as Teacher[];
-            },
-            ['teachers-list'],
-            { tags: ['teachers'], revalidate: 3600 }
-        )();
+        try {
+            const result = await sql`
+                SELECT id, name, employee_id as "employeeId", department, class_ids as "classIds" 
+                FROM public.teachers 
+                ORDER BY name ASC
+            `;
+            return result as unknown as Teacher[];
+        } catch (error: any) {
+            console.error('TeacherService.getAll Error:', error);
+            throw error;
+        }
     },
 
     getById: async (id: string) => {
-        return unstable_cache(
-            async (teacherId: string) => {
-                const { data, error } = await supabase
-                    .from('teachers')
-                    .select('id, name, email, phone, subjects, classIds, profilePhoto')
-                    .eq('id', teacherId)
-                    .single();
-
-                if (error) return null;
-                return data as Teacher;
-            },
-            [`teacher-${id}`],
-            { tags: ['teachers', `teacher-${id}`], revalidate: 3600 }
-        )(id);
+        try {
+            const result = await sql`
+                SELECT id, name, employee_id as "employeeId", department, class_ids as "classIds" 
+                FROM public.teachers 
+                WHERE id = ${id}
+            `;
+            return result.length > 0 ? (result[0] as unknown as Teacher) : null;
+        } catch (error: any) {
+            console.error('TeacherService.getById Error:', error);
+            throw error;
+        }
     },
 
     create: async (data: Omit<Teacher, 'id'>) => {
-        const { data: newTeacher, error } = await supabase
-            .from('teachers')
-            .insert([data])
-            .select()
-            .single();
+        try {
+            console.log('TeacherService.create - Data received:', data);
+            const id = `tch-${Math.random().toString(36).substr(2, 9)}`;
 
-        if (error) throw new Error(handleSupabaseError(error));
+            const result = await sql`
+                INSERT INTO public.teachers (
+                    id, name, employee_id, department, class_ids
+                ) VALUES (
+                    ${id}, ${data.name}, ${data.employeeId}, ${data.department}, ${data.classIds || []}
+                ) RETURNING id, name, employee_id as "employeeId", department, class_ids as "classIds"
+            `;
 
-        // Invalidate cache
-        revalidateTag('teachers');
+            if (!result || result.length === 0) {
+                throw new Error('Failed to insert teacher');
+            }
 
-        return newTeacher as Teacher;
+            console.log('TeacherService.create - Teacher created successfully:', result[0].id);
+            revalidateTag('teachers');
+            return result[0] as unknown as Teacher;
+        } catch (error: any) {
+            console.error('TeacherService.create Error:', error);
+            throw error;
+        }
     },
 
     update: async (id: string, data: Partial<Teacher>) => {
-        const { data: updatedTeacher, error } = await supabase
-            .from('teachers')
-            .update(data)
-            .eq('id', id)
-            .select()
-            .single();
+        try {
+            const existing = await TeacherService.getById(id);
+            if (!existing) return null;
 
-        if (error) return null;
+            const updateData = { ...existing, ...data };
 
-        // Invalidate cache
-        revalidateTag('teachers');
-        revalidateTag(`teacher-${id}`);
+            const result = await sql`
+                UPDATE public.teachers SET
+                    name = ${updateData.name},
+                    employee_id = ${updateData.employeeId},
+                    department = ${updateData.department},
+                    class_ids = ${updateData.classIds || []},
+                    updated_at = NOW()
+                WHERE id = ${id}
+                RETURNING id, name, employee_id as "employeeId", department, class_ids as "classIds"
+            `;
 
-        return updatedTeacher as Teacher;
+            revalidateTag('teachers');
+            revalidateTag(`teacher-${id}`);
+
+            return result[0] as unknown as Teacher;
+        } catch (error: any) {
+            console.error('TeacherService.update Error:', error);
+            throw error;
+        }
     },
 
     delete: async (id: string) => {
-        const { error } = await supabase
-            .from('teachers')
-            .delete()
-            .eq('id', id);
+        try {
+            const result = await sql`
+                DELETE FROM public.teachers WHERE id = ${id}
+            `;
 
-        if (error) return false;
+            revalidateTag('teachers');
+            revalidateTag(`teacher-${id}`);
 
-        // Invalidate cache
-        revalidateTag('teachers');
-        revalidateTag(`teacher-${id}`);
-
-        return true;
+            return true;
+        } catch (error: any) {
+            console.error('TeacherService.delete Error:', error);
+            return false;
+        }
     }
 };
+

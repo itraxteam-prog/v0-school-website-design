@@ -186,22 +186,28 @@ export default function AdminClassesPage() {
         : `${API_URL}/classes`
       const method = editingClass ? "PUT" : "POST"
 
+      console.log(`Submitting Class to ${url} [${method}]:`, data);
+
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       })
 
+      console.log("Response Status:", response.status);
       const result = await response.json()
+      console.log("Response JSON:", result);
 
-      if (!response.ok) {
+      if (!response.ok || (result.success === false)) {
         // Map backend Zod errors back to form fields
         if (result.error && typeof result.error === 'string') {
           const parts = result.error.split(': ')
           if (parts.length > 1) {
-            const field = parts[0] as any
+            const field = parts[0].toLowerCase() as any
             const message = parts[1]
-            form.setError(field, { message })
+            if (['name', 'classteacherid', 'roomno'].includes(field)) {
+              form.setError(field as any, { message })
+            }
           }
         }
         throw new Error(result.error || `Failed to ${editingClass ? 'update' : 'create'} class`)
@@ -216,6 +222,7 @@ export default function AdminClassesPage() {
       setEditingClass(null)
       fetchData()
     } catch (err: any) {
+      console.error("Submit Error:", err);
       toast({
         title: "Error",
         description: err.message,

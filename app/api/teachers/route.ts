@@ -25,28 +25,49 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json();
+        console.log('API POST /api/teachers - Request Body:', body);
 
         // Validation Guard
         const validation = await validateBody(TeacherSchema, body);
         if (validation.error) {
+            console.error('API POST /api/teachers - Validation Failed:', validation.error);
             LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'TEACHER', undefined, 'failure', { error: validation.error });
-            return NextResponse.json({ error: validation.error }, { status: 400 });
+            return NextResponse.json({
+                success: false,
+                error: validation.error
+            }, { status: 400 });
         }
 
         const result = await teacherRoutes.create(validation.data, auth.user);
         if (result.status >= 400) {
+            console.error('API POST /api/teachers - Route Error:', result.error || result.errors);
             LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'TEACHER', undefined, 'failure', { error: result.error || result.errors });
-            return NextResponse.json({ error: result.error || result.errors }, { status: result.status });
+            return NextResponse.json({
+                success: false,
+                error: result.error || result.errors
+            }, { status: result.status });
         }
 
         const newTeacher = result.data as any;
+        console.log('API POST /api/teachers - Success:', newTeacher?.id);
         LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'TEACHER', newTeacher?.id, 'success', result.data);
 
         // Welcome notification
-        NotificationService.sendEmailNotification(newTeacher.id, 'WELCOME', `Welcome to Pioneers High, ${newTeacher.name}! Your teacher account has been created.`, 'teacher');
+        try {
+            NotificationService.sendEmailNotification(newTeacher.id, 'WELCOME', `Welcome to Pioneers High, ${newTeacher.name}! Your teacher account has been created.`, 'teacher');
+        } catch (notifyError) {
+            console.error('Failed to send teacher welcome notification:', notifyError);
+        }
 
-        return NextResponse.json(result.data, { status: result.status });
-    } catch (error) {
-        return NextResponse.json({ error: 'Failed to parse request body' }, { status: 400 });
+        return NextResponse.json({
+            success: true,
+            data: result.data
+        }, { status: result.status });
+    } catch (error: any) {
+        console.error('API POST /api/teachers - Internal Error:', error);
+        return NextResponse.json({
+            success: false,
+            error: error.message || 'Failed to process teacher creation'
+        }, { status: 500 });
     }
 }
