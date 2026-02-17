@@ -41,6 +41,49 @@ export const AuthService = {
         return validatePassword(password).isValid;
     },
 
+    register: async (data: any): Promise<LoginResult> => {
+        try {
+            // 1. Hash password
+            const hashedPassword = await bcrypt.hash(data.password, 10);
+
+            // 2. Insert into users table
+            const { data: newUser, error } = await supabase
+                .from('users')
+                .insert([{
+                    email: data.email,
+                    password: hashedPassword,
+                    name: data.name,
+                    role: data.role || 'student',
+                    failed_login_attempts: 0,
+                    two_factor_enabled: false
+                }])
+                .select()
+                .single();
+
+            if (error) {
+                return { error: handleSupabaseError(error), status: 400 };
+            }
+
+            // 3. Trigger Welcome Email (Async)
+            NotificationService.sendEmailNotification(
+                newUser.id,
+                'WELCOME',
+                `Welcome to Pioneers High, ${newUser.name}! Your account has been created successfully.`,
+                newUser.role
+            );
+
+            // 4. Return user data
+            const { password: _, ...userWithoutPassword } = newUser;
+            return {
+                user: userWithoutPassword,
+                status: 201
+            };
+        } catch (error: any) {
+            console.error('AuthService.register error:', error);
+            return { error: error.message || 'An unexpected error occurred', status: 500 };
+        }
+    },
+
     login: async (email: string, password: string): Promise<LoginResult> => {
         try {
             const { data: user, error } = await supabase
