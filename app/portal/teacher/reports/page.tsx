@@ -14,6 +14,7 @@ import {
   Award,
   Calendar,
   Search,
+  ShieldCheck,
 } from "lucide-react"
 import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -39,6 +40,7 @@ import {
   PieChart,
   Pie,
 } from "recharts"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
 const sidebarItems = [
@@ -48,6 +50,7 @@ const sidebarItems = [
   { href: "/portal/teacher/gradebook", label: "Gradebook", icon: BookMarked },
   { href: "/portal/teacher/reports", label: "Reports", icon: FileBarChart },
   { href: "/portal/teacher/profile", label: "Profile", icon: User },
+  { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
 // Mock Data
@@ -107,11 +110,18 @@ export default function TeacherReportsPage() {
               <p className="text-sm text-muted-foreground">Comprehensive insights into class performance and attendance.</p>
             </div>
             <div className="flex items-center gap-3">
-              <Button variant="outline" className="border-border hover:bg-muted text-sm flex items-center gap-2">
+              <Button
+                variant="outline"
+                className="border-border hover:bg-muted text-sm flex items-center gap-2"
+                onClick={() => toast.success("Exporting data as CSV...")}
+              >
                 <Download className="h-4 w-4" />
                 Export CSV
               </Button>
-              <Button className="bg-primary text-white hover:bg-primary/90 text-sm flex items-center gap-2">
+              <Button
+                className="bg-primary text-white hover:bg-primary/90 text-sm flex items-center gap-2"
+                onClick={() => toast.success("Generating report PDF...")}
+              >
                 <Download className="h-4 w-4" />
                 Save PDF
               </Button>

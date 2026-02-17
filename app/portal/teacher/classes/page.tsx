@@ -13,6 +13,7 @@ import {
   MapPin,
   TrendingUp,
   ExternalLink,
+  ShieldCheck,
 } from "lucide-react"
 import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
@@ -29,6 +30,7 @@ const sidebarItems = [
   { href: "/portal/teacher/gradebook", label: "Gradebook", icon: BookMarked },
   { href: "/portal/teacher/reports", label: "Reports", icon: FileBarChart },
   { href: "/portal/teacher/profile", label: "Profile", icon: User },
+  { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
 const classesData = [
@@ -179,8 +181,12 @@ export default function TeacherClassesPage() {
                   </CardContent>
 
                   <CardFooter className="pt-2 border-t border-border/30 bg-muted/10">
-                    <Button variant="ghost" className="w-full justify-between items-center group-hover:bg-primary group-hover:text-white transition-all text-sm font-semibold">
-                      <span>Manage Class</span>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-between items-center group-hover:bg-primary group-hover:text-white transition-all text-sm font-semibold"
+                      onClick={() => window.location.href = '/portal/teacher/attendance'}
+                    >
+                      <span>Manage Attendance</span>
                       <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </Button>
                   </CardFooter>
@@ -203,7 +209,10 @@ export default function TeacherClassesPage() {
                   <p className="text-sm text-muted-foreground mt-0.5">You have 12 total teaching hours across {classesData.length} classes this week.</p>
                 </div>
               </div>
-              <Button className="mt-4 lg:mt-0 w-full lg:w-auto bg-primary text-white hover:bg-primary/90">
+              <Button
+                className="mt-4 lg:mt-0 w-full lg:w-auto bg-primary text-white hover:bg-primary/90"
+                onClick={() => window.location.href = '/portal/teacher'}
+              >
                 View Full Timetable
               </Button>
             </div>
