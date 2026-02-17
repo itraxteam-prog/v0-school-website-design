@@ -250,7 +250,7 @@ export default function AdminStudentsPage() {
 
   const filteredStudents = (students || []).filter(student =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.rollNumber.toLowerCase().includes(searchTerm.toLowerCase())
+    (student.rollNo && student.rollNo.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
   return (
@@ -449,7 +449,7 @@ export default function AdminStudentsPage() {
                   </div>
                   <div className="space-y-1">
                     <h3 className="font-semibold text-lg">Failed to load data</h3>
-                    <p className="text-muted-foreground max-w-sm">{error}</p>
+                    <p className="text-muted-foreground max-sm">{error}</p>
                   </div>
                   <Button onClick={fetchStudents} variant="outline" className="gap-2">
                     <RefreshCcw className="h-4 w-4" />
@@ -488,7 +488,7 @@ export default function AdminStudentsPage() {
                             <TableCell className="py-4 text-muted-foreground">{student.guardianPhone}</TableCell>
                             <TableCell className="py-4 text-muted-foreground max-w-[200px] truncate">{student.address}</TableCell>
                             <TableCell className="pr-6 text-right py-4">
-                              <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="flex justify-end gap-2 md:opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Button
                                   variant="ghost"
                                   size="icon"
