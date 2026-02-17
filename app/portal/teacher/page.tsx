@@ -22,27 +22,32 @@ const sidebarItems = [
   { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
-// Dummy data
-const todaySchedule = [
-  { time: "8:00 - 8:45", class: "Grade 10-A", subject: "Mathematics", room: "Room 201" },
-  { time: "8:45 - 9:30", class: "Grade 10-B", subject: "Mathematics", room: "Room 201" },
-  { time: "9:45 - 10:30", class: "Free Period", subject: "-", room: "-" },
-  { time: "10:30 - 11:15", class: "Grade 9-A", subject: "Mathematics", room: "Room 203" },
-  { time: "11:30 - 12:15", class: "Free Period", subject: "-", room: "-" },
-  { time: "12:15 - 1:00", class: "Grade 10-A", subject: "Mathematics", room: "Room 201" },
-]
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function TeacherDashboard() {
   const { user, loading: authLoading } = useRequireAuth(['teacher']);
   const [loading, setLoading] = useState(true)
+  const [data, setData] = useState<any>(null)
 
   useEffect(() => {
-    // Simulate data fetching delay
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 1500)
-    return () => clearTimeout(timer)
-  }, [])
+    const fetchData = async () => {
+      try {
+        const res = await fetch(`${API_URL}/teacher/dashboard`);
+        if (res.ok) {
+          const dashboardData = await res.json();
+          setData(dashboardData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch dashboard data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchData();
+    }
+  }, [user])
 
   if (authLoading) {
     return (
@@ -68,7 +73,7 @@ export default function TeacherDashboard() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Total Classes"
-            value="3"
+            value={data?.stats?.totalClasses ?? 0}
             icon={Users}
             loading={loading}
             trend="Active this semester"
@@ -76,7 +81,7 @@ export default function TeacherDashboard() {
           />
           <StatCard
             title="Total Students"
-            value="97"
+            value={data?.stats?.totalStudents ?? 0}
             icon={UserCheck}
             loading={loading}
             trend="Across all classes"
@@ -84,15 +89,15 @@ export default function TeacherDashboard() {
           />
           <StatCard
             title="Attendance Today"
-            value="89%"
+            value={data?.stats?.attendanceToday ?? "0%"}
             icon={CalendarCheck}
             loading={loading}
-            trend="+3% from yesterday"
+            trend="Average attendance"
             trendColor="text-green-600"
           />
           <StatCard
             title="Pending Grades"
-            value="12"
+            value={data?.stats?.pendingGrades ?? 0}
             icon={FileText}
             loading={loading}
             trend="Assignments to grade"
@@ -182,22 +187,29 @@ export default function TeacherDashboard() {
                             </TableRow>
                           ))
                         ) : (
-                          todaySchedule.map((item, i) => (
-                            <TableRow
-                              key={i}
-                              className={`group border-border/50 transition-colors ${item.class === "Free Period"
-                                ? "bg-muted/30 hover:bg-muted/40"
-                                : "hover:bg-primary/5"
-                                }`}
-                            >
-                              <TableCell className="font-medium text-sm">{item.time}</TableCell>
-                              <TableCell className={item.class === "Free Period" ? "text-muted-foreground italic" : "font-medium"}>
-                                {item.class}
-                              </TableCell>
-                              <TableCell className="text-muted-foreground">{item.subject}</TableCell>
-                              <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">{item.room}</TableCell>
-                            </TableRow>
-                          ))
+                        ): data?.schedule && data.schedule.length > 0 ? (
+                          data.schedule.map((item: any, i: number) => (
+                        <TableRow
+                          key={i}
+                          className={`group border-border/50 transition-colors ${item.class === "Free Period"
+                            ? "bg-muted/30 hover:bg-muted/40"
+                            : "hover:bg-primary/5"
+                            }`}
+                        >
+                          <TableCell className="font-medium text-sm">{item.time}</TableCell>
+                          <TableCell className={item.class === "Free Period" ? "text-muted-foreground italic" : "font-medium"}>
+                            {item.class}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">{item.subject}</TableCell>
+                          <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">{item.room}</TableCell>
+                        </TableRow>
+                        ))
+                        ) : (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                            No classes scheduled for today.
+                          </TableCell>
+                        </TableRow>
                         )}
                       </TableBody>
                     </Table>
@@ -227,11 +239,7 @@ export default function TeacherDashboard() {
                       </div>
                     ))
                   ) : (
-                    [
-                      { name: "Grade 10-A", subject: "Mathematics", students: 32 },
-                      { name: "Grade 10-B", subject: "Mathematics", students: 30 },
-                      { name: "Grade 9-A", subject: "Mathematics", students: 35 },
-                    ].map((cls) => (
+                    data?.classes?.map((cls: any) => (
                       <div
                         key={cls.name}
                         className="flex flex-col gap-2 rounded-xl border border-transparent p-4 transition-all hover:border-border/50 hover:bg-muted/30 hover:shadow-sm cursor-pointer"

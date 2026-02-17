@@ -8,6 +8,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { AttendanceDistributionChart } from "@/components/portal/attendance-charts"
 import { Skeleton } from "@/components/ui/skeleton"
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay, parseISO } from "date-fns"
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+const statusColors = {
+  present: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  absent: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+  late: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+  none: "",
+}
 
 const sidebarItems = [
   { href: "/portal/student", label: "Dashboard", icon: LayoutDashboard },
@@ -36,58 +46,68 @@ const months = [
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
-// Mock Data - Calendar for different months
-type AttendanceStatus = "present" | "absent" | "late" | "none"
 
-const monthlyCalendars: Record<string, { day: number; status: AttendanceStatus }[][]> = {
-  "February 2026": [
-    [
-      { day: 0, status: "none" }, { day: 0, status: "none" }, { day: 0, status: "none" }, { day: 0, status: "none" }, { day: 0, status: "none" }, { day: 1, status: "present" },
-    ],
-    [
-      { day: 2, status: "present" }, { day: 3, status: "present" }, { day: 4, status: "late" }, { day: 5, status: "present" }, { day: 6, status: "present" }, { day: 7, status: "present" },
-    ],
-    [
-      { day: 8, status: "present" }, { day: 9, status: "absent" }, { day: 10, status: "present" }, { day: 11, status: "present" }, { day: 12, status: "present" }, { day: 13, status: "present" },
-    ],
-    [
-      { day: 14, status: "present" }, { day: 15, status: "present" }, { day: 16, status: "late" }, { day: 17, status: "present" }, { day: 18, status: "present" }, { day: 19, status: "present" },
-    ],
-    [
-      { day: 20, status: "present" }, { day: 21, status: "present" }, { day: 22, status: "present" }, { day: 23, status: "late" }, { day: 24, status: "present" }, { day: 25, status: "present" },
-    ],
-    [
-      { day: 26, status: "present" }, { day: 27, status: "present" }, { day: 28, status: "present" }, { day: 0, status: "none" }, { day: 0, status: "none" }, { day: 0, status: "none" },
-    ],
-  ],
-  "January 2026": [
-    [
-      { day: 0, status: "none" }, { day: 0, status: "none" }, { day: 1, status: "present" }, { day: 2, status: "present" }, { day: 3, status: "present" }, { day: 4, status: "present" },
-    ],
-    [
-      { day: 5, status: "present" }, { day: 6, status: "present" }, { day: 7, status: "late" }, { day: 8, status: "present" }, { day: 9, status: "present" }, { day: 10, status: "present" },
-    ],
-    [
-      { day: 11, status: "present" }, { day: 12, status: "present" }, { day: 13, status: "present" }, { day: 14, status: "absent" }, { day: 15, status: "present" }, { day: 16, status: "present" },
-    ],
-    [
-      { day: 17, status: "present" }, { day: 18, status: "present" }, { day: 19, status: "present" }, { day: 20, status: "late" }, { day: 21, status: "present" }, { day: 22, status: "present" },
-    ],
-    [
-      { day: 23, status: "present" }, { day: 24, status: "present" }, { day: 25, status: "present" }, { day: 26, status: "present" }, { day: 27, status: "present" }, { day: 28, status: "present" },
-    ],
-    [
-      { day: 29, status: "present" }, { day: 30, status: "late" }, { day: 31, status: "present" }, { day: 0, status: "none" }, { day: 0, status: "none" }, { day: 0, status: "none" },
-    ],
-  ],
+// Helper to generate calendar days for a given month
+function generateCalendar(monthStr: string, attendanceRecords: any[]) {
+  const [monthName, yearStr] = monthStr.split(' ');
+  const year = parseInt(yearStr);
+  const monthIndex = new Date(`${monthName} 1, ${year}`).getMonth();
+  const startDate = startOfMonth(new Date(year, monthIndex));
+  const endDate = endOfMonth(startDate);
+
+  // Get all days in month
+  const days = eachDayOfInterval({ start: startDate, end: endDate });
+
+  // Pad start with empty days (0) until Monday? (UI mocks Mon-Sat, usually start week on Mon or Sun)
+  // The UI mock shows Mon, Tue... Sat. Where is Sunday?
+  // The mock days header is: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].
+  // It seems Sunday is excluded or ignored?
+  // Let's assume Mon-Sat week.
+  // If startDate is not Monday, add padding.
+
+  // For simplicity, let's map the days to the grid.
+
+  const calendar: { day: number; status: AttendanceStatus }[][] = [];
+  let week: { day: number; status: AttendanceStatus }[] = [];
+
+  // Add padding for start of month
+  // getDay returns 0 for Sunday, 1 for Monday...
+  let startDay = getDay(startDate); // 0 (Sun) - 6 (Sat)
+  // Adjust for Monday start: Mon(1)->0 ... Sun(0)->6
+  let adjustedStartDay = startDay === 0 ? 6 : startDay - 1;
+
+  // Create initial padding
+  for (let i = 0; i < adjustedStartDay; i++) {
+    week.push({ day: 0, status: "none" });
+  }
+
+  days.forEach(day => {
+    // Skip Sundays if UI doesn't track them?
+    if (getDay(day) === 0) return;
+
+    // Find status
+    const record = attendanceRecords.find(r => isSameDay(parseISO(r.date), day));
+    const status = record ? record.status : "none"; // Default to none if no record
+
+    week.push({ day: day.getDate(), status: status as AttendanceStatus });
+
+    if (week.length === 6) { // Mon-Sat = 6 columns?
+      calendar.push(week);
+      week = [];
+    }
+  });
+
+  if (week.length > 0) {
+    // Pad end
+    while (week.length < 6) {
+      week.push({ day: 0, status: "none" });
+    }
+    calendar.push(week);
+  }
+
+  return calendar;
 }
 
-const statusColors = {
-  present: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  absent: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-  late: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
-  none: "",
-}
 
 // Calculate attendance stats from calendar
 function calculateStats(calendar: { day: number; status: AttendanceStatus }[][]) {
@@ -109,17 +129,26 @@ function calculateStats(calendar: { day: number; status: AttendanceStatus }[][])
 export default function AttendancePage() {
   const [activeMonth, setActiveMonth] = useState("February 2026")
   const [loading, setLoading] = useState(true)
+  const [attendanceRecords, setAttendanceRecords] = useState<any[]>([])
 
   useEffect(() => {
-    // Simulate data fetching
-    setLoading(true)
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 1500)
-    return () => clearTimeout(timer)
-  }, [activeMonth])
+    const fetchAttendance = async () => {
+      try {
+        const res = await fetch(`${API_URL}/student/attendance`);
+        if (res.ok) {
+          const data = await res.json();
+          setAttendanceRecords(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch attendance", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAttendance();
+  }, [])
 
-  const currentCalendar = monthlyCalendars[activeMonth] || monthlyCalendars["February 2026"]
+  const currentCalendar = generateCalendar(activeMonth, attendanceRecords);
   const stats = calculateStats(currentCalendar)
 
   return (

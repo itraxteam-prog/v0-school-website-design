@@ -69,6 +69,56 @@ export const AcademicService = {
         )(classId);
     },
 
+    getClassRecords: async (classId: string, subjectId: string, term: string) => {
+        return unstable_cache(
+            async (cid: string, sid: string, t: string) => {
+                const { data: students, error: studentError } = await supabase
+                    .from('students')
+                    .select('id')
+                    .eq('classId', cid); // Corrected to classId
+
+                if (studentError) throw new Error(handleSupabaseError(studentError));
+
+                const studentIds = students?.map(s => s.id) || [];
+                if (studentIds.length === 0) return [];
+
+                const { data, error } = await supabase
+                    .from('academic_records')
+                    .select('id, student_id, marks_obtained, grade')
+                    .in('student_id', studentIds)
+                    .eq('subject_id', sid)
+                    .eq('term', t);
+
+                if (error) throw new Error(handleSupabaseError(error));
+                return data;
+            },
+            [`class-records-${classId}-${subjectId}-${term}`],
+            { tags: ['academic', `class-records-${classId}`], revalidate: 3600 }
+        )(classId, subjectId, term);
+    },
+
+    upsertBulk: async (records: Partial<AcademicRecord>[]) => {
+        const { data, error } = await supabase
+            .from('academic_records')
+            .upsert(records)
+            .select();
+
+        if (error) throw new Error(handleSupabaseError(error));
+
+        // Revalidate tags
+        revalidateTag('academic');
+        records.forEach(r => {
+            if (r.student_id) {
+                revalidateTag(`student-academic-${r.student_id}`);
+            }
+        });
+        // We might want to revalidate class-specific tags if we knew classId here, 
+        // but we don't store classId in academic_records directly.
+        // We can invalidate broadly or just rely on time-based revalidation for class views.
+
+        return data;
+    },
+
     upsertRecord: async (data: Partial<AcademicRecord>) => {
         const { data: record, error } = await supabase
             .from('academic_records')

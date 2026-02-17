@@ -87,10 +87,10 @@ type ClassFormValues = z.infer<typeof classSchema>
 interface Period {
   id: string;
   classId: string;
-  subject: string;
+  name: string;
   startTime: string;
   endTime: string;
-  day: string;
+  day?: string;
 }
 
 interface ClassRecord {

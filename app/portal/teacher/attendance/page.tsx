@@ -45,18 +45,18 @@ const sidebarItems = [
   { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
-const initialStudents = [
-  { id: "S001", name: "Ahmed Khan", rollNo: "2025-0142", avatar: "AK" },
-  { id: "S002", name: "Sara Ali", rollNo: "2025-0143", avatar: "SA" },
-  { id: "S003", name: "Hamza Butt", rollNo: "2025-0144", avatar: "HB" },
-  { id: "S004", name: "Fatima Noor", rollNo: "2025-0145", avatar: "FN" },
-  { id: "S005", name: "Bilal Shah", rollNo: "2025-0146", avatar: "BS" },
-  { id: "S006", name: "Zain Malik", rollNo: "2025-0147", avatar: "ZM" },
-  { id: "S007", name: "Aisha Rehman", rollNo: "2025-0148", avatar: "AR" },
-  { id: "S008", name: "Umar Farooq", rollNo: "2025-0149", avatar: "UF" },
-  { id: "S009", name: "Mariam Jameel", rollNo: "2025-0150", avatar: "MJ" },
-  { id: "S010", name: "Hassan Raza", rollNo: "2025-0151", avatar: "HR" },
-]
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+type AttendanceStatus = "present" | "absent" | "late" | "excused";
+
+interface Student {
+  id: string;
+  name: string;
+  rollNo: string;
+  classId: string;
+  avatar?: string;
+}
+
 
 type AttendanceStatus = "present" | "absent" | "late"
 
@@ -68,19 +68,91 @@ interface AttendanceRecord {
 export default function TeacherAttendancePage() {
   const [loading, setLoading] = useState(true)
   const [date, setDate] = useState<Date>(new Date())
-  const [selectedClass, setSelectedClass] = useState("10a")
-  const [attendance, setAttendance] = useState<Record<string, AttendanceRecord>>(
-    Object.fromEntries(initialStudents.map((s) => [s.id, { status: "present", remarks: "" }]))
-  )
+
+  // Data State
+  const [classes, setClasses] = useState<any[]>([])
+  const [selectedClassId, setSelectedClassId] = useState<string>("")
+  const [students, setStudents] = useState<Student[]>([])
+
+  // Attendance State: Map studentId -> { status, remarks }
+  const [attendance, setAttendance] = useState<Record<string, AttendanceRecord>>({})
+
   const [searchQuery, setSearchQuery] = useState("")
 
+  // 1. Fetch Classes on Mount
   useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 1200)
-    return () => clearTimeout(timer)
-  }, [])
+    const fetchClasses = async () => {
+      try {
+        const res = await fetch(`${API_URL}/teacher/classes`);
+        if (res.ok) {
+          const data = await res.json();
+          setClasses(data);
+          if (data.length > 0) {
+            setSelectedClassId(data[0].id);
+          }
+        }
+      } catch (error) {
+        toast.error("Failed to load classes");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchClasses();
+  }, []);
+
+  // 2. Fetch Students when Class Changes (or fetch all once and filter)
+  useEffect(() => {
+    const fetchStudentsAndAttendance = async () => {
+      if (!selectedClassId) return;
+
+      setLoading(true);
+      try {
+        // Fetch Students
+        // We can use /api/students?classId=... if implemented, or fetch all for teacher and filter.
+        // Given existing /api/students implementation for teacher returns all students:
+        const studRes = await fetch(`${API_URL}/students`);
+        if (studRes.ok) {
+          const allStudents: Student[] = await studRes.json();
+          // Filter for selected class
+          const classStudents = allStudents.filter((s: any) => s.classId === selectedClassId);
+          setStudents(classStudents);
+
+          // Initialize attendance state for these students with default 'present'
+          const initialAttendance: Record<string, AttendanceRecord> = {};
+          classStudents.forEach(s => {
+            initialAttendance[s.id] = { status: 'present', remarks: '' };
+          });
+
+          // Fetch Existing Attendance
+          const dateStr = format(date, 'yyyy-MM-dd');
+          const attRes = await fetch(`${API_URL}/attendance?classId=${selectedClassId}&date=${dateStr}`);
+          if (attRes.ok) {
+            const existingRecords = await attRes.json();
+            // Merge existing records
+            if (Array.isArray(existingRecords)) {
+              existingRecords.forEach((r: any) => {
+                if (initialAttendance[r.student_id]) {
+                  initialAttendance[r.student_id] = {
+                    status: r.status,
+                    remarks: r.remarks || ''
+                  };
+                }
+              });
+            }
+          }
+
+          setAttendance(initialAttendance);
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to load student data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudentsAndAttendance();
+  }, [selectedClassId, date]);
 
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
     setAttendance((prev) => ({
@@ -107,11 +179,38 @@ export default function TeacherAttendancePage() {
     toast.success(`Marked all students as ${status}`)
   }
 
-  const handleSave = () => {
-    toast.success("Attendance saved successfully!")
+  const handleSave = async () => {
+    if (!selectedClassId) return;
+
+    try {
+      const records = Object.entries(attendance).map(([studentId, record]) => ({
+        studentId,
+        status: record.status,
+        remarks: record.remarks
+      }));
+
+      const res = await fetch(`${API_URL}/attendance`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          classId: selectedClassId,
+          date: format(date, 'yyyy-MM-dd'),
+          records
+        })
+      });
+
+      if (res.ok) {
+        toast.success("Attendance saved successfully!");
+      } else {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to save');
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to save attendance");
+    }
   }
 
-  const filteredStudents = initialStudents.filter((s) =>
+  const filteredStudents = students.filter((s) =>
     s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.rollNo.includes(searchQuery)
   )
@@ -170,14 +269,14 @@ export default function TeacherAttendancePage() {
                 {/* Class Selector */}
                 <div className="flex flex-col gap-2">
                   <Label className="text-sm font-medium">Class</Label>
-                  <Select value={selectedClass} onValueChange={setSelectedClass}>
+                  <Select value={selectedClassId} onValueChange={setSelectedClassId}>
                     <SelectTrigger className="h-11 border-border">
                       <SelectValue placeholder="Select Class" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="10a">Grade 10-A</SelectItem>
-                      <SelectItem value="10b">Grade 10-B</SelectItem>
-                      <SelectItem value="9a">Grade 9-A</SelectItem>
+                      {classes.map((cls) => (
+                        <SelectItem key={cls.id} value={cls.id}>{cls.name}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -272,26 +371,26 @@ export default function TeacherAttendancePage() {
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
-                                {student.avatar}
+                                {student.avatar || student.name.substring(0, 2).toUpperCase()}
                               </div>
                               <span className="font-semibold text-sm">{student.name}</span>
                             </div>
                           </TableCell>
                           <TableCell>
                             <Select
-                              value={attendance[student.id].status}
+                              value={attendance[student.id]?.status || "present"}
                               onValueChange={(val) => handleStatusChange(student.id, val as AttendanceStatus)}
                             >
                               <SelectTrigger className={cn(
                                 "h-9 w-full text-xs font-semibold border-border transition-colors",
-                                attendance[student.id].status === "present" && "bg-green-50 text-green-700 border-green-200",
-                                attendance[student.id].status === "absent" && "bg-red-50 text-red-700 border-red-200",
-                                attendance[student.id].status === "late" && "bg-amber-50 text-amber-700 border-amber-200"
+                                attendance[student.id]?.status === "present" && "bg-green-50 text-green-700 border-green-200",
+                                attendance[student.id]?.status === "absent" && "bg-red-50 text-red-700 border-red-200",
+                                attendance[student.id]?.status === "late" && "bg-amber-50 text-amber-700 border-amber-200"
                               )}>
                                 <div className="flex items-center gap-2">
-                                  {attendance[student.id].status === "present" && <CheckCircle2 className="h-3.5 w-3.5" />}
-                                  {attendance[student.id].status === "absent" && <XCircle className="h-3.5 w-3.5" />}
-                                  {attendance[student.id].status === "late" && <Clock className="h-3.5 w-3.5" />}
+                                  {attendance[student.id]?.status === "present" && <CheckCircle2 className="h-3.5 w-3.5" />}
+                                  {attendance[student.id]?.status === "absent" && <XCircle className="h-3.5 w-3.5" />}
+                                  {attendance[student.id]?.status === "late" && <Clock className="h-3.5 w-3.5" />}
                                   <SelectValue />
                                 </div>
                               </SelectTrigger>
@@ -323,7 +422,7 @@ export default function TeacherAttendancePage() {
                               <Input
                                 placeholder="Add note..."
                                 className="h-9 pl-9 border-border text-xs focus-visible:ring-primary/20"
-                                value={attendance[student.id].remarks}
+                                value={attendance[student.id]?.remarks || ""}
                                 onChange={(e) => handleRemarksChange(student.id, e.target.value)}
                               />
                             </div>

@@ -47,6 +47,23 @@ export const StudentService = {
         )(teacherId);
     },
 
+    getByClassId: async (classId: string) => {
+        return unstable_cache(
+            async (cid: string) => {
+                const { data, error } = await supabase
+                    .from('students')
+                    .select('id, name, rollNo, classId, email, phone, gender, dob, enrollmentDate, address, guardianName, guardianPhone')
+                    .eq('classId', cid)
+                    .order('name');
+
+                if (error) return [];
+                return data as Student[];
+            },
+            [`students-class-${classId}`],
+            { tags: ['students', `class-students-${classId}`], revalidate: 3600 }
+        )(classId);
+    },
+
     isStudentInTeacherClass: async (teacherId: string, studentId: string) => {
         // Get student's class
         const { data: student, error: studentError } = await supabase

@@ -2,9 +2,57 @@ import { Period } from '../data/periods';
 import { supabase } from '../utils/supabaseClient';
 import { handleSupabaseError } from '../utils/errors';
 import { NotificationService } from './notificationService';
+import { unstable_cache, revalidateTag } from 'next/cache';
 
 export const PeriodService = {
-    // ... (getAll, getById)
+    getAll: async () => {
+        return unstable_cache(
+            async () => {
+                const { data, error } = await supabase
+                    .from('periods')
+                    .select('*');
+
+                if (error) throw new Error(handleSupabaseError(error));
+                return data as Period[];
+            },
+            ['periods-list'],
+            { tags: ['periods'], revalidate: 3600 }
+        )();
+    },
+
+    getById: async (id: string) => {
+        return unstable_cache(
+            async (periodId: string) => {
+                const { data, error } = await supabase
+                    .from('periods')
+                    .select('*')
+                    .eq('id', periodId)
+                    .single();
+
+                if (error) return null;
+                return data as Period;
+            },
+            [`period-${id}`],
+            { tags: ['periods', `period-${id}`], revalidate: 3600 }
+        )(id);
+    },
+
+    getByClassIds: async (classIds: string[]) => {
+        return unstable_cache(
+            async (cids: string[]) => {
+                if (!cids.length) return [];
+                const { data, error } = await supabase
+                    .from('periods')
+                    .select('*')
+                    .in('classId', cids);
+
+                if (error) return [];
+                return data as Period[];
+            },
+            [`periods-classes-${classIds.sort().join('-')}`],
+            { tags: ['periods'], revalidate: 3600 }
+        )(classIds);
+    },
 
     create: async (data: Omit<Period, 'id'>) => {
         const { data: newPeriod, error } = await supabase
@@ -25,7 +73,7 @@ export const PeriodService = {
                         NotificationService.sendEmailNotification(
                             user.id,
                             'SCHEDULE_CHANGE',
-                            `A new class period has been added: ${data.subject} (${data.startTime} - ${data.endTime})`,
+                            `A new class period has been added: ${data.name} (${data.startTime} - ${data.endTime})`,
                             user.role
                         );
                     }
@@ -34,6 +82,9 @@ export const PeriodService = {
                 console.error('Failed to send schedule change notifications:', err);
             }
         })();
+
+        // Invalidate cache
+        revalidateTag('periods');
 
         return newPeriod as Period;
     },
@@ -57,7 +108,7 @@ export const PeriodService = {
                         NotificationService.sendEmailNotification(
                             user.id,
                             'SCHEDULE_UPDATE',
-                            `A class period has been updated: ${updatedPeriod.subject}`,
+                            `A class period has been updated: ${updatedPeriod.name}`,
                             user.role
                         );
                     }
@@ -66,6 +117,10 @@ export const PeriodService = {
                 console.error('Failed to send schedule update notifications:', err);
             }
         })();
+
+        // Invalidate cache
+        revalidateTag('periods');
+        revalidateTag(`period-${id}`);
 
         return updatedPeriod as Period;
     },
@@ -77,6 +132,11 @@ export const PeriodService = {
             .eq('id', id);
 
         if (error) return false;
+
+        // Invalidate cache
+        revalidateTag('periods');
+        revalidateTag(`period-${id}`);
+
         return true;
     }
 };

@@ -14,6 +14,9 @@ export const UserSchema = z.object({
     role: z.enum(['admin', 'teacher', 'student', 'parent']).optional(),
 });
 
+// Alias for registration
+export const RegisterSchema = UserSchema;
+
 export const LoginSchema = z.object({
     email: z.string().email('Invalid email format'),
     password: z.string().min(1, 'Password is required'),
@@ -88,6 +91,27 @@ export const SettingsSchema = z.object({
         smsNotifications: z.boolean(),
         emailNotifications: z.boolean(),
     }).optional()
+});
+
+export const AttendanceSchema = z.object({
+    classId: z.string().min(1, 'Class ID is required'),
+    date: z.string().min(1, 'Date is required'),
+    records: z.array(z.object({
+        studentId: z.string().min(1, 'Student ID is required'),
+        status: z.enum(['present', 'absent', 'late', 'excused']),
+        remarks: z.string().optional()
+    })).min(1, 'At least one attendance record is required')
+});
+
+export const AcademicRecordSchema = z.object({
+    studentId: z.string().min(1, 'Student ID is required'),
+    subjectId: z.string().min(1, 'Subject ID is required'),
+    term: z.string().min(1, 'Term is required').transform(sanitize),
+    marksObtained: z.number().min(0, 'Marks cannot be negative'),
+    totalMarks: z.number().min(1, 'Total marks must be positive'),
+    grade: z.string().min(1, 'Grade is required').transform(sanitize),
+    examDate: z.string().min(1, 'Exam date is required'),
+    remarks: z.string().optional().transform((val) => val ? sanitize(val) : val)
 });
 
 // Generic validation wrapper

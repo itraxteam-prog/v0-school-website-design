@@ -37,6 +37,22 @@ export const ClassService = {
         )(id);
     },
 
+    getByTeacherId: async (teacherId: string) => {
+        return unstable_cache(
+            async (tid: string) => {
+                const { data, error } = await supabase
+                    .from('classes')
+                    .select('id, name, classTeacherId, roomNo, studentIds')
+                    .eq('classTeacherId', tid);
+
+                if (error) return [];
+                return data as Class[];
+            },
+            [`classes-teacher-${teacherId}`],
+            { tags: ['classes'], revalidate: 3600 }
+        )(teacherId);
+    },
+
     create: async (data: Omit<Class, 'id'>) => {
         const { data: newClass, error } = await supabase
             .from('classes')

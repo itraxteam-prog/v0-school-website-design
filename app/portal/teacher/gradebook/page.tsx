@@ -40,33 +40,98 @@ const sidebarItems = [
   { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
-const initialStudents = [
-  { id: "S001", name: "Ahmed Khan", rollNo: "2025-0142", initialMarks: 85 },
-  { id: "S002", name: "Sara Ali", rollNo: "2025-0143", initialMarks: 92 },
-  { id: "S003", name: "Hamza Butt", rollNo: "2025-0144", initialMarks: 78 },
-  { id: "S004", name: "Fatima Noor", rollNo: "2025-0145", initialMarks: 88 },
-  { id: "S005", name: "Bilal Shah", rollNo: "2025-0146", initialMarks: 65 },
-  { id: "S006", name: "Zain Malik", rollNo: "2025-0147", initialMarks: 72 },
-  { id: "S007", name: "Aisha Rehman", rollNo: "2025-0148", initialMarks: 95 },
-  { id: "S008", name: "Umar Farooq", rollNo: "2025-0149", initialMarks: 81 },
-]
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+interface Student {
+  id: string;
+  name: string;
+  rollNo: string;
+}
+
+interface GradeData {
+  students: Student[];
+  grades: Record<string, number>;
+}
 
 export default function TeacherGradeEntryPage() {
   const [loading, setLoading] = useState(true)
-  const [selectedClass, setSelectedClass] = useState("10a")
-  const [selectedSubject, setSelectedSubject] = useState("math")
+
+  // Data State
+  const [classes, setClasses] = useState<any[]>([])
+  const [subjects, setSubjects] = useState<any[]>([])
+  const [students, setStudents] = useState<Student[]>([])
+
+  // Selection State
+  const [selectedClassId, setSelectedClassId] = useState<string>("")
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string>("")
   const [selectedTerm, setSelectedTerm] = useState("term1")
-  const [grades, setGrades] = useState<Record<string, number>>(
-    Object.fromEntries(initialStudents.map((s) => [s.id, s.initialMarks]))
-  )
+
+  // Grades State: Map studentId -> marks
+  const [grades, setGrades] = useState<Record<string, number>>({})
+
   const [searchQuery, setSearchQuery] = useState("")
 
+  // 1. Fetch Initial Data (Classes & Subjects)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 1200)
-    return () => clearTimeout(timer)
-  }, [])
+    const fetchInitialData = async () => {
+      try {
+        const [classesRes, subjectsRes] = await Promise.all([
+          fetch(`${API_URL}/teacher/classes`),
+          fetch(`${API_URL}/teacher/grades?type=subjects`) // Fetch subjects specifically
+        ]);
+
+        if (classesRes.ok) {
+          const data = await classesRes.json();
+          setClasses(data);
+          if (data.length > 0) setSelectedClassId(data[0].id);
+        }
+
+        if (subjectsRes.ok) {
+          const data = await subjectsRes.json();
+          setSubjects(data);
+          if (data.length > 0) setSelectedSubjectId(data[0].id);
+        } else {
+          // Fallback mock subjects if API fails or returns empty
+          setSubjects([
+            { id: 'math', name: 'Mathematics' },
+            { id: 'physics', name: 'Physics' },
+            { id: 'chem', name: 'Chemistry' }
+          ]);
+          setSelectedSubjectId('math');
+        }
+
+      } catch (error) {
+        console.error("Failed to fetch initial data", error);
+        toast.error("Failed to load classes or subjects");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInitialData();
+  }, []);
+
+  // 2. Fetch Students and Grades when selection changes
+  useEffect(() => {
+    if (!selectedClassId || !selectedSubjectId || !selectedTerm) return;
+
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`${API_URL}/teacher/grades?classId=${selectedClassId}&subjectId=${selectedSubjectId}&term=${selectedTerm}`);
+        if (res.ok) {
+          const data = await res.json();
+          setStudents(data.students);
+          setGrades(data.grades || {});
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to fetch grades");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [selectedClassId, selectedSubjectId, selectedTerm]);
 
   const calculateGrade = (marks: number) => {
     if (marks >= 90) return { label: "A+", color: "bg-green-100 text-green-700 border-green-200" }
@@ -88,17 +153,44 @@ export default function TeacherGradeEntryPage() {
     toast.success("Draft saved successfully!")
   }
 
-  const handleSubmitFinal = () => {
+  const handleSubmitFinal = async () => {
     toast.info("Submitting grades for final review...", {
       description: "Once submitted, grades cannot be modified without admin approval.",
       action: {
         label: "Confirm",
-        onClick: () => toast.success("Grades submitted for finalization!")
+        onClick: async () => {
+          try {
+            const gradesPayload = Object.entries(grades).map(([studentId, marks]) => ({
+              studentId,
+              marks
+            }));
+
+            const res = await fetch(`${API_URL}/teacher/grades`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                classId: selectedClassId,
+                subjectId: selectedSubjectId,
+                term: selectedTerm,
+                grades: gradesPayload
+              })
+            });
+
+            if (res.ok) {
+              toast.success("Grades submitted for finalization!");
+            } else {
+              const err = await res.json();
+              throw new Error(err.error || 'Failed to submit');
+            }
+          } catch (error: any) {
+            toast.error(error.message || "Submission failed");
+          }
+        }
       },
     })
   }
 
-  const filteredStudents = initialStudents.filter((s) =>
+  const filteredStudents = students.filter((s) =>
     s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.rollNo.includes(searchQuery)
   )
@@ -133,28 +225,28 @@ export default function TeacherGradeEntryPage() {
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 lg:items-end">
                 <div className="flex flex-col gap-2">
                   <Label className="text-sm font-medium">Class</Label>
-                  <Select value={selectedClass} onValueChange={setSelectedClass}>
+                  <Select value={selectedClassId} onValueChange={setSelectedClassId}>
                     <SelectTrigger className="h-11 border-border bg-background/50">
                       <SelectValue placeholder="Select Class" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="10a">Grade 10-A</SelectItem>
-                      <SelectItem value="10b">Grade 10-B</SelectItem>
-                      <SelectItem value="9a">Grade 9-A</SelectItem>
+                      {classes.map((cls) => (
+                        <SelectItem key={cls.id} value={cls.id}>{cls.name}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="flex flex-col gap-2">
                   <Label className="text-sm font-medium">Subject</Label>
-                  <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+                  <Select value={selectedSubjectId} onValueChange={setSelectedSubjectId}>
                     <SelectTrigger className="h-11 border-border bg-background/50">
                       <SelectValue placeholder="Select Subject" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="math">Mathematics</SelectItem>
-                      <SelectItem value="physics">Physics</SelectItem>
-                      <SelectItem value="chem">Chemistry</SelectItem>
+                      {subjects.map((sub) => (
+                        <SelectItem key={sub.id} value={sub.id}>{sub.name}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -204,7 +296,7 @@ export default function TeacherGradeEntryPage() {
                     <span>Auto-calculated: 100% Total</span>
                   </div>
                   <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5">
-                    Total Students: {initialStudents.length}
+                    Total Students: {students.length}
                   </Badge>
                 </div>
               </div>
@@ -234,7 +326,7 @@ export default function TeacherGradeEntryPage() {
                       ))
                     ) : (
                       filteredStudents.map((student) => {
-                        const gradeInfo = calculateGrade(grades[student.id])
+                        const gradeInfo = calculateGrade(grades[student.id] || 0)
                         return (
                           <TableRow key={student.id} className="group border-border/50 hover:bg-primary/5 transition-colors">
                             <TableCell className="font-medium text-muted-foreground text-xs">{student.rollNo}</TableCell>
@@ -251,7 +343,7 @@ export default function TeacherGradeEntryPage() {
                                     min="0"
                                     max="100"
                                     className="h-10 text-center font-bold text-primary focus-visible:ring-primary/20 border-border"
-                                    value={grades[student.id]}
+                                    value={grades[student.id] || ""}
                                     onChange={(e) => handleMarksChange(student.id, e.target.value)}
                                   />
                                   <div className="absolute -right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">

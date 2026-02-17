@@ -64,6 +64,8 @@ import {
   UserX,
   ShieldCheck,
   Clock,
+  RefreshCcw,
+  AlertCircle,
 } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -100,23 +102,26 @@ const userSchema = z.object({
 
 type UserFormValues = z.infer<typeof userSchema>
 
-const dummyUsers = [
-  { id: 1, name: "Dr. Ahmad Raza", email: "ahmad.raza@pioneershigh.edu", role: "Admin", status: "Active", lastLogin: "2026-02-15 08:30" },
-  { id: 2, name: "Mr. Usman Sheikh", email: "usman.sheikh@pioneershigh.edu", role: "Teacher", status: "Active", lastLogin: "2026-02-15 09:15" },
-  { id: 3, name: "Dr. Ayesha Siddiqui", email: "ayesha.siddiqui@pioneershigh.edu", role: "Teacher", status: "Active", lastLogin: "2026-02-14 14:20" },
-  { id: 4, name: "Ahmed Khan", email: "ahmed.khan@pioneershigh.edu", role: "Student", status: "Active", lastLogin: "2026-02-15 10:05" },
-  { id: 5, name: "Sara Ali", email: "sara.ali@pioneershigh.edu", role: "Student", status: "Active", lastLogin: "2026-02-15 11:45" },
-  { id: 6, name: "Omar Farooq", email: "omar.farooq@pioneershigh.edu", role: "Student", status: "Suspended", lastLogin: "2026-02-10 16:50" },
-  { id: 7, name: "Ms. Nadia Jamil", email: "nadia.jamil@pioneershigh.edu", role: "Teacher", status: "Active", lastLogin: "2026-02-15 08:00" },
-  { id: 8, name: "Mr. Tariq Mehmood", email: "tariq.mehmood@pioneershigh.edu", role: "Teacher", status: "Suspended", lastLogin: "2026-01-28 12:30" },
-]
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: "Admin" | "Teacher" | "Student";
+  status: "Active" | "Suspended";
+  last_login?: string;
+}
 
 export default function UserManagementPage() {
+  const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [selectedUser, setSelectedUser] = useState<typeof dummyUsers[0] | null>(null)
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userSchema),
@@ -129,26 +134,111 @@ export default function UserManagementPage() {
     },
   })
 
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800)
-    return () => clearTimeout(timer)
-  }, [])
-
-  function onSubmit(data: UserFormValues) {
-    console.log(data)
-    setIsAddModalOpen(false)
-    form.reset()
-    toast.success("User added successfully")
+  const fetchUsers = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await fetch(`${API_URL}/users`)
+      if (!response.ok) throw new Error("Failed to fetch users")
+      const data = await response.json()
+      setUsers(data)
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred")
+      toast.error("Could not load users. Please try again.")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const filteredUsers = dummyUsers.filter(user =>
+  useEffect(() => {
+    fetchUsers()
+  }, [])
+
+  async function onSubmit(data: UserFormValues) {
+    setIsSubmitting(true)
+    try {
+      const payload = {
+        name: data.fullName,
+        email: data.email,
+        password: data.password,
+        role: data.role.toLowerCase(),
+        status: data.status
+      }
+
+      const response = await fetch(`${API_URL}/users`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to create user")
+      }
+
+      toast.success("User added successfully")
+      setIsAddModalOpen(false)
+      form.reset()
+      fetchUsers()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to add user")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const handleDelete = (user: typeof dummyUsers[0]) => {
+  const handleDelete = (user: User) => {
     setSelectedUser(user)
     setIsDeleteModalOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!selectedUser) return
+
+    try {
+      const response = await fetch(`${API_URL}/users/${selectedUser.id}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        const result = await response.json()
+        throw new Error(result.error || "Failed to delete user")
+      }
+
+      toast.success("User deleted successfully")
+      setIsDeleteModalOpen(false)
+      setSelectedUser(null)
+      fetchUsers()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete user")
+    }
+  }
+
+  const handleStatusToggle = async (user: User) => {
+    try {
+      const newStatus = user.status === "Active" ? "Suspended" : "Active"
+      const response = await fetch(`${API_URL}/users/${user.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      })
+
+      if (!response.ok) {
+        const result = await response.json()
+        throw new Error(result.error || "Failed to update user status")
+      }
+
+      toast.success(`User ${newStatus === "Active" ? "activated" : "suspended"} successfully`)
+      fetchUsers()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update user status")
+    }
   }
 
   return (
@@ -267,7 +357,19 @@ export default function UserManagementPage() {
                   />
                   <DialogFooter className="pt-4">
                     <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
-                    <Button type="submit" className="bg-primary text-white hover:bg-primary/90 shadow-burgundy-glow">Create User</Button>
+                    <Button type="submit" disabled={isSubmitting} className="bg-primary text-white hover:bg-primary/90 shadow-burgundy-glow min-w-[120px]">
+                      {isSubmitting ? (
+                        <>
+                          <svg className="mr-2 h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Creating...
+                        </>
+                      ) : (
+                        'Create User'
+                      )}
+                    </Button>
                   </DialogFooter>
                 </form>
               </Form>
@@ -287,6 +389,15 @@ export default function UserManagementPage() {
             />
           </div>
           <div className="flex flex-wrap gap-3">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={fetchUsers}
+              className="h-11 w-11 glass-card"
+              title="Refresh Data"
+            >
+              <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            </Button>
             <Select defaultValue="all">
               <SelectTrigger className="h-11 w-[130px] glass-card">
                 <SelectValue placeholder="Filter Role" />
@@ -324,6 +435,20 @@ export default function UserManagementPage() {
                 {[...Array(5)].map((_, i) => (
                   <Skeleton key={i} className="h-12 w-full" />
                 ))}
+              </div>
+            ) : error ? (
+              <div className="p-12 flex flex-col items-center justify-center text-center gap-4">
+                <div className="h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center text-destructive">
+                  <AlertCircle className="h-6 w-6" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-semibold text-lg">Failed to load data</h3>
+                  <p className="text-muted-foreground text-sm">{error}</p>
+                </div>
+                <Button onClick={fetchUsers} variant="outline" className="gap-2">
+                  <RefreshCcw className="h-4 w-4" />
+                  Try Again
+                </Button>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -366,7 +491,15 @@ export default function UserManagementPage() {
                               {user.status}
                             </Badge>
                           </TableCell>
-                          <TableCell className="py-4 text-xs font-medium text-muted-foreground uppercase">{user.lastLogin}</TableCell>
+                          <TableCell className="py-4 text-xs font-medium text-muted-foreground uppercase">
+                            {user.last_login ? new Date(user.last_login).toLocaleString('en-US', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            }) : 'Never'}
+                          </TableCell>
                           <TableCell className="pr-6 text-right py-4">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -386,7 +519,7 @@ export default function UserManagementPage() {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   className="flex items-center gap-2 cursor-pointer focus:bg-primary/5 py-2"
-                                  onClick={() => toast.success(`User ${user.status === "Active" ? "suspended" : "activated"} successfully`)}
+                                  onClick={() => handleStatusToggle(user)}
                                 >
                                   {user.status === "Active" ? <UserX size={14} className="text-amber-600" /> : <UserCheck size={14} className="text-emerald-600" />}
                                   {user.status === "Active" ? "Suspend Access" : "Activate User"}
@@ -428,7 +561,7 @@ export default function UserManagementPage() {
         {/* Pagination UI */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <p className="text-xs text-muted-foreground">
-            Showing <span className="font-semibold text-foreground">1-{filteredUsers.length}</span> of <span className="font-semibold text-foreground">{dummyUsers.length}</span> registered users
+            Showing <span className="font-semibold text-foreground">1-{filteredUsers.length}</span> of <span className="font-semibold text-foreground">{users.length}</span> registered users
           </p>
           <div className="flex items-center gap-1">
             <Button variant="outline" size="icon" className="h-9 w-9 glass-card" disabled>
@@ -459,10 +592,7 @@ export default function UserManagementPage() {
               <Button
                 variant="destructive"
                 className="shadow-lg shadow-destructive/20"
-                onClick={() => {
-                  setIsDeleteModalOpen(false)
-                  toast.success("User deleted successfully")
-                }}
+                onClick={confirmDelete}
               >
                 Delete User
               </Button>

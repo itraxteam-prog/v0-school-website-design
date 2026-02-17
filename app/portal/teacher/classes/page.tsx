@@ -23,6 +23,8 @@ import { Badge } from "@/components/ui/badge"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { cn } from "@/lib/utils"
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 const sidebarItems = [
   { href: "/portal/teacher", label: "Dashboard", icon: LayoutDashboard },
   { href: "/portal/teacher/classes", label: "My Classes", icon: Users },
@@ -33,57 +35,28 @@ const sidebarItems = [
   { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
-const classesData = [
-  {
-    id: "c1",
-    name: "Grade 10-A",
-    subject: "Mathematics",
-    studentCount: 32,
-    room: "Room 201",
-    performance: 88,
-    lastActive: "Today",
-    color: "from-blue-500/10 to-transparent",
-  },
-  {
-    id: "c2",
-    name: "Grade 10-B",
-    subject: "Mathematics",
-    studentCount: 30,
-    room: "Room 201",
-    performance: 82,
-    lastActive: "Today",
-    color: "from-purple-500/10 to-transparent",
-  },
-  {
-    id: "c3",
-    name: "Grade 9-A",
-    subject: "Mathematics",
-    studentCount: 35,
-    room: "Room 203",
-    performance: 79,
-    lastActive: "Yesterday",
-    color: "from-emerald-500/10 to-transparent",
-  },
-  {
-    id: "c4",
-    name: "Grade 11-C",
-    subject: "Advanced Calculus",
-    studentCount: 28,
-    room: "Lab 102",
-    performance: 91,
-    lastActive: "2 days ago",
-    color: "from-amber-500/10 to-transparent",
-  },
-]
+
 
 export default function TeacherClassesPage() {
   const [loading, setLoading] = useState(true)
+  const [classes, setClasses] = useState<any[]>([])
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 1200)
-    return () => clearTimeout(timer)
+    const fetchClasses = async () => {
+      try {
+        const res = await fetch(`${API_URL}/teacher/classes`);
+        if (res.ok) {
+          const data = await res.json();
+          setClasses(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch classes", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClasses();
   }, [])
 
   return (
@@ -132,68 +105,73 @@ export default function TeacherClassesPage() {
               </Card>
             ))
           ) : (
-            classesData.map((cls, index) => (
-              <AnimatedWrapper key={cls.id} delay={index * 0.1}>
-                <Card className={cn(
-                  "glass-card group overflow-hidden border-border/50 hover:border-primary/30",
-                  "bg-gradient-to-br", cls.color
-                )}>
-                  <CardHeader className="pb-4 relative">
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="heading-3 text-lg">{cls.name}</CardTitle>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2 text-muted-foreground hover:text-primary">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <p className="text-sm font-medium text-primary mt-0.5">{cls.subject}</p>
-                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                      <GraduationCap className="h-16 w-16" />
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="space-y-5">
-                    <div className="flex flex-col gap-3">
-                      <div className="flex items-center gap-2 text-sm text-foreground/80">
-                        <Users className="h-4 w-4 text-primary" />
-                        <span>{cls.studentCount} Students Enrolled</span>
+            classes.length === 0 ? (
+              <div className="col-span-full text-center py-10 text-muted-foreground">
+                No classes assigned.
+              </div>
+            ) : (
+              classes.map((cls, index) => (
+                <AnimatedWrapper key={cls.id} delay={index * 0.1}>
+                  <Card className={cn(
+                    "glass-card group overflow-hidden border-border/50 hover:border-primary/30",
+                    "bg-gradient-to-br", cls.color
+                  )}>
+                    <CardHeader className="pb-4 relative">
+                      <div className="flex justify-between items-start">
+                        <CardTitle className="heading-3 text-lg">{cls.name}</CardTitle>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2 text-muted-foreground hover:text-primary">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-foreground/80">
-                        <MapPin className="h-4 w-4 text-primary" />
-                        <span>{cls.room}</span>
+                      <p className="text-sm font-medium text-primary mt-0.5">{cls.subject}</p>
+                      <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <GraduationCap className="h-16 w-16" />
                       </div>
-                    </div>
+                    </CardHeader>
 
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-end">
-                        <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                          <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
-                          Average Performance
+                    <CardContent className="space-y-5">
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-center gap-2 text-sm text-foreground/80">
+                          <Users className="h-4 w-4 text-primary" />
+                          <span>{cls.studentCount} Students Enrolled</span>
                         </div>
-                        <span className="text-sm font-bold text-foreground">{cls.performance}%</span>
+                        <div className="flex items-center gap-2 text-sm text-foreground/80">
+                          <MapPin className="h-4 w-4 text-primary" />
+                          <span>{cls.room}</span>
+                        </div>
                       </div>
-                      <div className="h-1.5 w-full bg-muted/50 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-primary transition-all duration-1000 ease-out"
-                          style={{ width: `${cls.performance}%` }}
-                        />
-                      </div>
-                    </div>
-                  </CardContent>
 
-                  <CardFooter className="pt-2 border-t border-border/30 bg-muted/10">
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-between items-center group-hover:bg-primary group-hover:text-white transition-all text-sm font-semibold"
-                      onClick={() => window.location.href = '/portal/teacher/attendance'}
-                    >
-                      <span>Manage Attendance</span>
-                      <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </AnimatedWrapper>
-            ))
-          )}
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-end">
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
+                            Average Performance
+                          </div>
+                          <span className="text-sm font-bold text-foreground">{cls.performance}%</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-muted/50 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-primary transition-all duration-1000 ease-out"
+                            style={{ width: `${cls.performance}%` }}
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+
+                    <CardFooter className="pt-2 border-t border-border/30 bg-muted/10">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-between items-center group-hover:bg-primary group-hover:text-white transition-all text-sm font-semibold"
+                        onClick={() => window.location.href = '/portal/teacher/attendance'}
+                      >
+                        <span>Manage Attendance</span>
+                        <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </AnimatedWrapper>
+              ))
+            )}
         </div>
 
         {/* Info Box */}
@@ -206,7 +184,7 @@ export default function TeacherClassesPage() {
                 </div>
                 <div>
                   <h4 className="font-semibold text-foreground">Weekly Overview</h4>
-                  <p className="text-sm text-muted-foreground mt-0.5">You have 12 total teaching hours across {classesData.length} classes this week.</p>
+                  <p className="text-sm text-muted-foreground mt-0.5">You have {classes.length} active classes assigned.</p>
                 </div>
               </div>
               <Button
