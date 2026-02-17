@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { AcademicService } from '@/backend/services/academicService';
 import { StudentService } from '@/backend/services/students';
 import { ClassService } from '@/backend/services/classes';
 import { SubjectService } from '@/backend/services/subjectService';
+import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
 
 export async function GET(req: NextRequest) {
     const auth = await requireRole(req, ['teacher', 'admin']);
@@ -19,14 +20,14 @@ export async function GET(req: NextRequest) {
         // Return all subjects for dropdown
         try {
             const subjects = await SubjectService.getAll();
-            return NextResponse.json(subjects);
+            return createSuccessResponse(subjects);
         } catch (error: any) {
-            return NextResponse.json({ error: error.message }, { status: 500 });
+            return createErrorResponse(error.message, 500);
         }
     }
 
     if (!classId) {
-        return NextResponse.json({ error: 'Missing classId' }, { status: 400 });
+        return createErrorResponse('Missing classId', 400);
     }
 
     // Verify access
@@ -61,7 +62,7 @@ export async function GET(req: NextRequest) {
             grades = await AcademicService.getClassRecords(classId, subjectId, term);
         }
 
-        return NextResponse.json({
+        return createSuccessResponse({
             students: students.map(s => ({
                 id: s.id,
                 name: s.name,
@@ -76,7 +77,7 @@ export async function GET(req: NextRequest) {
 
     } catch (error: any) {
         console.error('Gradebook Error:', error);
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        return createErrorResponse(error.message || 'Internal Server Error', 500);
     }
 }
 
@@ -90,7 +91,7 @@ export async function POST(req: NextRequest) {
         // grades: { studentId: string, marks: number }[]
 
         if (!classId || !subjectId || !term || !grades) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+            return createErrorResponse('Missing required fields', 400);
         }
 
         // Transform to AcademicRecords
@@ -107,11 +108,11 @@ export async function POST(req: NextRequest) {
 
         await AcademicService.upsertBulk(records);
 
-        return NextResponse.json({ success: true });
+        return createSuccessResponse(null, 201, 'Grades saved successfully');
 
     } catch (error: any) {
         console.error('Grade Save Error:', error);
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        return createErrorResponse(error.message || 'Internal Server Error', 500);
     }
 }
 

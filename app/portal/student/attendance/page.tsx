@@ -10,7 +10,8 @@ import { AttendanceDistributionChart } from "@/components/portal/attendance-char
 import { Skeleton } from "@/components/ui/skeleton"
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay, parseISO } from "date-fns"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Internal API base path
+const API_BASE = "/api";
 
 const statusColors = {
   present: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
@@ -134,12 +135,18 @@ export default function AttendancePage() {
   useEffect(() => {
     const fetchAttendance = async () => {
       try {
-        const res = await fetch(`${API_URL}/student/attendance`);
-        if (res.ok) {
-          const data = await res.json();
-          setAttendanceRecords(data);
+        const res = await fetch(`${API_BASE}/student/attendance`, {
+          method: "GET",
+          credentials: "include",
+        });
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error("API ERROR [fetchStudentAttendance]:", res.status, errorText);
+          throw new Error(errorText || "Failed to fetch attendance");
         }
-      } catch (error) {
+        const result = await res.json();
+        setAttendanceRecords(result.data || []);
+      } catch (error: any) {
         console.error("Failed to fetch attendance", error);
       } finally {
         setLoading(false);

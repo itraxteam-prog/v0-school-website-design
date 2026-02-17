@@ -1,17 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { settingsRoutes } from '@/backend/routes/settings';
 import { validateBody, SettingsSchema } from '@/backend/validation/schemas';
+import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
 
 export async function GET(req: NextRequest) {
     const auth = await requireRole(req, ['admin']);
     if (!auth.authorized) return auth.response;
 
-    const result = await settingsRoutes.getSettings();
-    if (result.error) {
-        return NextResponse.json({ error: result.error }, { status: result.status });
+    try {
+        const result = await settingsRoutes.getSettings();
+        if (result.error) {
+            return createErrorResponse(result.error, result.status);
+        }
+        return createSuccessResponse(result.data, result.status);
+    } catch (error: any) {
+        return createErrorResponse(error.message || 'Internal Server Error', 500);
     }
-    return NextResponse.json(result.data, { status: result.status });
 }
 
 export async function PUT(req: NextRequest) {
@@ -24,15 +29,15 @@ export async function PUT(req: NextRequest) {
         // Validation Guard
         const validation = await validateBody(SettingsSchema, body);
         if (validation.error) {
-            return NextResponse.json({ error: validation.error }, { status: 400 });
+            return createErrorResponse(validation.error, 400);
         }
 
         const result = await settingsRoutes.updateSettings(validation.data);
         if (result.error) {
-            return NextResponse.json({ error: result.error }, { status: result.status });
+            return createErrorResponse(result.error, result.status);
         }
-        return NextResponse.json(result.data, { status: result.status });
-    } catch (error) {
-        return NextResponse.json({ error: 'Failed to parse request body' }, { status: 400 });
+        return createSuccessResponse(result.data, result.status);
+    } catch (error: any) {
+        return createErrorResponse(error.message || 'Failed to parse request body', 400);
     }
 }

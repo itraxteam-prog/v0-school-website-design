@@ -1,17 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { roleRoutes } from '@/backend/routes/roles';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
+import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
 
 export async function GET(req: NextRequest) {
     // GET -> admin only
     const auth = await requireRole(req, ['admin']);
     if (!auth.authorized) return auth.response;
 
-    const result = await roleRoutes.getAll();
-    if (result.status >= 400) {
-        return NextResponse.json({ error: result.error }, { status: result.status });
+    try {
+        const result = await roleRoutes.getAll();
+        if (result.status >= 400) {
+            return createErrorResponse(result.error, result.status);
+        }
+        return createSuccessResponse(result.data, result.status);
+    } catch (error: any) {
+        return createErrorResponse(error.message || 'Internal Server Error', 500);
     }
-    return NextResponse.json(result.data, { status: result.status });
 }
 
 export async function POST(req: NextRequest) {
@@ -23,10 +28,10 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const result = await roleRoutes.create(body);
         if (result.status >= 400) {
-            return NextResponse.json({ error: result.error || result.errors }, { status: result.status });
+            return createErrorResponse(result.error || result.errors, result.status);
         }
-        return NextResponse.json(result.data, { status: result.status });
-    } catch (error) {
-        return NextResponse.json({ error: 'Failed to parse request body' }, { status: 400 });
+        return createSuccessResponse(result.data, result.status);
+    } catch (error: any) {
+        return createErrorResponse(error.message || 'Failed to process role creation', 400);
     }
 }

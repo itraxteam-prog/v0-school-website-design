@@ -1,44 +1,53 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { roleRoutes } from '@/backend/routes/roles';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
+import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-    // GET -> admin only
-    const auth = await requireRole(req, ['admin']);
-    if (!auth.authorized) return auth.response;
+    try {
+        // GET -> admin only
+        const auth = await requireRole(req, ['admin']);
+        if (!auth.authorized || !auth.user) return auth.response;
 
-    const result = await roleRoutes.getById(params.id);
-    if (result.status >= 400) {
-        return NextResponse.json({ error: result.error }, { status: result.status });
+        const result = await roleRoutes.getById(params.id);
+        if (result.status >= 400) {
+            return createErrorResponse(result.error || 'Role not found', result.status);
+        }
+        return createSuccessResponse(result.data);
+    } catch (error: any) {
+        return createErrorResponse(error.message || 'Internal Server Error', 500);
     }
-    return NextResponse.json(result.data, { status: result.status });
 }
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-    // PUT -> admin only
-    const auth = await requireRole(req, ['admin']);
-    if (!auth.authorized) return auth.response;
-
     try {
+        // PUT -> admin only
+        const auth = await requireRole(req, ['admin']);
+        if (!auth.authorized || !auth.user) return auth.response;
+
         const body = await req.json();
         const result = await roleRoutes.update(params.id, body);
         if (result.status >= 400) {
-            return NextResponse.json({ error: result.error }, { status: result.status });
+            return createErrorResponse(result.error || 'Update failed', result.status);
         }
-        return NextResponse.json(result.data, { status: result.status });
-    } catch (error) {
-        return NextResponse.json({ error: 'Failed to parse request body' }, { status: 400 });
+        return createSuccessResponse(result.data);
+    } catch (error: any) {
+        return createErrorResponse(error.message || 'Internal Server Error', 500);
     }
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-    // DELETE -> admin only
-    const auth = await requireRole(req, ['admin']);
-    if (!auth.authorized) return auth.response;
+    try {
+        // DELETE -> admin only
+        const auth = await requireRole(req, ['admin']);
+        if (!auth.authorized || !auth.user) return auth.response;
 
-    const result = await roleRoutes.delete(params.id);
-    if (result.status >= 400) {
-        return NextResponse.json({ error: result.error }, { status: result.status });
+        const result = await roleRoutes.delete(params.id);
+        if (result.status >= 400) {
+            return createErrorResponse(result.error || 'Delete failed', result.status);
+        }
+        return createSuccessResponse(result.data);
+    } catch (error: any) {
+        return createErrorResponse(error.message || 'Internal Server Error', 500);
     }
-    return NextResponse.json(result.data, { status: result.status });
 }

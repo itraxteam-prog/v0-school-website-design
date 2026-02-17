@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { LogService } from '@/backend/services/logService';
 import { AcademicService } from '@/backend/services/academicService';
 import { validateBody, AcademicRecordSchema } from '@/backend/validation/schemas';
-import { AuthPayload } from '@/backend/services/authService';
+import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
 
 export async function GET(req: NextRequest) {
     const auth = await requireRole(req, ['admin', 'teacher', 'student']);
@@ -16,34 +16,34 @@ export async function GET(req: NextRequest) {
     // 1. Student viewing own records
     if (studentId) {
         if (auth.user.role === 'student' && auth.user.id !== studentId) {
-            return NextResponse.json({ error: 'Forbidden: Cannot view other student records' }, { status: 403 });
+            return createErrorResponse('Forbidden: Cannot view other student records', 403);
         }
 
         try {
             const records = await AcademicService.getStudentRecords(studentId);
             LogService.logAction(auth.user.id, auth.user.role, 'READ_LIST', 'GRADES', studentId, 'success');
-            return NextResponse.json(records);
+            return createSuccessResponse(records);
         } catch (error: any) {
-            return NextResponse.json({ error: error.message }, { status: 500 });
+            return createErrorResponse(error.message, 500);
         }
     }
 
     // 2. Class Overview (Grade Distribution, etc.)
     if (classId) {
         if (auth.user.role === 'student') {
-            return NextResponse.json({ error: 'Students cannot view class analytics' }, { status: 403 });
+            return createErrorResponse('Students cannot view class analytics', 403);
         }
 
         try {
             const stats = await AcademicService.getGradeDistribution(classId);
             LogService.logAction(auth.user.id, auth.user.role, 'READ_STATS', 'GRADES', classId, 'success');
-            return NextResponse.json(stats);
+            return createSuccessResponse(stats);
         } catch (error: any) {
-            return NextResponse.json({ error: error.message }, { status: 500 });
+            return createErrorResponse(error.message, 500);
         }
     }
 
-    return NextResponse.json({ error: 'Missing studentId or classId filter' }, { status: 400 });
+    return createErrorResponse('Missing studentId or classId filter', 400);
 }
 
 export async function POST(req: NextRequest) {
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
         const validation = await validateBody(AcademicRecordSchema, body);
 
         if (validation.error) {
-            return NextResponse.json({ error: validation.error }, { status: 400 });
+            return createErrorResponse(validation.error, 400);
         }
 
         const {
@@ -77,9 +77,9 @@ export async function POST(req: NextRequest) {
 
         LogService.logAction(auth.user.id, auth.user.role, 'UPSERT_GRADE', 'GRADES', studentId, 'success', result);
 
-        return NextResponse.json(result, { status: 201 });
+        return createSuccessResponse(result, 201);
 
     } catch (error: any) {
-        return NextResponse.json({ error: error.message || 'Internal Error' }, { status: 500 });
+        return createErrorResponse(error.message || 'Internal Error', 500);
     }
 }

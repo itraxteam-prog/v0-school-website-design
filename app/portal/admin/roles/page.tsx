@@ -91,7 +91,8 @@ interface Role {
     userCount?: number;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Internal API base path
+const API_BASE = "/api";
 
 const availablePermissions = [
     "viewStudents", "editStudents", "deleteStudents",
@@ -126,9 +127,17 @@ export default function RolesPermissionsPage() {
         setLoading(true)
         setError(null)
         try {
-            const response = await fetch(`${API_URL}/roles`)
-            if (!response.ok) throw new Error("Failed to fetch roles")
-            const data = await response.json()
+            const response = await fetch(`${API_BASE}/roles`, {
+                method: "GET",
+                credentials: "include",
+            })
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("API ERROR [fetchRoles]:", response.status, errorText);
+                throw new Error(errorText || "Failed to fetch roles");
+            }
+            const result = await response.json()
+            const data = result.data || result;
 
             // Mocking user counts for the table requirement
             const enrichedData = data.map((role: Role) => ({
@@ -139,7 +148,7 @@ export default function RolesPermissionsPage() {
 
             setRoles(enrichedData)
         } catch (err: any) {
-            setError(err.message)
+            setError(err.message || "An unexpected error occurred")
             toast({
                 title: "Error",
                 description: "Could not load roles. Please try again.",
@@ -174,17 +183,22 @@ export default function RolesPermissionsPage() {
         try {
             const roleId = editingRole?.id || editingRole?._id
             const url = editingRole
-                ? `${API_URL}/roles/${roleId}`
-                : `${API_URL}/roles`
+                ? `${API_BASE}/roles/${roleId}`
+                : `${API_BASE}/roles`
             const method = editingRole ? "PUT" : "POST"
 
-            const response = await fetch(url, {
+            const response = await fetch(url.replace(process.env.NEXT_PUBLIC_API_URL || '', API_BASE), {
                 method,
                 headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify(data),
             })
 
-            if (!response.ok) throw new Error(`Failed to ${editingRole ? 'update' : 'add'} role`)
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("API ERROR [onSubmit]:", response.status, errorText);
+                throw new Error(errorText || `Failed to ${editingRole ? 'update' : 'add'} role`)
+            }
 
             toast({
                 title: "Success",
@@ -211,11 +225,16 @@ export default function RolesPermissionsPage() {
         if (!confirm(`Are you sure you want to delete the "${role.name}" role?`)) return
 
         try {
-            const response = await fetch(`${API_URL}/roles/${id}`, {
+            const response = await fetch(`${API_BASE}/roles/${id}`, {
                 method: "DELETE",
+                credentials: "include",
             })
 
-            if (!response.ok) throw new Error("Failed to delete role")
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("API ERROR [handleDelete]:", response.status, errorText);
+                throw new Error(errorText || "Failed to delete role");
+            }
 
             toast({
                 title: "Deleted",

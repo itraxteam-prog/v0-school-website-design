@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { AcademicService } from '@/backend/services/academicService';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
+import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,8 +14,8 @@ export async function GET(request: NextRequest) {
 
     try {
         const distribution = await AcademicService.getGradeDistribution(classId);
-        return NextResponse.json(distribution);
+        return createSuccessResponse(distribution);
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return createErrorResponse(error.message, 500);
     }
 }

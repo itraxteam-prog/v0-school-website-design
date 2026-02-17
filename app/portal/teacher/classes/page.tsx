@@ -23,7 +23,8 @@ import { Badge } from "@/components/ui/badge"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { cn } from "@/lib/utils"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Internal API base path
+const API_BASE = "/api";
 
 const sidebarItems = [
   { href: "/portal/teacher", label: "Dashboard", icon: LayoutDashboard },
@@ -44,12 +45,18 @@ export default function TeacherClassesPage() {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const res = await fetch(`${API_URL}/teacher/classes`);
-        if (res.ok) {
-          const data = await res.json();
-          setClasses(data);
+        const res = await fetch(`${API_BASE}/teacher/classes`, {
+          method: "GET",
+          credentials: "include",
+        });
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error("API ERROR [fetchTeacherClasses]:", res.status, errorText);
+          throw new Error(errorText || "Failed to fetch classes");
         }
-      } catch (error) {
+        const result = await res.json();
+        setClasses(result.data || result);
+      } catch (error: any) {
         console.error("Failed to fetch classes", error);
       } finally {
         setLoading(false);

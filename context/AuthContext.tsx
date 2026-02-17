@@ -78,8 +78,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }
             }
 
-            if (res.ok && data.user) {
-                setUser(data.user);
+            const userData = data.data?.user || data.user;
+            if (res.ok && userData) {
+                setUser(userData);
             }
         } catch (error) {
             console.error('Auth check failed:', error);
@@ -98,7 +99,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 body: JSON.stringify({ email, password, rememberMe }),
             });
 
-            if (res.status === 202 && data.requires2FA) {
+            const requires2FA = data.data?.requires2FA || data.requires2FA;
+            if (res.status === 202 && requires2FA) {
                 return { requires2FA: true, tempToken: data.data?.tempToken || data.tempToken };
             }
 

@@ -16,15 +16,18 @@ export function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
+    const isApiRoute = pathname.startsWith('/api');
+
     if (!token) {
+        if (isApiRoute) {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+        }
         const url = new URL('/portal/login', request.url);
         url.searchParams.set('from', pathname);
         return NextResponse.redirect(url);
     }
 
     try {
-        // Decode JWT payload without verification for routing purposes
-        // Real verification happens in API routes and server components
         const payloadBase64 = token.split('.')[1];
         if (!payloadBase64) throw new Error('Invalid token');
 
@@ -32,20 +35,27 @@ export function middleware(request: NextRequest) {
         const userRole = decoded.role;
 
         // Role-based path protection
-        if (pathname.startsWith('/portal/admin') && userRole !== 'admin') {
+        const isAdminPath = pathname.startsWith('/portal/admin');
+        const isTeacherPath = pathname.startsWith('/portal/teacher');
+        const isStudentPath = pathname.startsWith('/portal/student');
+
+        if (isAdminPath && userRole !== 'admin') {
             return NextResponse.redirect(new URL('/portal/403', request.url));
         }
 
-        if (pathname.startsWith('/portal/teacher') && userRole !== 'teacher' && userRole !== 'admin') {
+        if (isTeacherPath && userRole !== 'teacher' && userRole !== 'admin') {
             return NextResponse.redirect(new URL('/portal/403', request.url));
         }
 
-        if (pathname.startsWith('/portal/student') && userRole !== 'student' && userRole !== 'admin') {
+        if (isStudentPath && userRole !== 'student' && userRole !== 'admin') {
             return NextResponse.redirect(new URL('/portal/403', request.url));
         }
 
         return NextResponse.next();
     } catch (error) {
+        if (isApiRoute) {
+            return NextResponse.json({ success: false, error: 'Invalid session' }, { status: 401 });
+        }
         const url = new URL('/portal/login', request.url);
         return NextResponse.redirect(url);
     }

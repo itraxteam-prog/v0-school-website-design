@@ -40,10 +40,11 @@ export default function TwoFactorSetup() {
         // But since it's HttpOnly cookie based, we might need an endpoint to check.
         const checkStatus = async () => {
             try {
-                const res = await fetch('/api/auth/verify')
-                const data = await res.json()
-                if (data.user) {
-                    setIsEnabled(!!data.user.two_factor_enabled)
+                const res = await fetch('/api/auth/verify', { credentials: 'include' })
+                const result = await res.json()
+                const userData = result.data?.user || result.user;
+                if (userData) {
+                    setIsEnabled(!!userData.two_factor_enabled)
                 }
             } catch (err) {
                 console.error('Failed to check 2FA status')
@@ -56,12 +57,12 @@ export default function TwoFactorSetup() {
         setLoading(true)
         try {
             const res = await fetch('/api/auth/2fa/setup', { method: 'POST' })
-            const data = await res.json()
-            if (res.ok) {
-                setSetupData(data)
+            const result = await res.json()
+            if (res.ok && result.success) {
+                setSetupData(result.data)
                 setIsSettingUp(true)
             } else {
-                toast.error(data.message || "Failed to initiate 2FA setup")
+                toast.error(result.error || result.message || "Failed to initiate 2FA setup")
             }
         } catch (err) {
             toast.error("An error occurred during setup")
@@ -78,14 +79,14 @@ export default function TwoFactorSetup() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ code: verificationCode })
             })
-            const data = await res.json()
-            if (res.ok) {
+            const result = await res.json()
+            if (res.ok && result.success) {
                 setIsEnabled(true)
                 setIsSettingUp(false)
-                setRecoveryCodes(data.recoveryCodes)
+                setRecoveryCodes(result.data?.recoveryCodes || result.recoveryCodes)
                 toast.success("Two-factor authentication enabled!")
             } else {
-                toast.error(data.message || "Verification failed")
+                toast.error(result.error || result.message || "Verification failed")
             }
         } catch (err) {
             toast.error("An error occurred during verification")
@@ -101,13 +102,13 @@ export default function TwoFactorSetup() {
         setLoading(true)
         try {
             const res = await fetch('/api/auth/2fa/disable', { method: 'POST', body: JSON.stringify({}) })
-            const data = await res.json()
-            if (res.ok) {
+            const result = await res.json()
+            if (res.ok && result.success) {
                 setIsEnabled(false)
                 setRecoveryCodes(null)
                 toast.success("2FA has been disabled")
             } else {
-                toast.error(data.message || "Failed to disable 2FA")
+                toast.error(result.error || result.message || "Failed to disable 2FA")
             }
         } catch (err) {
             toast.error("An error occurred")

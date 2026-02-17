@@ -1,6 +1,8 @@
+import { NextRequest } from 'next/server';
 import { authRoutes } from '@/backend/routes/auth';
-import { verifyJWT } from '@/backend/utils/auth';
+import { verifyAuth } from '@/backend/middleware/authMiddleware';
 import { validateBody, ChangePasswordSchema } from '@/backend/validation/schemas';
+import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
 
 
 export async function POST(req: NextRequest) {
@@ -9,9 +11,9 @@ export async function POST(req: NextRequest) {
     const metadata = { ip, userAgent };
 
     try {
-        const payload = verifyJWT(req);
-        if (!payload) {
-            return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+        const user = await verifyAuth(req);
+        if (!user) {
+            return createErrorResponse('Unauthorized', 401);
         }
 
         const body = await req.json();
@@ -19,28 +21,19 @@ export async function POST(req: NextRequest) {
         // Validation Guard
         const validation = await validateBody(ChangePasswordSchema, body);
         if (validation.error) {
-            return NextResponse.json({ success: false, message: validation.error }, { status: 400 });
+            return createErrorResponse(validation.error, 400);
         }
 
         const { currentPassword, newPassword } = validation.data;
 
-        const result = await authRoutes.changePassword(payload.id, currentPassword, newPassword);
+        const result = await authRoutes.changePassword(user.id, currentPassword, newPassword);
 
         if (result.status >= 400) {
-            return NextResponse.json({
-                success: false,
-                message: result.error || 'Failed to change password'
-            }, { status: result.status });
+            return createErrorResponse(result.error || 'Failed to change password', result.status);
         }
 
-        return NextResponse.json({
-            success: true,
-            message: 'Password changed successfully'
-        }, { status: 200 });
-    } catch (error) {
-        return NextResponse.json({
-            success: false,
-            message: 'Internal Server Error'
-        }, { status: 500 });
+        return createSuccessResponse(null, 200, 'Password changed successfully');
+    } catch (error: any) {
+        return createErrorResponse(error.message || 'Internal Server Error', 500);
     }
 }

@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { AcademicService } from '@/backend/services/academicService';
+import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
 
 export async function GET(req: NextRequest) {
     const auth = await requireRole(req, ['student', 'admin', 'teacher']); // Allow teacher/admin to view if they pass ID or context
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest) {
             const { searchParams } = new URL(req.url);
             const qId = searchParams.get('studentId');
             if (qId) studentId = qId;
-            else return NextResponse.json({ error: 'Missing studentId' }, { status: 400 });
+            else return createErrorResponse('Missing studentId', 400);
         }
 
         const records = await AcademicService.getStudentRecords(studentId);
@@ -53,13 +54,12 @@ export async function GET(req: NextRequest) {
             type: r.term // "Mid-Term", "Final", etc.
         })) : [];
 
-        // Pivot logic can be complex without knowing exact DB content.
         // We'll return the linear records for now and maybe update frontend to display a list instead of a matrix,
         // OR pivot on frontend. Pivoting on frontend is safer.
-        return NextResponse.json(grades);
+        return createSuccessResponse(grades);
 
     } catch (error: any) {
         console.error('Student Grades Error:', error);
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        return createErrorResponse(error.message || 'Internal Server Error', 500);
     }
 }

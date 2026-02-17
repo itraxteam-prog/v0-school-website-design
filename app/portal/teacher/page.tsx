@@ -22,7 +22,8 @@ const sidebarItems = [
   { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Internal API base path
+const API_BASE = "/api";
 
 export default function TeacherDashboard() {
   const { user, loading: authLoading } = useRequireAuth(['teacher']);
@@ -32,12 +33,18 @@ export default function TeacherDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`${API_URL}/teacher/dashboard`);
-        if (res.ok) {
-          const dashboardData = await res.json();
-          setData(dashboardData);
+        const res = await fetch(`${API_BASE}/teacher/dashboard`, {
+          method: "GET",
+          credentials: "include",
+        });
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error("API ERROR [fetchTeacherDashboard]:", res.status, errorText);
+          throw new Error(errorText || "Failed to fetch dashboard data");
         }
-      } catch (error) {
+        const result = await res.json();
+        setData(result.data || result);
+      } catch (error: any) {
         console.error("Failed to fetch dashboard data", error);
       } finally {
         setLoading(false);

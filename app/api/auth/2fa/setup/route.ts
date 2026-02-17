@@ -1,25 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { AuthService } from '@/backend/services/authService';
-import { verifyJWT } from '@/backend/utils/auth';
+import { verifyAuth } from '@/backend/middleware/authMiddleware';
+import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
 
 export async function POST(req: NextRequest) {
     try {
-        const payload = verifyJWT(req);
-        if (!payload) {
-            return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+        const user = await verifyAuth(req);
+        if (!user) {
+            return createErrorResponse('Unauthorized', 401);
         }
 
-        const data = await AuthService.setup2FA(payload.id);
+        const data = await AuthService.setup2FA(user.id);
         if (!data) {
-            return NextResponse.json({ success: false, message: 'Failed to setup 2FA' }, { status: 500 });
+            return createErrorResponse('Failed to setup 2FA', 500);
         }
 
-        return NextResponse.json({
-            success: true,
+        return createSuccessResponse({
             secret: data.secret,
             qrCode: data.qrCode
         });
-    } catch (error) {
-        return NextResponse.json({ success: false, message: 'Internal Server Error' }, { status: 500 });
+    } catch (error: any) {
+        return createErrorResponse(error.message || 'Internal Server Error', 500);
     }
 }

@@ -22,7 +22,8 @@ const sidebarItems = [
   { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Internal API base path
+const API_BASE = "/api";
 
 const terms = ["Fall 2025", "Spring 2026", "Fall 2026"]
 const subjects = ["All Subjects", "Mathematics", "Physics", "English", "Chemistry", "Computer Science", "Urdu", "Islamiat"]
@@ -39,12 +40,18 @@ export default function GradesPage() {
   useEffect(() => {
     const fetchGrades = async () => {
       try {
-        const res = await fetch(`${API_URL}/student/grades`);
-        if (res.ok) {
-          const data = await res.json();
-          setGrades(data);
+        const res = await fetch(`${API_BASE}/student/grades`, {
+          method: "GET",
+          credentials: "include",
+        });
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error("API ERROR [fetchStudentGrades]:", res.status, errorText);
+          throw new Error(errorText || "Failed to fetch grades");
         }
-      } catch (error) {
+        const result = await res.json();
+        setGrades(result.data || []);
+      } catch (error: any) {
         console.error("Failed to fetch grades", error);
       } finally {
         setLoading(false);

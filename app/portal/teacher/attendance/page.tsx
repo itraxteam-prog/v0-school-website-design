@@ -45,7 +45,8 @@ const sidebarItems = [
   { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Internal API base path
+const API_BASE = "/api";
 
 type AttendanceStatus = "present" | "absent" | "late" | "excused";
 
@@ -83,16 +84,23 @@ export default function TeacherAttendancePage() {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const res = await fetch(`${API_URL}/teacher/classes`);
-        if (res.ok) {
-          const data = await res.json();
-          setClasses(data);
-          if (data.length > 0) {
-            setSelectedClassId(data[0].id);
-          }
+        const res = await fetch(`${API_BASE}/teacher/classes`, {
+          method: "GET",
+          credentials: "include",
+        });
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error("API ERROR [fetchTeacherClasses]:", res.status, errorText);
+          throw new Error(errorText || "Failed to fetch classes");
         }
-      } catch (error) {
-        toast.error("Failed to load classes");
+        const result = await res.json();
+        const data = result.data || [];
+        setClasses(data);
+        if (data.length > 0) {
+          setSelectedClassId(data[0].id);
+        }
+      } catch (error: any) {
+        toast.error(error.message || "Failed to load classes");
       } finally {
         setLoading(false);
       }
@@ -108,41 +116,51 @@ export default function TeacherAttendancePage() {
       setLoading(true);
       try {
         // Fetch Students
-        // We can use /api/students?classId=... if implemented, or fetch all for teacher and filter.
-        // Given existing /api/students implementation for teacher returns all students:
-        const studRes = await fetch(`${API_URL}/students`);
-        if (studRes.ok) {
-          const allStudents: Student[] = await studRes.json();
-          // Filter for selected class
-          const classStudents = allStudents.filter((s: any) => s.classId === selectedClassId);
-          setStudents(classStudents);
-
-          // Initialize attendance state for these students with default 'present'
-          const initialAttendance: Record<string, AttendanceRecord> = {};
-          classStudents.forEach(s => {
-            initialAttendance[s.id] = { status: 'present', remarks: '' };
-          });
-
-          // Fetch Existing Attendance
-          const dateStr = format(date, 'yyyy-MM-dd');
-          const attRes = await fetch(`${API_URL}/attendance?classId=${selectedClassId}&date=${dateStr}`);
-          if (attRes.ok) {
-            const existingRecords = await attRes.json();
-            // Merge existing records
-            if (Array.isArray(existingRecords)) {
-              existingRecords.forEach((r: any) => {
-                if (initialAttendance[r.student_id]) {
-                  initialAttendance[r.student_id] = {
-                    status: r.status,
-                    remarks: r.remarks || ''
-                  };
-                }
-              });
-            }
-          }
-
-          setAttendance(initialAttendance);
+        const studRes = await fetch(`${API_BASE}/students`, {
+          method: "GET",
+          credentials: "include",
+        });
+        if (!studRes.ok) {
+          const errorText = await studRes.text();
+          console.error("API ERROR [fetchStudents]:", studRes.status, errorText);
+          throw new Error(errorText || "Failed to load students");
         }
+        const studResult = await studRes.json();
+        const allStudents: Student[] = studResult.data || [];
+
+        // Filter for selected class
+        const classStudents = allStudents.filter((s: any) => s.classId === selectedClassId);
+        setStudents(classStudents);
+
+        // Initialize attendance state for these students with default 'present'
+        const initialAttendance: Record<string, AttendanceRecord> = {};
+        classStudents.forEach(s => {
+          initialAttendance[s.id] = { status: 'present', remarks: '' };
+        });
+
+        // Fetch Existing Attendance
+        const dateStr = format(date, 'yyyy-MM-dd');
+        const attRes = await fetch(`${API_BASE}/attendance?classId=${selectedClassId}&date=${dateStr}`, {
+          method: "GET",
+          credentials: "include",
+        });
+        if (attRes.ok) {
+          const attResult = await attRes.json();
+          const existingRecords = attResult.data || [];
+          // Merge existing records
+          if (Array.isArray(existingRecords)) {
+            existingRecords.forEach((r: any) => {
+              if (initialAttendance[r.student_id]) {
+                initialAttendance[r.student_id] = {
+                  status: r.status,
+                  remarks: r.remarks || ''
+                };
+              }
+            });
+          }
+        }
+
+        setAttendance(initialAttendance);
       } catch (error) {
         console.error(error);
         toast.error("Failed to load student data");
@@ -189,9 +207,10 @@ export default function TeacherAttendancePage() {
         remarks: record.remarks
       }));
 
-      const res = await fetch(`${API_URL}/attendance`, {
+      const res = await fetch(`${API_BASE}/attendance`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: "include",
         body: JSON.stringify({
           classId: selectedClassId,
           date: format(date, 'yyyy-MM-dd'),
@@ -199,11 +218,11 @@ export default function TeacherAttendancePage() {
         })
       });
 
-      if (res.ok) {
-        toast.success("Attendance saved successfully!");
-      } else {
-        const err = await res.json();
-        throw new Error(err.error || 'Failed to save');
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("API ERROR [saveAttendance]:", res.status, errorText);
+        const err = JSON.parse(errorText || '{}');
+        throw new Error(err.error || errorText || 'Failed to save');
       }
     } catch (error: any) {
       toast.error(error.message || "Failed to save attendance");

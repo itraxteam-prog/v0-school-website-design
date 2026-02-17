@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { ClassService } from '@/backend/services/classes';
 import { PeriodService } from '@/backend/services/periods';
 import { StudentService } from '@/backend/services/students';
 import { AttendanceService } from '@/backend/services/attendanceService';
+import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
 
 export async function GET(req: NextRequest) {
     const auth = await requireRole(req, ['teacher']);
@@ -74,10 +75,10 @@ export async function GET(req: NextRequest) {
             }))
         };
 
-        return NextResponse.json(data);
+        return createSuccessResponse(data);
 
     } catch (error: any) {
         console.error('Teacher Dashboard Error:', error);
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        return createErrorResponse(error.message || 'Internal Server Error', 500);
     }
 }
