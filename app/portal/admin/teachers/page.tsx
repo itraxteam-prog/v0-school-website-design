@@ -250,7 +250,8 @@ export default function AdminTeachersPage() {
 
   const filteredTeachers = (teachers || []).filter(teacher =>
     teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    teacher.employeeId.toLowerCase().includes(searchTerm.toLowerCase())
+    (teacher.employeeId && teacher.employeeId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    ((teacher as any).department || (teacher as any).departments || "").toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   return (
@@ -414,7 +415,7 @@ export default function AdminTeachersPage() {
                   </div>
                   <div className="space-y-1">
                     <h3 className="font-semibold text-lg">Failed to load data</h3>
-                    <p className="text-muted-foreground max-w-sm">{error}</p>
+                    <p className="text-muted-foreground max-sm">{error}</p>
                   </div>
                   <Button onClick={fetchTeachers} variant="outline" className="gap-2">
                     <RefreshCcw className="h-4 w-4" />
@@ -457,7 +458,7 @@ export default function AdminTeachersPage() {
                               </div>
                             </TableCell>
                             <TableCell className="pr-6 text-right py-4">
-                              <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="flex justify-end gap-2 md:opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Button
                                   variant="ghost"
                                   size="icon"

@@ -255,13 +255,14 @@ export default function AdminClassesPage() {
     setIsModalOpen(true)
   }
 
-  const filteredClasses = classes.filter(c =>
+  const filteredClasses = (classes || []).filter(c =>
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.teacher.toLowerCase().includes(searchTerm.toLowerCase())
+    (c.classTeacherId && c.classTeacherId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (c.teacher && c.teacher.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
   const getClassPeriods = (classId: string) => {
-    return periods.filter(p => p.classId === classId)
+    return (periods || []).filter(p => p.classId === classId)
   }
 
   return (
@@ -413,7 +414,7 @@ export default function AdminClassesPage() {
               </div>
               <div className="space-y-1">
                 <h3 className="font-semibold text-lg">Failed to load classes</h3>
-                <p className="text-muted-foreground max-w-sm">{error}</p>
+                <p className="text-muted-foreground">{error}</p>
               </div>
               <Button onClick={fetchData} variant="outline" className="gap-2">
                 <RefreshCcw className="h-4 w-4" />
@@ -425,6 +426,7 @@ export default function AdminClassesPage() {
               {filteredClasses.length > 0 ? (
                 filteredClasses.map((c) => {
                   const classPeriods = getClassPeriods(c.id || c._id || "");
+                  const studentCount = (c as any).studentCount ?? (c as any).studentIds?.length ?? 0;
                   return (
                     <Card key={c.id || c._id} className="glass-panel border-border/50 group transition-all duration-300 hover:shadow-burgundy-glow hover:border-primary/20 overflow-hidden flex flex-col">
                       <CardHeader className="p-5 pb-2">
@@ -437,7 +439,7 @@ export default function AdminClassesPage() {
                               {c.name}
                             </CardTitle>
                             <CardDescription className="flex items-center gap-1 mt-1 font-medium text-primary/80 truncate">
-                              {c.teacher}
+                              {c.teacher || c.classTeacherId}
                             </CardDescription>
                           </div>
                           <DropdownMenu>
@@ -467,7 +469,7 @@ export default function AdminClassesPage() {
                             </div>
                             <div>
                               <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Room</p>
-                              <p className="text-xs font-bold">{c.roomNo || (c as any).room}</p>
+                              <p className="text-xs font-bold">{(c as any).roomNo || c.room}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
@@ -476,7 +478,7 @@ export default function AdminClassesPage() {
                             </div>
                             <div>
                               <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Students</p>
-                              <p className="text-xs font-bold">{c.studentCount}</p>
+                              <p className="text-xs font-bold">{studentCount}</p>
                             </div>
                           </div>
                         </div>
