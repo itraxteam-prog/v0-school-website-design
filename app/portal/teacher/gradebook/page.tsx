@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Calculator,
   AlertCircle,
+  ShieldCheck,
 } from "lucide-react"
 import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -36,6 +37,7 @@ const sidebarItems = [
   { href: "/portal/teacher/gradebook", label: "Gradebook", icon: BookMarked },
   { href: "/portal/teacher/reports", label: "Reports", icon: FileBarChart },
   { href: "/portal/teacher/profile", label: "Profile", icon: User },
+  { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
 const initialStudents = [

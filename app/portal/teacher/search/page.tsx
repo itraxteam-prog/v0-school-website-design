@@ -12,10 +12,11 @@ import Link from "next/link"
 
 const sidebarItems = [
     { href: "/portal/teacher", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/portal/teacher/classes", label: "My Classes", icon: School },
-    { href: "/portal/teacher/students", label: "Students", icon: GraduationCap },
+    { href: "/portal/teacher/classes", label: "My Classes", icon: Users },
     { href: "/portal/teacher/attendance", label: "Attendance", icon: CalendarCheck },
-    { href: "/portal/teacher/grades", label: "Grades", icon: BookMarked },
+    { href: "/portal/teacher/gradebook", label: "Gradebook", icon: BookMarked },
+    { href: "/portal/teacher/reports", label: "Reports", icon: FileBarChart },
+    { href: "/portal/teacher/profile", label: "Profile", icon: User },
     { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
@@ -35,8 +36,8 @@ export default function TeacherSearchPage() {
     // Mock search results for teacher
     const results = [
         { title: "Grade 10-A Math Performance", category: "Reports", description: "Detailed analysis of student performance in Mathematics.", link: "/portal/teacher/reports", icon: FileBarChart },
-        { title: "Ahmed Khan (Student)", category: "Students", description: "Roll No: 2025-0142. View academic and attendance history.", link: "/portal/teacher/students", icon: GraduationCap },
-        { title: "Monday Timetable", category: "Classes", description: "Your teaching schedule for the coming Monday.", link: "/portal/teacher/classes", icon: School },
+        { title: "Ahmed Khan (Student)", category: "Students", description: "Roll No: 2025-0142. View academic and attendance history.", link: "/portal/teacher/reports", icon: GraduationCap },
+        { title: "Tuesday Timetable", category: "Classes", description: "Your teaching schedule for today.", link: "/portal/teacher", icon: Clock },
         { title: "In-Progress Gradebook", category: "Grades", description: "Continue entering marks for the Spring 2026 term.", link: "/portal/teacher/gradebook", icon: BookMarked },
     ].filter(r =>
         r.title.toLowerCase().includes(initialQuery.toLowerCase()) ||

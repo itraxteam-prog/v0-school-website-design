@@ -234,7 +234,8 @@ export default function TeacherDashboard() {
                     ].map((cls) => (
                       <div
                         key={cls.name}
-                        className="flex flex-col gap-2 rounded-xl border border-transparent p-4 transition-all hover:border-border/50 hover:bg-muted/30 hover:shadow-sm"
+                        className="flex flex-col gap-2 rounded-xl border border-transparent p-4 transition-all hover:border-border/50 hover:bg-muted/30 hover:shadow-sm cursor-pointer"
+                        onClick={() => window.location.href = '/portal/teacher/classes'}
                       >
                         <h3 className="font-semibold text-foreground">{cls.name}</h3>
                         <p className="text-sm text-primary font-medium">{cls.subject}</p>
@@ -286,7 +287,11 @@ export default function TeacherDashboard() {
                           <p className="text-xs text-muted-foreground mt-0.5">For today's classes</p>
                         </div>
                       </div>
-                      <Button className="w-full mt-2 bg-primary text-white hover:bg-primary/90" size="sm">
+                      <Button
+                        className="w-full mt-2 bg-primary text-white hover:bg-primary/90"
+                        size="sm"
+                        onClick={() => window.location.href = '/portal/teacher/gradebook'}
+                      >
                         View All Tasks
                       </Button>
                     </div>

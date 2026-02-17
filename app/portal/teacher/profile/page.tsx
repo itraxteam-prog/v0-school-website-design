@@ -17,6 +17,7 @@ import {
   Edit,
   Camera,
   BadgeCheck,
+  ShieldCheck,
 } from "lucide-react"
 import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,6 +25,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { Badge } from "@/components/ui/badge"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
 const sidebarItems = [
@@ -33,6 +35,7 @@ const sidebarItems = [
   { href: "/portal/teacher/gradebook", label: "Gradebook", icon: BookMarked },
   { href: "/portal/teacher/reports", label: "Reports", icon: FileBarChart },
   { href: "/portal/teacher/profile", label: "Profile", icon: User },
+  { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
 export default function TeacherProfilePage() {
@@ -55,7 +58,11 @@ export default function TeacherProfilePage() {
               <h1 className="heading-2 text-burgundy-gradient">My Profile</h1>
               <p className="text-sm text-muted-foreground">Manage your personal and professional information.</p>
             </div>
-            <Button variant="outline" className="border-primary/20 text-primary hover:bg-primary/5 flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="border-primary/20 text-primary hover:bg-primary/5 flex items-center gap-2"
+              onClick={() => toast.info("Profile editing is currently restricted to HR department.")}
+            >
               <Edit className="h-4 w-4" />
               Edit Profile
             </Button>
