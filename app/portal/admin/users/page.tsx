@@ -103,7 +103,7 @@ const userSchema = z.object({
 type UserFormValues = z.infer<typeof userSchema>
 
 // Internal API base path
-const API_BASE = "/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 interface User {
   id: string;

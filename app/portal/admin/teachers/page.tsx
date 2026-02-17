@@ -98,7 +98,7 @@ interface Teacher extends TeacherFormValues {
 }
 
 // Internal API base path
-const API_BASE = "/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 export default function AdminTeachersPage() {
   const [teachers, setTeachers] = useState<Teacher[]>([])

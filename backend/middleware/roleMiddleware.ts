@@ -16,7 +16,10 @@ export async function requireRole(req: NextRequest | Request, allowedRoles: stri
         };
     }
 
-    if (!allowedRoles.includes(user.role)) {
+    const normalizedUserRole = user.role.toLowerCase();
+    const normalizedAllowedRoles = allowedRoles.map(r => r.toLowerCase());
+
+    if (!normalizedAllowedRoles.includes(normalizedUserRole)) {
         return {
             authorized: false,
             response: NextResponse.json(

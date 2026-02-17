@@ -100,7 +100,7 @@ interface Student extends StudentFormValues {
 }
 
 // Internal API base path
-const API_BASE = "/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 export default function AdminStudentsPage() {
   const [students, setStudents] = useState<Student[]>([])
