@@ -2,26 +2,39 @@ import { Class } from '../data/classes';
 import { supabase } from '../utils/supabaseClient';
 import { handleSupabaseError } from '../utils/errors';
 import { NotificationService } from './notificationService';
+import { unstable_cache, revalidateTag } from 'next/cache';
 
 export const ClassService = {
     getAll: async () => {
-        const { data, error } = await supabase
-            .from('classes')
-            .select('*');
+        return unstable_cache(
+            async () => {
+                const { data, error } = await supabase
+                    .from('classes')
+                    .select('id, name, classTeacherId, roomNo, studentIds');
 
-        if (error) throw new Error(handleSupabaseError(error));
-        return data as Class[];
+                if (error) throw new Error(handleSupabaseError(error));
+                return data as Class[];
+            },
+            ['classes-list'],
+            { tags: ['classes'], revalidate: 3600 }
+        )();
     },
 
     getById: async (id: string) => {
-        const { data, error } = await supabase
-            .from('classes')
-            .select('*')
-            .eq('id', id)
-            .single();
+        return unstable_cache(
+            async (classId: string) => {
+                const { data, error } = await supabase
+                    .from('classes')
+                    .select('id, name, classTeacherId, roomNo, studentIds')
+                    .eq('id', classId)
+                    .single();
 
-        if (error) return null;
-        return data as Class;
+                if (error) return null;
+                return data as Class;
+            },
+            [`class-${id}`],
+            { tags: ['classes', `class-${id}`], revalidate: 3600 }
+        )(id);
     },
 
     create: async (data: Omit<Class, 'id'>) => {
@@ -32,6 +45,9 @@ export const ClassService = {
             .single();
 
         if (error) throw new Error(handleSupabaseError(error));
+
+        // Invalidate cache
+        revalidateTag('classes');
 
         // Notify assigned teacher
         if (newClass.classTeacherId) {
@@ -59,6 +75,10 @@ export const ClassService = {
 
         if (error) return null;
 
+        // Invalidate cache
+        revalidateTag('classes');
+        revalidateTag(`class-${id}`);
+
         // If teacher changed, notify the new one
         if (data.classTeacherId && data.classTeacherId !== current?.classTeacherId) {
             NotificationService.sendEmailNotification(
@@ -79,6 +99,11 @@ export const ClassService = {
             .eq('id', id);
 
         if (error) return false;
+
+        // Invalidate cache
+        revalidateTag('classes');
+        revalidateTag(`class-${id}`);
+
         return true;
     }
 };
