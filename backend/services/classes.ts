@@ -1,3 +1,4 @@
+import { Class } from '../data/classes';
 import { supabase } from '../utils/supabaseClient';
 import { handleSupabaseError } from '../utils/errors';
 import { NotificationService } from './notificationService';

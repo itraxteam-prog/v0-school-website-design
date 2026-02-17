@@ -1,7 +1,16 @@
 import { Resend } from 'resend';
 import { LogService } from './logService';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const getResendClient = () => {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+        // Return a mock or null if no key, but don't throw at top level
+        console.warn('RESEND_API_KEY is missing. Email delivery will fail.');
+        return null;
+    }
+    return new Resend(apiKey);
+};
+
 const FROM_EMAIL = process.env.EMAIL_FROM_ADDRESS || 'onboarding@resend.dev';
 
 export const EmailService = {
@@ -24,6 +33,11 @@ export const EmailService = {
         while (attempts < maxAttempts && !success) {
             attempts++;
             try {
+                const resend = getResendClient();
+                if (!resend) {
+                    throw new Error('Email service not configured: RESEND_API_KEY is missing.');
+                }
+
                 const { data, error } = await resend.emails.send({
                     from: FROM_EMAIL,
                     to,
