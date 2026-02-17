@@ -8,7 +8,7 @@ export const roleRoutes = {
     // GET /roles
     getAll: async () => {
         try {
-            const roles = RoleService.getAll();
+            const roles = await RoleService.getAll();
             return { status: 200, data: roles };
         } catch (error) {
             return { status: 500, error: 'Internal Server Error' };
@@ -18,7 +18,7 @@ export const roleRoutes = {
     // GET /roles/:id
     getById: async (id: string) => {
         try {
-            const role = RoleService.getById(id);
+            const role = await RoleService.getById(id);
             if (!role) return { status: 404, error: 'Role not found' };
             return { status: 200, data: role };
         } catch (error) {
@@ -33,7 +33,7 @@ export const roleRoutes = {
             if (!validation.isValid) {
                 return { status: 400, errors: validation.errors };
             }
-            const newRole = RoleService.create(data);
+            const newRole = await RoleService.create(data);
             return { status: 201, data: newRole };
         } catch (error) {
             return { status: 500, error: 'Internal Server Error' };
@@ -43,7 +43,7 @@ export const roleRoutes = {
     // PUT /roles/:id
     update: async (id: string, data: any) => {
         try {
-            const updatedRole = RoleService.update(id, data);
+            const updatedRole = await RoleService.update(id, data);
             if (!updatedRole) return { status: 404, error: 'Role not found' };
             return { status: 200, data: updatedRole };
         } catch (error) {
@@ -54,7 +54,7 @@ export const roleRoutes = {
     // DELETE /roles/:id
     delete: async (id: string) => {
         try {
-            const success = RoleService.delete(id);
+            const success = await RoleService.delete(id);
             if (!success) return { status: 404, error: 'Role not found' };
             return { status: 200, data: { message: 'Role deleted successfully' } };
         } catch (error) {

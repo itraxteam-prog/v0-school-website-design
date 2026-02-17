@@ -139,6 +139,11 @@ export default function RolesPermissionsPage() {
             const result = await response.json()
             const data = result.data || result;
 
+            if (!Array.isArray(data)) {
+                console.error("Expected array for roles but got:", result);
+                throw new Error("Invalid data format received from server");
+            }
+
             // Mocking user counts for the table requirement
             const enrichedData = data.map((role: Role) => ({
                 ...role,
