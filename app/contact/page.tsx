@@ -31,12 +31,13 @@ function ContactContent() {
   return (
     <div ref={ref}>
       {/* Hero */}
-      <section className="bg-foreground py-16 md:py-24">
-        <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8">
+      <section className="bg-foreground py-16 md:py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-burgundy-gradient opacity-90" />
+        <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8 relative z-10">
           <div className="animate-on-scroll max-w-2xl">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.15em] text-primary-foreground/50">Contact</p>
-            <h1 className="heading-1 mb-4 text-balance text-primary-foreground">Get in Touch</h1>
-            <p className="text-base leading-relaxed text-primary-foreground/70 md:text-lg">
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-white/50">Contact Us</p>
+            <h1 className="heading-1 mb-4 text-balance text-white">Get in Touch</h1>
+            <p className="text-base leading-relaxed text-white/80 md:text-lg">
               Have a question or need more information? We are here to help. Reach out to us through any of the channels below.
             </p>
           </div>
@@ -104,8 +105,8 @@ function ContactContent() {
               </div>
               <div className="flex flex-col gap-4">
                 {contactInfo.map((c, i) => (
-                  <div key={c.label} className="animate-on-scroll flex items-start gap-4 rounded-lg border border-border bg-card p-4" style={{ transitionDelay: `${i * 80}ms` }}>
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/5 text-primary">
+                  <div key={c.label} className="animate-on-scroll flex items-start gap-4 rounded-xl border border-border/50 bg-card p-4 shadow-sm" style={{ transitionDelay: `${i * 80}ms` }}>
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-burgundy-gradient text-white shadow-md">
                       <c.icon className="h-5 w-5" />
                     </div>
                     <div>
@@ -141,7 +142,7 @@ function ContactContent() {
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {departments.map((d, i) => (
-              <Card key={d.name} className="animate-on-scroll border-border" style={{ transitionDelay: `${i * 80}ms` }}>
+              <Card key={d.name} className="animate-on-scroll glass-card border-none" style={{ transitionDelay: `${i * 80}ms` }}>
                 <CardContent className="flex flex-col gap-2 p-5">
                   <h3 className="font-serif text-sm font-semibold text-card-foreground">{d.name}</h3>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
