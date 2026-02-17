@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { toast } from "sonner"
 import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -59,6 +60,7 @@ const sidebarItems = [
   { href: "/portal/admin/users", label: "User Management", icon: Settings },
   { href: "/portal/admin/roles", label: "Roles & Permissions", icon: ShieldCheck },
   { href: "/portal/admin/school-settings", label: "School Settings", icon: Settings },
+  { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
 // Dummy Data
@@ -378,15 +380,28 @@ export default function AdminReportsPage() {
               <p className="text-xs text-muted-foreground mr-auto hidden md:block">
                 Generated on: {new Date().toLocaleDateString('en-PK')} {new Date().toLocaleTimeString('en-PK')}
               </p>
-              <Button variant="outline" size="sm" className="h-9 gap-2 glass-card hover:bg-primary/5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 gap-2 glass-card hover:bg-primary/5"
+                onClick={() => toast.success("Exporting report as CSV...")}
+              >
                 <FileText className="h-4 w-4 text-primary" />
                 Export CSV
               </Button>
-              <Button variant="outline" size="sm" className="h-9 gap-2 glass-card hover:bg-primary/5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 gap-2 glass-card hover:bg-primary/5"
+                onClick={() => toast.success("Downloading report PDF...")}
+              >
                 <Download className="h-4 w-4 text-primary" />
                 Export PDF
               </Button>
-              <Button className="h-9 gap-2 bg-primary text-white hover:bg-primary/90 shadow-burgundy-glow">
+              <Button
+                className="h-9 gap-2 bg-primary text-white hover:bg-primary/90 shadow-burgundy-glow"
+                onClick={() => toast.success("Sending report to printer...")}
+              >
                 <Printer className="h-4 w-4" />
                 Print Report
               </Button>
