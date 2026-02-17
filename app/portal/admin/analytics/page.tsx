@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useRequireAuth } from "@/hooks/useRequireAuth"
 import {
   LayoutDashboard,
   GraduationCap,
@@ -180,33 +181,37 @@ export default function AnalyticsPage() {
                 <Skeleton className="h-[300px] w-full rounded-xl" />
               ) : (
                 <div className="h-[300px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={attendanceData}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartConfig.gridStroke} />
-                      <XAxis
-                        dataKey="month"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fontSize: 12, fill: chartConfig.tickColor }}
-                        dy={10}
-                      />
-                      <YAxis
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fontSize: 12, fill: chartConfig.tickColor }}
-                        domain={[80, 100]}
-                      />
-                      <Tooltip contentStyle={chartConfig.tooltipStyle} />
-                      <Line
-                        type="monotone"
-                        dataKey="attendance"
-                        stroke={chartConfig.primaryColor}
-                        strokeWidth={3}
-                        dot={{ r: 4, fill: chartConfig.primaryColor, strokeWidth: 2, stroke: '#fff' }}
-                        activeDot={{ r: 6, strokeWidth: 0 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  {!attendanceData || attendanceData.length === 0 ? (
+                    <div className="flex h-full items-center justify-center text-muted-foreground italic">No attendance data available</div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={attendanceData}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartConfig.gridStroke} />
+                        <XAxis
+                          dataKey="month"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 12, fill: chartConfig.tickColor }}
+                          dy={10}
+                        />
+                        <YAxis
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 12, fill: chartConfig.tickColor }}
+                          domain={[80, 100]}
+                        />
+                        <Tooltip contentStyle={chartConfig.tooltipStyle} />
+                        <Line
+                          type="monotone"
+                          dataKey="attendance"
+                          stroke={chartConfig.primaryColor}
+                          strokeWidth={3}
+                          dot={{ r: 4, fill: chartConfig.primaryColor, strokeWidth: 2, stroke: '#fff' }}
+                          activeDot={{ r: 6, strokeWidth: 0 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -226,29 +231,33 @@ export default function AnalyticsPage() {
                 <Skeleton className="h-[300px] w-full rounded-xl" />
               ) : (
                 <div className="h-[300px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={gradeDistribution}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartConfig.gridStroke} />
-                      <XAxis
-                        dataKey="grade"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fontSize: 12, fill: chartConfig.tickColor }}
-                        dy={10}
-                      />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: chartConfig.tickColor }} />
-                      <Tooltip
-                        cursor={{ fill: 'rgba(128, 0, 32, 0.05)' }}
-                        contentStyle={chartConfig.tooltipStyle}
-                      />
-                      <Bar
-                        dataKey="count"
-                        fill={chartConfig.primaryColor}
-                        radius={[6, 6, 0, 0]}
-                        barSize={40}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  {!gradeDistribution || gradeDistribution.length === 0 ? (
+                    <div className="flex h-full items-center justify-center text-muted-foreground italic">No grade distribution data available</div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={gradeDistribution}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartConfig.gridStroke} />
+                        <XAxis
+                          dataKey="grade"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 12, fill: chartConfig.tickColor }}
+                          dy={10}
+                        />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: chartConfig.tickColor }} />
+                        <Tooltip
+                          cursor={{ fill: 'rgba(128, 0, 32, 0.05)' }}
+                          contentStyle={chartConfig.tooltipStyle}
+                        />
+                        <Bar
+                          dataKey="count"
+                          fill={chartConfig.primaryColor}
+                          radius={[6, 6, 0, 0]}
+                          barSize={40}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -268,34 +277,38 @@ export default function AnalyticsPage() {
                 <Skeleton className="h-[300px] w-full rounded-xl" />
               ) : (
                 <div className="h-[300px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={enrollmentData}>
-                      <defs>
-                        <linearGradient id={chartConfig.primaryGradient} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={chartConfig.primaryColor} stopOpacity={0.3} />
-                          <stop offset="95%" stopColor={chartConfig.primaryColor} stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartConfig.gridStroke} />
-                      <XAxis
-                        dataKey="year"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fontSize: 12, fill: chartConfig.tickColor }}
-                        dy={10}
-                      />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: chartConfig.tickColor }} />
-                      <Tooltip contentStyle={chartConfig.tooltipStyle} />
-                      <Area
-                        type="monotone"
-                        dataKey="students"
-                        stroke={chartConfig.primaryColor}
-                        strokeWidth={3}
-                        fillOpacity={1}
-                        fill={`url(#${chartConfig.primaryGradient})`}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                  {!enrollmentData || enrollmentData.length === 0 ? (
+                    <div className="flex h-full items-center justify-center text-muted-foreground italic">No enrollment data available</div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={enrollmentData}>
+                        <defs>
+                          <linearGradient id={chartConfig.primaryGradient} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={chartConfig.primaryColor} stopOpacity={0.3} />
+                            <stop offset="95%" stopColor={chartConfig.primaryColor} stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartConfig.gridStroke} />
+                        <XAxis
+                          dataKey="year"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 12, fill: chartConfig.tickColor }}
+                          dy={10}
+                        />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: chartConfig.tickColor }} />
+                        <Tooltip contentStyle={chartConfig.tooltipStyle} />
+                        <Area
+                          type="monotone"
+                          dataKey="students"
+                          stroke={chartConfig.primaryColor}
+                          strokeWidth={3}
+                          fillOpacity={1}
+                          fill={`url(#${chartConfig.primaryGradient})`}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -315,36 +328,40 @@ export default function AnalyticsPage() {
                 <Skeleton className="h-[300px] w-full rounded-xl" />
               ) : (
                 <div className="h-[300px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={subjectPerformance} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={chartConfig.gridStroke} />
-                      <XAxis
-                        type="number"
-                        domain={[0, 100]}
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fontSize: 12, fill: chartConfig.tickColor }}
-                      />
-                      <YAxis
-                        dataKey="subject"
-                        type="category"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fontSize: 12, fill: chartConfig.tickColor }}
-                        width={80}
-                      />
-                      <Tooltip
-                        cursor={{ fill: 'rgba(128, 0, 32, 0.05)' }}
-                        contentStyle={chartConfig.tooltipStyle}
-                      />
-                      <Bar
-                        dataKey="avg"
-                        fill={chartConfig.primaryColor}
-                        radius={[0, 6, 6, 0]}
-                        barSize={20}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  {!subjectPerformance || subjectPerformance.length === 0 ? (
+                    <div className="flex h-full items-center justify-center text-muted-foreground italic">No subject performance data available</div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={subjectPerformance} layout="vertical">
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={chartConfig.gridStroke} />
+                        <XAxis
+                          type="number"
+                          domain={[0, 100]}
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 12, fill: chartConfig.tickColor }}
+                        />
+                        <YAxis
+                          dataKey="subject"
+                          type="category"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 12, fill: chartConfig.tickColor }}
+                          width={80}
+                        />
+                        <Tooltip
+                          cursor={{ fill: 'rgba(128, 0, 32, 0.05)' }}
+                          contentStyle={chartConfig.tooltipStyle}
+                        />
+                        <Bar
+                          dataKey="avg"
+                          fill={chartConfig.primaryColor}
+                          radius={[0, 6, 6, 0]}
+                          barSize={20}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
                 </div>
               )}
             </CardContent>

@@ -9,21 +9,25 @@ export const AnnouncementService = {
         return unstable_cache(
             async (role?: string) => {
                 let query = supabase.from('announcements')
-                    .select('id, title, content, targetAudience, createdAt');
+                    .select('id, title, content, target_audience, created_at');
 
                 if (role) {
-                    query = query.in('targetAudience', [role + 's', 'all', 'everyone']);
+                    query = query.in('target_audience', [role + 's', 'all', 'everyone']);
                 }
 
-                const { data, error } = await query.order('createdAt', { ascending: false });
+                const { data, error } = await query.order('created_at', { ascending: false });
 
-                if (error) throw new Error(handleSupabaseError(error));
+                if (error) {
+                    console.error("Supabase Error [AnnouncementService.getAll]:", error);
+                    throw new Error(handleSupabaseError(error));
+                }
+
                 return (data as any[]).map(ann => ({
                     id: ann.id,
                     title: ann.title,
                     message: ann.content,
-                    createdAt: ann.createdAt,
-                    audience: [ann.targetAudience.replace(/s$/, '')]
+                    createdAt: ann.created_at,
+                    audience: [ann.target_audience.replace(/s$/, '')]
                 })) as Announcement[];
             },
             [`announcements-list-${filterByRole || 'all'}`],

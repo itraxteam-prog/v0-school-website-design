@@ -73,10 +73,17 @@ export default function AnnouncementsPage() {
     try {
       const response = await fetch(`${API_URL}/announcements`)
       if (!response.ok) throw new Error("Failed to fetch announcements")
-      const data = await response.json()
+      const result = await response.json()
+      const data = result.data || result;
+
+      if (!Array.isArray(data)) {
+        console.error("Expected array for announcements but got:", result);
+        throw new Error("Invalid data format received from server");
+      }
+
       // Filter for student-relevant announcements
       const studentData = data.filter((a: Announcement) =>
-        a.audience.includes("student") || a.audience.includes("all")
+        a.audience && (a.audience.includes("student") || a.audience.includes("all"))
       )
       setAnnouncements(studentData)
     } catch (err: any) {
