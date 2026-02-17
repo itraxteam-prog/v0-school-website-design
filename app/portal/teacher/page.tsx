@@ -58,7 +58,7 @@ export default function TeacherDashboard() {
   }
 
   return (
-    <AppLayout sidebarItems={sidebarItems} userName={user?.name || "Teacher"} userRole="Teacher">
+    <AppLayout sidebarItems={sidebarItems} userName={user?.name || "Teacher"} userRole="teacher">
       <div className="flex flex-col gap-8 pb-8">
 
         {/* Welcome Section */}
