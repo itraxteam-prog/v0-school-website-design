@@ -16,8 +16,8 @@ export const users: User[] = [
         id: 'u-admin-1',
         email: 'admin@school.com',
         name: 'Dr. Ahmad Raza',
-        // Admin@2024! hashed with bcrypt (saltRounds: 10)
-        password: '$2b$10$aUXP3ilFSUwvljx7WKGODe5RSl6Ifs2uM.G30NfzsmnCuWHHwrOYm',
+        // Admin@2024!
+        password: '$2b$10$EkHUhS9ZKceTJedSteTYeOAwOliIy9mH7vPxsWU6e92OeURkPZPzy',
         role: 'admin',
         failed_login_attempts: 0,
         lock_until: null,
@@ -27,8 +27,8 @@ export const users: User[] = [
         id: 'u-teacher-1',
         email: 'teacher@school.com',
         name: 'Mr. Usman Sheikh',
-        // Teacher@2024! hashed with bcrypt (saltRounds: 10)
-        password: '$2b$10$1p7fHeBWRZAx4EXBMo05iuutSO2H9wcAUN/PBb8DAsMuMVD0AG26m',
+        // Teacher@2024!
+        password: '$2b$10$0d8uO0zcMsG3NT2Q3bkkEetR0033HCJ2VlfBOarIiBVChVEQM2pv6',
         role: 'teacher',
         failed_login_attempts: 0,
         lock_until: null,
@@ -38,8 +38,8 @@ export const users: User[] = [
         id: 'u-student-1',
         email: 'student@school.com',
         name: 'Ahmed Khan',
-        // Student@2024! hashed with bcrypt (saltRounds: 10)
-        password: '$2b$10$dr44IHTfKT.HpXKfs0yOXumHHHqD.CycCoKtK5nLQS/yAPzx5/bo.',
+        // Student@2024!
+        password: '$2b$10$/kcXRpCMzgThHIqyIsc5seYWYp8PdkPnK3lEbbZ4byx26wxGiWLCq',
         role: 'student',
         failed_login_attempts: 0,
         lock_until: null,
