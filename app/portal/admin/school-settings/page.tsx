@@ -101,13 +101,24 @@ const itemVariant = {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+import { useRequireAuth } from "@/hooks/useRequireAuth"
+
 export default function SchoolSettingsPage() {
+    const { user, loading: authLoading } = useRequireAuth(['admin'])
     const [loading, setLoading] = useState(true)
     const [isSaving, setIsSaving] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [settings, setSettings] = useState<SettingsFormValues | null>(null)
 
     const { toast } = useToast()
+
+    if (authLoading) {
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-secondary">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            </div>
+        )
+    }
 
     const form = useForm<SettingsFormValues>({
         resolver: zodResolver(settingsSchema),
@@ -204,7 +215,7 @@ export default function SchoolSettingsPage() {
 
     if (loading) {
         return (
-            <AppLayout sidebarItems={sidebarItems} userName="Dr. Ahmad Raza" userRole="admin">
+            <AppLayout sidebarItems={sidebarItems} userName={user?.name || "Admin"} userRole="admin">
                 <div className="flex flex-col gap-8 pb-10">
                     <div>
                         <Skeleton className="h-10 w-64 mb-2" />
@@ -236,7 +247,7 @@ export default function SchoolSettingsPage() {
 
     if (error) {
         return (
-            <AppLayout sidebarItems={sidebarItems} userName="Dr. Ahmad Raza" userRole="admin">
+            <AppLayout sidebarItems={sidebarItems} userName={user?.name || "Admin"} userRole="admin">
                 <div className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-4">
                     <div className="h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center text-destructive">
                         <AlertCircle className="h-8 w-8" />
@@ -256,7 +267,7 @@ export default function SchoolSettingsPage() {
     if (!settings) return null
 
     return (
-        <AppLayout sidebarItems={sidebarItems} userName="Dr. Ahmad Raza" userRole="admin">
+        <AppLayout sidebarItems={sidebarItems} userName={user?.name || "Admin"} userRole="admin">
             <div className="flex flex-col gap-8 pb-10">
                 {/* Header Section */}
                 <div className="flex justify-between items-start">

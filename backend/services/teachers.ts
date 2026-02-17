@@ -1,26 +1,39 @@
 import { Teacher } from '../data/teachers';
 import { supabase } from '../utils/supabaseClient';
 import { handleSupabaseError } from '../utils/errors';
+import { unstable_cache, revalidateTag } from 'next/cache';
 
 export const TeacherService = {
     getAll: async () => {
-        const { data, error } = await supabase
-            .from('teachers')
-            .select('*');
+        return unstable_cache(
+            async () => {
+                const { data, error } = await supabase
+                    .from('teachers')
+                    .select('id, name, email, phone, subjects, classIds, profilePhoto');
 
-        if (error) throw new Error(handleSupabaseError(error));
-        return data as Teacher[];
+                if (error) throw new Error(handleSupabaseError(error));
+                return data as Teacher[];
+            },
+            ['teachers-list'],
+            { tags: ['teachers'], revalidate: 3600 }
+        )();
     },
 
     getById: async (id: string) => {
-        const { data, error } = await supabase
-            .from('teachers')
-            .select('*')
-            .eq('id', id)
-            .single();
+        return unstable_cache(
+            async (teacherId: string) => {
+                const { data, error } = await supabase
+                    .from('teachers')
+                    .select('id, name, email, phone, subjects, classIds, profilePhoto')
+                    .eq('id', teacherId)
+                    .single();
 
-        if (error) return null;
-        return data as Teacher;
+                if (error) return null;
+                return data as Teacher;
+            },
+            [`teacher-${id}`],
+            { tags: ['teachers', `teacher-${id}`], revalidate: 3600 }
+        )(id);
     },
 
     create: async (data: Omit<Teacher, 'id'>) => {
@@ -31,6 +44,10 @@ export const TeacherService = {
             .single();
 
         if (error) throw new Error(handleSupabaseError(error));
+
+        // Invalidate cache
+        revalidateTag('teachers');
+
         return newTeacher as Teacher;
     },
 
@@ -43,6 +60,11 @@ export const TeacherService = {
             .single();
 
         if (error) return null;
+
+        // Invalidate cache
+        revalidateTag('teachers');
+        revalidateTag(`teacher-${id}`);
+
         return updatedTeacher as Teacher;
     },
 
@@ -53,6 +75,11 @@ export const TeacherService = {
             .eq('id', id);
 
         if (error) return false;
+
+        // Invalidate cache
+        revalidateTag('teachers');
+        revalidateTag(`teacher-${id}`);
+
         return true;
     }
 };

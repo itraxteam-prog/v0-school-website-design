@@ -1,37 +1,50 @@
 import { Student } from '../data/students';
 import { supabase } from '../utils/supabaseClient';
 import { handleSupabaseError } from '../utils/errors';
+import { unstable_cache, revalidateTag } from 'next/cache';
 
 export const StudentService = {
     getAll: async () => {
-        const { data, error } = await supabase
-            .from('students')
-            .select('*');
+        return unstable_cache(
+            async () => {
+                const { data, error } = await supabase
+                    .from('students')
+                    .select('id, name, rollNo, classId, email, phone, gender, dob, enrollmentDate, address, guardianName, guardianPhone');
 
-        if (error) throw new Error(handleSupabaseError(error));
-        return data as Student[];
+                if (error) throw new Error(handleSupabaseError(error));
+                return data as Student[];
+            },
+            ['students-list'],
+            { tags: ['students'], revalidate: 3600 }
+        )();
     },
 
     getByTeacherId: async (teacherId: string) => {
-        // 1. Get classes taught by teacher
-        const { data: classes, error: classError } = await supabase
-            .from('classes')
-            .select('id')
-            .eq('classTeacherId', teacherId);
+        return unstable_cache(
+            async (id: string) => {
+                // 1. Get classes taught by teacher
+                const { data: classes, error: classError } = await supabase
+                    .from('classes')
+                    .select('id')
+                    .eq('classTeacherId', id);
 
-        if (classError || !classes) return [];
-        const classIds = classes.map(c => c.id);
+                if (classError || !classes) return [];
+                const classIds = classes.map(c => c.id);
 
-        if (classIds.length === 0) return [];
+                if (classIds.length === 0) return [];
 
-        // 2. Get students in those classes
-        const { data, error } = await supabase
-            .from('students')
-            .select('*')
-            .in('classId', classIds);
+                // 2. Get students in those classes
+                const { data, error } = await supabase
+                    .from('students')
+                    .select('id, name, rollNo, classId, email, phone, gender, dob, enrollmentDate, address, guardianName, guardianPhone')
+                    .in('classId', classIds);
 
-        if (error) return [];
-        return data as Student[];
+                if (error) return [];
+                return data as Student[];
+            },
+            [`students-teacher-${teacherId}`],
+            { tags: ['students', 'classes'], revalidate: 3600 }
+        )(teacherId);
     },
 
     isStudentInTeacherClass: async (teacherId: string, studentId: string) => {
@@ -48,7 +61,7 @@ export const StudentService = {
         const { data: classData, error: classError } = await supabase
             .from('classes')
             .select('id')
-            .eq('id', student['classId']) // Fix for TS potentially
+            .eq('id', student['classId'])
             .eq('classTeacherId', teacherId)
             .single();
 
@@ -56,14 +69,20 @@ export const StudentService = {
     },
 
     getById: async (id: string) => {
-        const { data, error } = await supabase
-            .from('students')
-            .select('*')
-            .eq('id', id)
-            .single();
+        return unstable_cache(
+            async (studentId: string) => {
+                const { data, error } = await supabase
+                    .from('students')
+                    .select('id, name, rollNo, classId, email, phone, gender, dob, enrollmentDate, address, guardianName, guardianPhone')
+                    .eq('id', studentId)
+                    .single();
 
-        if (error) return null;
-        return data as Student;
+                if (error) return null;
+                return data as Student;
+            },
+            [`student-${id}`],
+            { tags: ['students', `student-${id}`], revalidate: 3600 }
+        )(id);
     },
 
     create: async (data: Omit<Student, 'id'>) => {
@@ -74,6 +93,10 @@ export const StudentService = {
             .single();
 
         if (error) throw new Error(handleSupabaseError(error));
+
+        // Invalidate cache
+        revalidateTag('students');
+
         return newStudent as Student;
     },
 
@@ -86,6 +109,11 @@ export const StudentService = {
             .single();
 
         if (error) return null;
+
+        // Invalidate cache
+        revalidateTag('students');
+        revalidateTag(`student-${id}`);
+
         return updatedStudent as Student;
     },
 
@@ -96,6 +124,11 @@ export const StudentService = {
             .eq('id', id);
 
         if (error) return false;
+
+        // Invalidate cache
+        revalidateTag('students');
+        revalidateTag(`student-${id}`);
+
         return true;
     }
 };

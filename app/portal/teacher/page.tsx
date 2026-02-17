@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRequireAuth } from "@/hooks/useRequireAuth"
-import { LayoutDashboard, Users, CalendarCheck, BookMarked, FileBarChart, User, ClipboardList, PlusCircle, TrendingUp, UserCheck, FileText, ShieldCheck } from "lucide-react"
+import { LayoutDashboard, Users, CalendarCheck, BookMarked, FileBarChart, User, ClipboardList, PlusCircle, TrendingUp, UserCheck, FileText, ShieldCheck, Loader2 } from "lucide-react"
 import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -45,17 +45,21 @@ export default function TeacherDashboard() {
   }, [])
 
   if (authLoading) {
-    return null;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-secondary">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
   }
 
   return (
-    <AppLayout sidebarItems={sidebarItems} userName="Mr. Usman Sheikh" userRole="Teacher">
+    <AppLayout sidebarItems={sidebarItems} userName={user?.name || "Teacher"} userRole="Teacher">
       <div className="flex flex-col gap-8 pb-8">
 
         {/* Welcome Section */}
         <AnimatedWrapper direction="down">
           <div className="flex flex-col gap-1">
-            <h1 className="heading-1 text-burgundy-gradient">Welcome back, Mr. Sheikh</h1>
+            <h1 className="heading-1 text-burgundy-gradient">Welcome back, {user?.name?.split(' ')[1] || 'Teacher'}</h1>
             <p className="text-sm text-muted-foreground">Here is your teaching overview for today.</p>
           </div>
         </AnimatedWrapper>
