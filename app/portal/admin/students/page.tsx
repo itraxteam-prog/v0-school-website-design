@@ -84,8 +84,8 @@ const sidebarItems = [
 
 const studentSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  rollNumber: z.string().min(4, { message: "Roll number must be at least 4 characters." }),
-  className: z.string().min(1, { message: "Please select a class." }),
+  rollNo: z.string().min(4, { message: "Roll number must be at least 4 characters." }),
+  classId: z.string().min(1, { message: "Please select a class." }),
   dob: z.string().min(1, { message: "Please select date of birth." }),
   guardianPhone: z.string().min(10, { message: "Invalid contact number." }),
   address: z.string().min(5, { message: "Address must be at least 5 characters." }),
@@ -115,8 +115,8 @@ export default function AdminStudentsPage() {
     resolver: zodResolver(studentSchema),
     defaultValues: {
       name: "",
-      rollNumber: "",
-      className: "",
+      rollNo: "",
+      classId: "",
       dob: "",
       guardianPhone: "",
       address: "",
@@ -151,8 +151,8 @@ export default function AdminStudentsPage() {
     if (editingStudent) {
       form.reset({
         name: editingStudent.name,
-        rollNumber: editingStudent.rollNumber,
-        className: editingStudent.className,
+        rollNo: editingStudent.rollNo,
+        classId: editingStudent.classId,
         dob: editingStudent.dob,
         guardianPhone: editingStudent.guardianPhone,
         address: editingStudent.address,
@@ -160,8 +160,8 @@ export default function AdminStudentsPage() {
     } else {
       form.reset({
         name: "",
-        rollNumber: "",
-        className: "",
+        rollNo: "",
+        classId: "",
         dob: "",
         guardianPhone: "",
         address: "",
@@ -184,7 +184,20 @@ export default function AdminStudentsPage() {
         body: JSON.stringify(data),
       })
 
-      if (!response.ok) throw new Error(`Failed to ${editingStudent ? 'update' : 'add'} student`)
+      const result = await response.json()
+
+      if (!response.ok) {
+        // Map backend Zod errors back to form fields
+        if (result.error && typeof result.error === 'string') {
+          const parts = result.error.split(': ')
+          if (parts.length > 1) {
+            const field = parts[0] as any
+            const message = parts[1]
+            form.setError(field, { message })
+          }
+        }
+        throw new Error(result.error || `Failed to ${editingStudent ? 'update' : 'add'} student`)
+      }
 
       toast({
         title: "Success",
@@ -197,7 +210,7 @@ export default function AdminStudentsPage() {
     } catch (err: any) {
       toast({
         title: "Error",
-        description: err.message,
+        description: err.message || "An unexpected error occurred",
         variant: "destructive",
       })
     } finally {
@@ -286,7 +299,7 @@ export default function AdminStudentsPage() {
                       />
                       <FormField
                         control={form.control}
-                        name="rollNumber"
+                        name="rollNo"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Roll Number</FormLabel>
@@ -299,7 +312,7 @@ export default function AdminStudentsPage() {
                       />
                       <FormField
                         control={form.control}
-                        name="className"
+                        name="classId"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Class</FormLabel>
@@ -310,11 +323,9 @@ export default function AdminStudentsPage() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="10-A">10-A</SelectItem>
-                                <SelectItem value="10-B">10-B</SelectItem>
-                                <SelectItem value="9-A">9-A</SelectItem>
-                                <SelectItem value="9-B">9-B</SelectItem>
-                                <SelectItem value="8-A">8-A</SelectItem>
+                                <SelectItem value="cls-001">10-A</SelectItem>
+                                <SelectItem value="cls-002">9-B</SelectItem>
+                                <SelectItem value="cls-003">8-C</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -451,8 +462,8 @@ export default function AdminStudentsPage() {
                     <TableHeader className="bg-muted/30">
                       <TableRow className="border-border/50 hover:bg-transparent">
                         <TableHead className="pl-6 font-semibold h-12 uppercase text-[10px] tracking-wider">Name</TableHead>
-                        <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Roll Number</TableHead>
-                        <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Class Name</TableHead>
+                        <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Roll No</TableHead>
+                        <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Class ID</TableHead>
                         <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">DOB</TableHead>
                         <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Guardian Phone</TableHead>
                         <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Address</TableHead>
@@ -469,10 +480,10 @@ export default function AdminStudentsPage() {
                             <TableCell className="pl-6 font-semibold text-foreground py-4">{student.name}</TableCell>
                             <TableCell className="font-medium">
                               <span className="bg-primary/5 text-primary px-2 py-1 rounded text-xs">
-                                {student.rollNumber}
+                                {student.rollNo}
                               </span>
                             </TableCell>
-                            <TableCell className="py-4 font-medium text-muted-foreground">{student.className}</TableCell>
+                            <TableCell className="py-4 font-medium text-muted-foreground">{student.classId}</TableCell>
                             <TableCell className="py-4 text-muted-foreground">{student.dob}</TableCell>
                             <TableCell className="py-4 text-muted-foreground">{student.guardianPhone}</TableCell>
                             <TableCell className="py-4 text-muted-foreground max-w-[200px] truncate">{student.address}</TableCell>

@@ -77,9 +77,8 @@ const sidebarItems = [
 
 const classSchema = z.object({
   name: z.string().min(2, { message: "Class name must be at least 2 characters." }),
-  teacher: z.string().min(1, { message: "Please select a class teacher." }),
-  room: z.string().min(1, { message: "Please enter room number." }),
-  studentCount: z.coerce.number().min(0, { message: "Student count must be 0 or more." }),
+  classTeacherId: z.string().min(1, { message: "Please select a class teacher." }),
+  roomNo: z.string().min(1, { message: "Please enter room number." }),
 })
 
 type ClassFormValues = z.infer<typeof classSchema>
@@ -120,9 +119,8 @@ export default function AdminClassesPage() {
     resolver: zodResolver(classSchema),
     defaultValues: {
       name: "",
-      teacher: "",
-      room: "",
-      studentCount: 0,
+      classTeacherId: "",
+      roomNo: "",
     },
   })
 
@@ -166,16 +164,14 @@ export default function AdminClassesPage() {
     if (editingClass) {
       form.reset({
         name: editingClass.name,
-        teacher: editingClass.teacher,
-        room: editingClass.room,
-        studentCount: editingClass.studentCount,
+        classTeacherId: (editingClass as any).classTeacherId || editingClass.teacher,
+        roomNo: (editingClass as any).roomNo || editingClass.room,
       })
     } else {
       form.reset({
         name: "",
-        teacher: "",
-        room: "",
-        studentCount: 0,
+        classTeacherId: "",
+        roomNo: "",
       })
     }
   }, [editingClass, form])
@@ -195,7 +191,20 @@ export default function AdminClassesPage() {
         body: JSON.stringify(data),
       })
 
-      if (!response.ok) throw new Error(`Failed to ${editingClass ? 'update' : 'create'} class`)
+      const result = await response.json()
+
+      if (!response.ok) {
+        // Map backend Zod errors back to form fields
+        if (result.error && typeof result.error === 'string') {
+          const parts = result.error.split(': ')
+          if (parts.length > 1) {
+            const field = parts[0] as any
+            const message = parts[1]
+            form.setError(field, { message })
+          }
+        }
+        throw new Error(result.error || `Failed to ${editingClass ? 'update' : 'create'} class`)
+      }
 
       toast({
         title: "Success",
@@ -302,12 +311,12 @@ export default function AdminClassesPage() {
                       />
                       <FormField
                         control={form.control}
-                        name="teacher"
+                        name="classTeacherId"
                         render={({ field }) => (
                           <FormItem className="col-span-2">
                             <FormLabel>Class Teacher</FormLabel>
                             <FormControl>
-                              <Input placeholder="Mr. Usman Sheikh" {...field} className="glass-card" />
+                              <Input placeholder="T-2024-XXXX" {...field} className="glass-card" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -315,25 +324,12 @@ export default function AdminClassesPage() {
                       />
                       <FormField
                         control={form.control}
-                        name="room"
+                        name="roomNo"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className="col-span-2">
                             <FormLabel>Room Number</FormLabel>
                             <FormControl>
                               <Input placeholder="Room 201" {...field} className="glass-card" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="studentCount"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Number of Students</FormLabel>
-                            <FormControl>
-                              <Input type="number" {...field} className="glass-card" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -471,7 +467,7 @@ export default function AdminClassesPage() {
                             </div>
                             <div>
                               <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Room</p>
-                              <p className="text-xs font-bold">{c.room}</p>
+                              <p className="text-xs font-bold">{c.roomNo || (c as any).room}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">

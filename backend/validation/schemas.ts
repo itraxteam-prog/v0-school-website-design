@@ -44,6 +44,7 @@ export const StudentSchema = z.object({
     classId: z.string().uuid('Invalid class ID').or(z.string().min(1)), // Support both UUID and legacy IDs
     dob: z.string().min(1, 'Date of birth is required'),
     guardianPhone: z.string().min(10, 'Valid guardian phone is required').transform(sanitize),
+    address: z.string().min(5, 'Address must be at least 5 characters').transform(sanitize),
 });
 
 export const TeacherSchema = z.object({
@@ -66,14 +67,27 @@ export const AnnouncementSchema = z.object({
 });
 
 export const SettingsSchema = z.object({
-    termStructure: z.array(z.any()).optional(),
+    schoolName: z.string().min(1, 'School name is required').transform(sanitize).optional(),
+    schoolCode: z.string().min(1, 'School code is required').transform(sanitize).optional(),
+    address: z.string().min(1, 'Address is required').transform(sanitize).optional(),
+    contactNumber: z.string().min(1, 'Contact number is required').transform(sanitize).optional(),
+    email: z.string().email('Invalid email format').optional(),
+    termStructure: z.string().optional(),
+    gradingSystem: z.string().optional(),
+    promotionThreshold: z.number().min(0).max(100).optional(),
     schoolHours: z.object({
-        start: z.string(),
-        end: z.string()
+        startTime: z.string(),
+        endTime: z.string()
     }).optional(),
     maxClassesPerDay: z.number().min(1).optional(),
-    defaultFeeStructure: z.array(z.any()).optional(),
-    academicYear: z.string().optional()
+    academicYear: z.string().optional(),
+    portalPreferences: z.object({
+        darkMode: z.boolean(),
+        language: z.string(),
+        timezone: z.string(),
+        smsNotifications: z.boolean(),
+        emailNotifications: z.boolean(),
+    }).optional()
 });
 
 // Generic validation wrapper
