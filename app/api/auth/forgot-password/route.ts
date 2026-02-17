@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authRoutes } from '@/backend/routes/auth';
+import { validateBody, EmailOnlySchema } from '@/backend/validation/schemas';
 
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { email } = body;
 
-        if (!email) {
-            return NextResponse.json({ success: false, message: 'Email is required' }, { status: 400 });
+        // Validation Guard
+        const validation = await validateBody(EmailOnlySchema, body);
+        if (validation.error) {
+            return NextResponse.json({ success: false, message: validation.error }, { status: 400 });
         }
+
+        const { email } = validation.data;
 
         const result = await authRoutes.forgotPassword(email);
 

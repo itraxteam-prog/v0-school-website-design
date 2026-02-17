@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { settingsRoutes } from '@/backend/routes/settings';
+import { validateBody, SettingsSchema } from '@/backend/validation/schemas';
 
 export async function GET(req: NextRequest) {
     const auth = await requireRole(req, ['admin']);
@@ -19,7 +20,14 @@ export async function PUT(req: NextRequest) {
 
     try {
         const body = await req.json();
-        const result = await settingsRoutes.updateSettings(body);
+
+        // Validation Guard
+        const validation = await validateBody(SettingsSchema, body);
+        if (validation.error) {
+            return NextResponse.json({ error: validation.error }, { status: 400 });
+        }
+
+        const result = await settingsRoutes.updateSettings(validation.data);
         if (result.error) {
             return NextResponse.json({ error: result.error }, { status: result.status });
         }

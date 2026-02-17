@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { announcementRoutes } from '@/backend/routes/announcements';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
+import { LogService } from '@/backend/services/logService';
+import { validateBody, AnnouncementSchema } from '@/backend/validation/schemas';
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
     // GET -> all roles
@@ -23,7 +25,15 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     try {
         const body = await req.json();
-        const result = await announcementRoutes.update(params.id, body, auth.user);
+
+        // Validation Guard
+        const validation = await validateBody(AnnouncementSchema.partial(), body);
+        if (validation.error) {
+            LogService.logAction(auth.user.id, auth.user.role, 'UPDATE', 'ANNOUNCEMENT', params.id, 'failure', { error: validation.error });
+            return NextResponse.json({ error: validation.error }, { status: 400 });
+        }
+
+        const result = await announcementRoutes.update(params.id, validation.data, auth.user);
         if (result.status >= 400) {
             LogService.logAction(auth.user.id, auth.user.role, 'UPDATE', 'ANNOUNCEMENT', params.id, 'failure', { error: result.error });
             return NextResponse.json({ error: result.error }, { status: result.status });

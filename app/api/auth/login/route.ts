@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { AuthService } from '@/backend/services/authService';
 import { LogService } from '@/backend/services/logService';
 import { createResponse, createErrorResponse } from '@/backend/utils/apiResponse';
+import { validateBody, LoginSchema } from '@/backend/validation/schemas';
 
 export async function POST(req: NextRequest) {
     const ip = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
@@ -9,19 +10,16 @@ export async function POST(req: NextRequest) {
     const metadata = { ip, userAgent };
 
     try {
-        let body;
-        try {
-            body = await req.json();
-        } catch (e) {
-            return createErrorResponse('Invalid JSON body', 400);
+        const body = await req.json();
+
+        // Validation Guard
+        const validation = await validateBody(LoginSchema, body);
+        if (validation.error) {
+            LogService.logAction('system', 'guest', 'LOGIN_ATTEMPT', 'AUTH', undefined, 'failure', { ...metadata, email: body.email, error: validation.error });
+            return createErrorResponse(validation.error, 400);
         }
 
         const { email, password, rememberMe } = body;
-
-        if (!email || !password) {
-            return createErrorResponse('Email and password are required', 400);
-        }
-
         const result = await AuthService.login(email, password);
 
         if (result.error) {

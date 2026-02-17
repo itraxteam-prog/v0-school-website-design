@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { announcementRoutes } from '@/backend/routes/announcements';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { LogService } from '@/backend/services/logService';
+import { validateBody, AnnouncementSchema } from '@/backend/validation/schemas';
 
 export async function GET(req: NextRequest) {
     // GET -> all roles (admin, teacher, student, parent)
@@ -25,7 +26,15 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json();
-        const result = await announcementRoutes.create(body, auth.user);
+
+        // Validation Guard
+        const validation = await validateBody(AnnouncementSchema, body);
+        if (validation.error) {
+            LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'ANNOUNCEMENT', undefined, 'failure', { error: validation.error });
+            return NextResponse.json({ error: validation.error }, { status: 400 });
+        }
+
+        const result = await announcementRoutes.create(validation.data, auth.user);
         if (result.status >= 400) {
             LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'ANNOUNCEMENT', undefined, 'failure', { error: result.error || result.errors });
             return NextResponse.json({ error: result.error || result.errors }, { status: result.status });

@@ -3,6 +3,7 @@ import { teacherRoutes } from '@/backend/routes/teachers';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { LogService } from '@/backend/services/logService';
 import { NotificationService } from '@/backend/services/notificationService';
+import { validateBody, TeacherSchema } from '@/backend/validation/schemas';
 
 export async function GET(req: NextRequest) {
     const auth = await requireRole(req, ['admin', 'teacher']);
@@ -24,7 +25,15 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json();
-        const result = await teacherRoutes.create(body, auth.user);
+
+        // Validation Guard
+        const validation = await validateBody(TeacherSchema, body);
+        if (validation.error) {
+            LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'TEACHER', undefined, 'failure', { error: validation.error });
+            return NextResponse.json({ error: validation.error }, { status: 400 });
+        }
+
+        const result = await teacherRoutes.create(validation.data, auth.user);
         if (result.status >= 400) {
             LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'TEACHER', undefined, 'failure', { error: result.error || result.errors });
             return NextResponse.json({ error: result.error || result.errors }, { status: result.status });

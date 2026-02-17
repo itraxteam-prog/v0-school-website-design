@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { AuthService } from '@/backend/services/authService';
 import { LogService } from '@/backend/services/logService';
 import { createResponse, createErrorResponse } from '@/backend/utils/apiResponse';
+import { validateBody, TwoFactorSchema } from '@/backend/validation/schemas';
 
 export async function POST(req: NextRequest) {
     const ip = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
@@ -9,18 +10,16 @@ export async function POST(req: NextRequest) {
     const metadata = { ip, userAgent };
 
     try {
-        let body;
-        try {
-            body = await req.json();
-        } catch (e) {
-            return createErrorResponse('Invalid JSON body', 400);
+        const body = await req.json();
+
+        // Validation Guard
+        const validation = await validateBody(TwoFactorSchema, body);
+        if (validation.error) {
+            LogService.logAction('system', 'guest', 'LOGIN_2FA_ATTEMPT', 'AUTH', undefined, 'failure', { ...metadata, error: validation.error });
+            return createErrorResponse(validation.error, 400);
         }
 
         const { tempToken, code, rememberMe } = body;
-
-        if (!tempToken || !code) {
-            return createErrorResponse('Session and code are required', 400);
-        }
 
         const result = await AuthService.verify2FALogin(tempToken, code);
 

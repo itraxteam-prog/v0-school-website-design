@@ -3,6 +3,7 @@ import { studentRoutes } from '@/backend/routes/students';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { AuditService } from '@/backend/services/auditService';
 import { LogService } from '@/backend/services/logService';
+import { validateBody, StudentSchema } from '@/backend/validation/schemas';
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
     // GET -> admin, teacher, student
@@ -30,7 +31,15 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     try {
         const body = await req.json();
-        const result = await studentRoutes.update(params.id, body, auth.user);
+
+        // Validation Guard
+        const validation = await validateBody(StudentSchema.partial(), body);
+        if (validation.error) {
+            LogService.logAction(auth.user.id, auth.user.role, 'UPDATE', 'STUDENT', params.id, 'failure', { error: validation.error, metadata });
+            return NextResponse.json({ error: validation.error }, { status: 400 });
+        }
+
+        const result = await studentRoutes.update(params.id, validation.data, auth.user);
         if (result.status >= 400) {
             await AuditService.logUserUpdate(auth.user.id, 'failure', { ...metadata, error: result.error });
             LogService.logAction(auth.user.id, auth.user.role, 'UPDATE', 'STUDENT', params.id, 'failure', { error: result.error, metadata });

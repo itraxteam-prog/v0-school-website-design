@@ -1,22 +1,19 @@
 import { NextRequest } from 'next/server';
 import { authRoutes } from '@/backend/routes/auth';
 import { createResponse, createErrorResponse } from '@/backend/utils/apiResponse';
+import { validateBody, ResetPasswordSchema } from '@/backend/validation/schemas';
 
 export async function POST(req: NextRequest) {
     try {
-        let body;
-        try {
-            body = await req.json();
-        } catch (e) {
-            return createErrorResponse('Invalid JSON body', 400);
+        const body = await req.json();
+
+        // Validation Guard
+        const validation = await validateBody(ResetPasswordSchema, body);
+        if (validation.error) {
+            return createErrorResponse(validation.error, 400);
         }
 
-        const { token, newPassword } = body;
-
-        if (!token || !newPassword) {
-            return createErrorResponse('Invalid request: Token and new password are required', 400);
-        }
-
+        const { token, newPassword } = validation.data;
         const result = await authRoutes.resetPassword(token, newPassword);
 
         if (result.status >= 400) {

@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { authRoutes } from '@/backend/routes/auth';
 import { verifyJWT } from '@/backend/utils/auth';
+import { validateBody, ChangePasswordSchema } from '@/backend/validation/schemas';
 
 
 export async function POST(req: NextRequest) {
@@ -15,11 +15,14 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { currentPassword, newPassword } = body;
 
-        if (!currentPassword || !newPassword) {
-            return NextResponse.json({ success: false, message: 'All fields are required' }, { status: 400 });
+        // Validation Guard
+        const validation = await validateBody(ChangePasswordSchema, body);
+        if (validation.error) {
+            return NextResponse.json({ success: false, message: validation.error }, { status: 400 });
         }
+
+        const { currentPassword, newPassword } = validation.data;
 
         const result = await authRoutes.changePassword(payload.id, currentPassword, newPassword);
 
