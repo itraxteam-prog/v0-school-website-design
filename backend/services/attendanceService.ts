@@ -17,7 +17,7 @@ export const AttendanceService = {
             async (cid: string, d: string) => {
                 const { data, error } = await supabase
                     .from('attendance')
-                    .select('id, student_id, status, date')
+                    .select('id, student_id, status, date, remarks')
                     .eq('class_id', cid)
                     .eq('date', d);
 
@@ -27,6 +27,23 @@ export const AttendanceService = {
             [`attendance-${classId}-${date}`],
             { tags: ['attendance', `class-attendance-${classId}`], revalidate: 3600 }
         )(classId, date);
+    },
+
+    getStudentAttendance: async (studentId: string) => {
+        return unstable_cache(
+            async (sid: string) => {
+                const { data, error } = await supabase
+                    .from('attendance')
+                    .select('id, status, date, remarks')
+                    .eq('student_id', sid)
+                    .order('date', { ascending: false });
+
+                if (error) throw new Error(handleSupabaseError(error));
+                return data;
+            },
+            [`student-attendance-${studentId}`],
+            { tags: ['attendance', `student-attendance-${studentId}`], revalidate: 3600 }
+        )(studentId);
     },
 
     getInstitutionalAttendanceStats: async () => {

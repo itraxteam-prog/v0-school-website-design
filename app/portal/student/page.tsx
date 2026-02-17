@@ -21,17 +21,33 @@ const sidebarItems = [
   { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function StudentDashboard() {
   const { user, loading: authLoading } = useRequireAuth(['student']);
   const [loading, setLoading] = useState(true)
+  const [data, setData] = useState<any>(null)
 
   useEffect(() => {
-    // Simulate data fetching delay
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 1500)
-    return () => clearTimeout(timer)
-  }, [])
+    const fetchData = async () => {
+      try {
+        const res = await fetch(`${API_URL}/student/dashboard`);
+        if (res.ok) {
+          const dashboardData = await res.json();
+          setData(dashboardData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch dashboard data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchData();
+    }
+  }, [user])
 
   if (authLoading) {
     return (
@@ -57,34 +73,34 @@ export default function StudentDashboard() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Overall Performance"
-            value="92%"
+            value={data?.stats?.performance ?? "N/A"}
             icon={TrendingUp}
             loading={loading}
-            trend="+2.5% from last term"
+            trend="Recent average"
             trendColor="text-green-600"
           />
           <StatCard
             title="Attendance"
-            value="94%"
+            value={data?.stats?.attendance ?? "N/A"}
             icon={CalendarCheck}
             loading={loading}
-            trend="Needs improvement"
+            trend="Current semester"
             trendColor="text-amber-600"
           />
           <StatCard
             title="Total Subjects"
-            value="8"
+            value={data?.stats?.totalSubjects ?? 0}
             icon={Book}
             loading={loading}
-            trend="All active"
+            trend="Enrolled"
             trendColor="text-muted-foreground"
           />
           <StatCard
             title="Assignments"
-            value="3"
+            value={data?.stats?.assignments ?? 0}
             icon={AlertCircle}
             loading={loading}
-            trend="Due this week"
+            trend="Pending"
             trendColor="text-primary"
             highlight
           />
@@ -164,26 +180,28 @@ export default function StudentDashboard() {
                             </TableRow>
                           ))
                         ) : (
-                          // Mock Data
-                          [
-                            { sub: "Mathematics", type: "Quiz", date: "Feb 12", marks: "18/20", grade: "A" },
-                            { sub: "Physics", type: "Lab", date: "Feb 10", marks: "9/10", grade: "A-" },
-                            { sub: "English", type: "Essay", date: "Feb 08", marks: "22/25", grade: "B+" },
-                            { sub: "Computer Sci", type: "Project", date: "Feb 05", marks: "48/50", grade: "A+" },
-                            { sub: "Chemistry", type: "Quiz", date: "Feb 02", marks: "16/20", grade: "B" },
-                          ].map((item) => (
-                            <TableRow key={item.sub} className="group border-border/50 transition-colors hover:bg-primary/5">
-                              <TableCell className="font-medium">{item.sub}</TableCell>
-                              <TableCell className="text-muted-foreground">{item.type}</TableCell>
-                              <TableCell className="text-muted-foreground">{item.date}</TableCell>
-                              <TableCell className="text-right font-medium">{item.marks}</TableCell>
-                              <TableCell className="text-right">
-                                <Badge variant={item.grade.startsWith("A") ? "default" : "secondary"} className="font-bold w-8 justify-center">
-                                  {item.grade}
-                                </Badge>
+                          // API Data
+                          data?.recentGrades && data.recentGrades.length > 0 ? (
+                            data.recentGrades.map((item: any, i: number) => (
+                              <TableRow key={i} className="group border-border/50 transition-colors hover:bg-primary/5">
+                                <TableCell className="font-medium">{item.sub}</TableCell>
+                                <TableCell className="text-muted-foreground">{item.type}</TableCell>
+                                <TableCell className="text-muted-foreground">{item.date}</TableCell>
+                                <TableCell className="text-right font-medium">{item.marks}</TableCell>
+                                <TableCell className="text-right">
+                                  <Badge variant={item.grade?.startsWith("A") ? "default" : "secondary"} className="font-bold w-8 justify-center">
+                                    {item.grade}
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          ) : (
+                            <TableRow>
+                              <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                                No recent grades available.
                               </TableCell>
                             </TableRow>
-                          ))
+                          )
                         )}
                       </TableBody>
                     </Table>
@@ -215,24 +233,24 @@ export default function StudentDashboard() {
                       </div>
                     ))
                   ) : (
-                    [
-                      { title: "Science Fair", date: "Feb 20", type: "Event" },
-                      { title: "Math Quiz", date: "Feb 18", type: "Exam" },
-                      { title: "Sports Day", date: "Mar 05", type: "Event" },
-                    ].map((evt) => (
-                      <div key={evt.title} className="flex items-start gap-4 rounded-xl border border-transparent p-3 transition-colors hover:border-border/50 hover:bg-muted/30">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                          <CalendarCheck className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-foreground text-sm">{evt.title}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 border-primary/20 text-primary">{evt.type}</Badge>
-                            <span className="text-xs text-muted-foreground">{evt.date}</span>
+                    data?.upcomingEvents ? (
+                      data.upcomingEvents.map((evt: any) => (
+                        <div key={evt.title} className="flex items-start gap-4 rounded-xl border border-transparent p-3 transition-colors hover:border-border/50 hover:bg-muted/30">
+                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                            <CalendarCheck className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-foreground text-sm">{evt.title}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 border-primary/20 text-primary">{evt.type}</Badge>
+                              <span className="text-xs text-muted-foreground">{evt.date}</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))
+                      ))
+                    ) : (
+                      <div className="text-center text-muted-foreground py-4">No upcoming events.</div>
+                    )
                   )}
                 </CardContent>
               </Card>

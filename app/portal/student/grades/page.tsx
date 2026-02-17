@@ -22,39 +22,39 @@ const sidebarItems = [
   { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 const terms = ["Fall 2025", "Spring 2026", "Fall 2026"]
 const subjects = ["All Subjects", "Mathematics", "Physics", "English", "Chemistry", "Computer Science", "Urdu", "Islamiat"]
 
 // Mock Data
-const allGrades = [
-  { subject: "Mathematics", term: "Spring 2026", term1: "85", term2: "88", term3: "-", final: "-", grade: "A" },
-  { subject: "Physics", term: "Spring 2026", term1: "82", term2: "86", term3: "-", final: "-", grade: "A-" },
-  { subject: "English", term: "Spring 2026", term1: "90", term2: "92", term3: "-", final: "-", grade: "A+" },
-  { subject: "Chemistry", term: "Spring 2026", term1: "78", term2: "84", term3: "-", final: "-", grade: "B+" },
-  { subject: "Computer Science", term: "Spring 2026", term1: "95", term2: "98", term3: "-", final: "-", grade: "A+" },
-  { subject: "Urdu", term: "Spring 2026", term1: "80", term2: "85", term3: "-", final: "-", grade: "A-" },
-  { subject: "Islamiat", term: "Spring 2026", term1: "88", term2: "91", term3: "-", final: "-", grade: "A" },
-  // Fall 2025 data
-  { subject: "Mathematics", term: "Fall 2025", term1: "82", term2: "85", term3: "88", final: "90", grade: "A" },
-  { subject: "Physics", term: "Fall 2025", term1: "78", term2: "80", term3: "84", final: "86", grade: "B+" },
-]
+
 
 export default function GradesPage() {
-  const [activeTerm, setActiveTerm] = useState("Spring 2026")
+  const [activeTerm, setActiveTerm] = useState("All Terms")
   const [activeSubject, setActiveSubject] = useState("All Subjects")
   const [loading, setLoading] = useState(true)
+  const [grades, setGrades] = useState<any[]>([])
 
   useEffect(() => {
-    // Simulate data fetching
-    setLoading(true)
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 1500)
-    return () => clearTimeout(timer)
-  }, [activeTerm, activeSubject])
+    const fetchGrades = async () => {
+      try {
+        const res = await fetch(`${API_URL}/student/grades`);
+        if (res.ok) {
+          const data = await res.json();
+          setGrades(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch grades", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchGrades();
+  }, [])
 
-  const filteredGrades = allGrades.filter(g =>
-    (g.term === activeTerm) &&
+  const filteredGrades = grades.filter(g =>
+    (activeTerm === "All Terms" || g.term === activeTerm) &&
     (activeSubject === "All Subjects" || g.subject === activeSubject)
   )
 
@@ -75,6 +75,7 @@ export default function GradesPage() {
                   <SelectValue placeholder="Select Term" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="All Terms">All Terms</SelectItem>
                   {terms.map(term => <SelectItem key={term} value={term}>{term}</SelectItem>)}
                 </SelectContent>
               </Select>
@@ -127,10 +128,10 @@ export default function GradesPage() {
                   <TableHeader>
                     <TableRow className="border-border/50 bg-muted/20 hover:bg-muted/20">
                       <TableHead className="w-[180px]">Subject</TableHead>
-                      <TableHead className="text-center">Term 1</TableHead>
-                      <TableHead className="text-center">Term 2</TableHead>
-                      <TableHead className="text-center">Term 3</TableHead>
-                      <TableHead className="text-center">Final</TableHead>
+                      <TableHead>Exam/Term</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead className="text-right">Marks</TableHead>
+                      <TableHead className="text-right">Total</TableHead>
                       <TableHead className="text-right">Grade</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -147,15 +148,15 @@ export default function GradesPage() {
                         </TableRow>
                       ))
                     ) : filteredGrades.length > 0 ? (
-                      filteredGrades.map((grade) => (
-                        <TableRow key={grade.subject} className="group border-border/50 transition-colors hover:bg-primary/5">
+                      filteredGrades.map((grade, index) => (
+                        <TableRow key={index} className="group border-border/50 transition-colors hover:bg-primary/5">
                           <TableCell className="font-medium">{grade.subject}</TableCell>
-                          <TableCell className="text-center text-muted-foreground">{grade.term1}</TableCell>
-                          <TableCell className="text-center text-muted-foreground">{grade.term2}</TableCell>
-                          <TableCell className="text-center text-muted-foreground">{grade.term3}</TableCell>
-                          <TableCell className="text-center font-medium text-foreground">{grade.final}</TableCell>
+                          <TableCell className="text-muted-foreground">{grade.term || grade.type}</TableCell>
+                          <TableCell className="text-muted-foreground">{grade.examDate ? new Date(grade.examDate).toLocaleDateString() : '-'}</TableCell>
+                          <TableCell className="text-right font-medium">{grade.marks}</TableCell>
+                          <TableCell className="text-right text-muted-foreground">{grade.total}</TableCell>
                           <TableCell className="text-right">
-                            <Badge variant={grade.grade.startsWith("A") ? "default" : "secondary"} className="font-bold w-10 justify-center">
+                            <Badge variant={grade.grade?.startsWith("A") ? "default" : "secondary"} className="font-bold w-10 justify-center">
                               {grade.grade}
                             </Badge>
                           </TableCell>
