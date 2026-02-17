@@ -1,6 +1,6 @@
-import { Class } from '../data/classes';
 import { supabase } from '../utils/supabaseClient';
 import { handleSupabaseError } from '../utils/errors';
+import { NotificationService } from './notificationService';
 
 export const ClassService = {
     getAll: async () => {
@@ -31,10 +31,24 @@ export const ClassService = {
             .single();
 
         if (error) throw new Error(handleSupabaseError(error));
-        return newClass as Class;
+
+        // Notify assigned teacher
+        if (newClass.classTeacherId) {
+            NotificationService.sendEmailNotification(
+                newClass.classTeacherId,
+                'CLASS_ASSIGNED',
+                `You have been assigned as the class teacher for ${newClass.name}.`,
+                'teacher'
+            );
+        }
+
+        return newClass;
     },
 
-    update: async (id: string, data: Partial<Class>) => {
+    update: async (id: string, data: Partial<any>) => {
+        // Fetch current class to see if teacher changed
+        const current = await ClassService.getById(id);
+
         const { data: updatedClass, error } = await supabase
             .from('classes')
             .update(data)
@@ -43,7 +57,18 @@ export const ClassService = {
             .single();
 
         if (error) return null;
-        return updatedClass as Class;
+
+        // If teacher changed, notify the new one
+        if (data.classTeacherId && data.classTeacherId !== current?.classTeacherId) {
+            NotificationService.sendEmailNotification(
+                data.classTeacherId,
+                'CLASS_ASSIGNED_UPDATE',
+                `You have been assigned as the new class teacher for ${updatedClass.name}.`,
+                'teacher'
+            );
+        }
+
+        return updatedClass;
     },
 
     delete: async (id: string) => {
