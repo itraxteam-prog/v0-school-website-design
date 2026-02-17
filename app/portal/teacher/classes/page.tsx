@@ -15,7 +15,7 @@ import {
   ExternalLink,
   ShieldCheck,
 } from "lucide-react"
-import { AppLayout } from "@/components/layout/app-layout"
+import AppLayout from "@/components/layout/AppLayout"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -171,7 +171,7 @@ export default function TeacherClassesPage() {
                   </Card>
                 </AnimatedWrapper>
               ))
-            )}
+            ))}
         </div>
 
         {/* Info Box */}

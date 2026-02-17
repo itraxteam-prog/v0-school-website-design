@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRequireAuth } from "@/hooks/useRequireAuth"
 import { LayoutDashboard, Users, CalendarCheck, BookMarked, FileBarChart, User, ClipboardList, PlusCircle, TrendingUp, UserCheck, FileText, ShieldCheck, Loader2 } from "lucide-react"
-import { AppLayout } from "@/components/layout/app-layout"
+import AppLayout from "@/components/layout/AppLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
