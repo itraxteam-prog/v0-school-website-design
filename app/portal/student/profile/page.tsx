@@ -23,7 +23,8 @@ import {
   Users,
   GraduationCap,
   Hash,
-  UserCircle
+  UserCircle,
+  ShieldCheck,
 } from "lucide-react"
 
 const sidebarItems = [
@@ -33,6 +34,7 @@ const sidebarItems = [
   { href: "/portal/student/timetable", label: "Timetable", icon: Clock },
   { href: "/portal/student/announcements", label: "Announcements", icon: Megaphone },
   { href: "/portal/student/profile", label: "Profile", icon: User },
+  { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
 // Dummy student data

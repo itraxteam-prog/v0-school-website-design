@@ -20,6 +20,7 @@ import {
   Clock3,
   AlertCircle,
   RefreshCcw,
+  ShieldCheck,
 } from "lucide-react"
 import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -39,6 +40,7 @@ const sidebarItems = [
   { href: "/portal/student/timetable", label: "Timetable", icon: Clock },
   { href: "/portal/student/announcements", label: "Announcements", icon: Megaphone },
   { href: "/portal/student/profile", label: "Profile", icon: User },
+  { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
 interface Announcement {

@@ -13,9 +13,9 @@ import {
     Settings,
     ShieldCheck,
     BookOpen,
-    Calendar,
-    MessageSquare,
-    ClipboardList,
+    CalendarCheck,
+    Megaphone,
+    User,
     Loader2
 } from "lucide-react"
 
@@ -48,17 +48,18 @@ export default function SecurityPage() {
                     { href: "/portal/teacher", label: "Dashboard", icon: LayoutDashboard },
                     { href: "/portal/teacher/classes", label: "My Classes", icon: School },
                     { href: "/portal/teacher/students", label: "Students", icon: GraduationCap },
-                    { href: "/portal/teacher/attendance", label: "Attendance", icon: Calendar },
-                    { href: "/portal/teacher/grades", label: "Grades", icon: ClipboardList },
+                    { href: "/portal/teacher/attendance", label: "Attendance", icon: CalendarCheck },
+                    { href: "/portal/teacher/gradebook", label: "Gradebook", icon: BookOpen },
                     { href: "/portal/security", label: "Security", icon: ShieldCheck },
                 ]
             case 'student':
                 return [
                     { href: "/portal/student", label: "Dashboard", icon: LayoutDashboard },
-                    { href: "/portal/student/courses", label: "My Courses", icon: BookOpen },
-                    { href: "/portal/student/grades", label: "My Grades", icon: ClipboardList },
-                    { href: "/portal/student/attendance", label: "Attendance", icon: Calendar },
-                    { href: "/portal/student/schedule", label: "Schedule", icon: Clock },
+                    { href: "/portal/student/grades", label: "My Grades", icon: BookOpen },
+                    { href: "/portal/student/attendance", label: "Attendance", icon: CalendarCheck },
+                    { href: "/portal/student/timetable", label: "Timetable", icon: Clock },
+                    { href: "/portal/student/announcements", label: "Announcements", icon: Megaphone },
+                    { href: "/portal/student/profile", label: "Profile", icon: User },
                     { href: "/portal/security", label: "Security", icon: ShieldCheck },
                 ]
             default:
