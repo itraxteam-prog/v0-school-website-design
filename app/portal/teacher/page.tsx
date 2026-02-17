@@ -186,30 +186,29 @@ export default function TeacherDashboard() {
                               <TableCell className="hidden sm:table-cell"><Skeleton className="h-4 w-20" /></TableCell>
                             </TableRow>
                           ))
-                        ) : (
-                        ): data?.schedule && data.schedule.length > 0 ? (
+                        ) : data?.schedule && data.schedule.length > 0 ? (
                           data.schedule.map((item: any, i: number) => (
-                        <TableRow
-                          key={i}
-                          className={`group border-border/50 transition-colors ${item.class === "Free Period"
-                            ? "bg-muted/30 hover:bg-muted/40"
-                            : "hover:bg-primary/5"
-                            }`}
-                        >
-                          <TableCell className="font-medium text-sm">{item.time}</TableCell>
-                          <TableCell className={item.class === "Free Period" ? "text-muted-foreground italic" : "font-medium"}>
-                            {item.class}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">{item.subject}</TableCell>
-                          <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">{item.room}</TableCell>
-                        </TableRow>
-                        ))
+                            <TableRow
+                              key={i}
+                              className={`group border-border/50 transition-colors ${item.class === "Free Period"
+                                ? "bg-muted/30 hover:bg-muted/40"
+                                : "hover:bg-primary/5"
+                                }`}
+                            >
+                              <TableCell className="font-medium text-sm">{item.time}</TableCell>
+                              <TableCell className={item.class === "Free Period" ? "text-muted-foreground italic" : "font-medium"}>
+                                {item.class}
+                              </TableCell>
+                              <TableCell className="text-muted-foreground">{item.subject}</TableCell>
+                              <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">{item.room}</TableCell>
+                            </TableRow>
+                          ))
                         ) : (
-                        <TableRow>
-                          <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                            No classes scheduled for today.
-                          </TableCell>
-                        </TableRow>
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                              No classes scheduled for today.
+                            </TableCell>
+                          </TableRow>
                         )}
                       </TableBody>
                     </Table>
