@@ -1,30 +1,27 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { authRoutes } from '@/backend/routes/auth';
 import { validateBody, EmailOnlySchema } from '@/backend/validation/schemas';
+import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
 
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
 
         // Validation Guard
-        const validation = await validateBody(EmailOnlySchema, body);
-        if (validation.error) {
-            return NextResponse.json({ success: false, message: validation.error }, { status: 400 });
+        const { data, error } = await validateBody(EmailOnlySchema, body);
+        if (error) {
+            return createErrorResponse(error, 400);
         }
 
-        const { email } = validation.data;
+        const { email } = data!;
 
         const result = await authRoutes.forgotPassword(email);
 
-        return NextResponse.json({
-            success: true,
+        return createSuccessResponse({
             message: result.data?.message || 'Password reset link sent',
             resetLink: result.data?.resetLink // Strictly for development/demo purposes
-        }, { status: 200 });
-    } catch (error) {
-        return NextResponse.json({
-            success: false,
-            message: 'Internal Server Error'
-        }, { status: 500 });
+        });
+    } catch (error: any) {
+        return createErrorResponse(error.message || 'Internal Server Error', 500);
     }
 }

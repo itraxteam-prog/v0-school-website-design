@@ -40,7 +40,8 @@ const sidebarItems = [
   { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Internal API base path
+const API_BASE = "/api";
 
 interface Student {
   id: string;
@@ -76,21 +77,28 @@ export default function TeacherGradeEntryPage() {
     const fetchInitialData = async () => {
       try {
         const [classesRes, subjectsRes] = await Promise.all([
-          fetch(`${API_URL}/teacher/classes`),
-          fetch(`${API_URL}/teacher/grades?type=subjects`) // Fetch subjects specifically
+          fetch(`${API_BASE}/teacher/classes`, { credentials: "include" }),
+          fetch(`${API_BASE}/teacher/grades?type=subjects`, { credentials: "include" }) // Fetch subjects specifically
         ]);
 
         if (classesRes.ok) {
-          const data = await classesRes.json();
+          const result = await classesRes.json();
+          const data = result.data || [];
           setClasses(data);
           if (data.length > 0) setSelectedClassId(data[0].id);
+        } else {
+          const errorText = await classesRes.text();
+          console.error("API ERROR [fetchClasses]:", classesRes.status, errorText);
         }
 
         if (subjectsRes.ok) {
-          const data = await subjectsRes.json();
+          const result = await subjectsRes.json();
+          const data = result.data || [];
           setSubjects(data);
           if (data.length > 0) setSelectedSubjectId(data[0].id);
         } else {
+          const errorText = await subjectsRes.text();
+          console.error("API ERROR [fetchSubjects]:", subjectsRes.status, errorText);
           // Fallback mock subjects if API fails or returns empty
           setSubjects([
             { id: 'math', name: 'Mathematics' },
@@ -117,12 +125,19 @@ export default function TeacherGradeEntryPage() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${API_URL}/teacher/grades?classId=${selectedClassId}&subjectId=${selectedSubjectId}&term=${selectedTerm}`);
-        if (res.ok) {
-          const data = await res.json();
-          setStudents(data.students);
-          setGrades(data.grades || {});
+        const res = await fetch(`${API_BASE}/teacher/grades?classId=${selectedClassId}&subjectId=${selectedSubjectId}&term=${selectedTerm}`, {
+          method: "GET",
+          credentials: "include",
+        });
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error("API ERROR [fetchGrades]:", res.status, errorText);
+          throw new Error(errorText || "Failed to fetch grades");
         }
+        const result = await res.json();
+        const data = result.data || {};
+        setStudents(data.students || []);
+        setGrades(data.grades || {});
       } catch (error) {
         console.error(error);
         toast.error("Failed to fetch grades");
@@ -165,9 +180,10 @@ export default function TeacherGradeEntryPage() {
               marks
             }));
 
-            const res = await fetch(`${API_URL}/teacher/grades`, {
+            const res = await fetch(`${API_BASE}/teacher/grades`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
+              credentials: "include",
               body: JSON.stringify({
                 classId: selectedClassId,
                 subjectId: selectedSubjectId,
@@ -176,11 +192,11 @@ export default function TeacherGradeEntryPage() {
               })
             });
 
-            if (res.ok) {
-              toast.success("Grades submitted for finalization!");
-            } else {
-              const err = await res.json();
-              throw new Error(err.error || 'Failed to submit');
+            if (!res.ok) {
+              const errorText = await res.text();
+              console.error("API ERROR [submitGrades]:", res.status, errorText);
+              const err = JSON.parse(errorText || '{}');
+              throw new Error(err.error || errorText || 'Failed to submit');
             }
           } catch (error: any) {
             toast.error(error.message || "Submission failed");

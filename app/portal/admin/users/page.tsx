@@ -102,7 +102,8 @@ const userSchema = z.object({
 
 type UserFormValues = z.infer<typeof userSchema>
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Internal API base path
+const API_BASE = "/api";
 
 interface User {
   id: string;
@@ -133,15 +134,21 @@ export default function UserManagementPage() {
       status: "Active",
     },
   })
-
   const fetchUsers = async () => {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`${API_URL}/users`)
-      if (!response.ok) throw new Error("Failed to fetch users")
-      const data = await response.json()
-      setUsers(data)
+      const response = await fetch(`${API_BASE}/users`, {
+        method: "GET",
+        credentials: "include",
+      })
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("API ERROR [fetchUsers]:", response.status, errorText);
+        throw new Error(errorText || "Failed to fetch users");
+      }
+      const result = await response.json()
+      setUsers(result.data || [])
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred")
       toast.error("Could not load users. Please try again.")
@@ -167,9 +174,10 @@ export default function UserManagementPage() {
 
       console.log("Submitting User Payload:", { ...payload, password: "[REDACTED]" });
 
-      const response = await fetch(`${API_URL}/users`, {
+      const response = await fetch(`${API_BASE}/users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(payload),
       })
 
@@ -207,13 +215,15 @@ export default function UserManagementPage() {
     if (!selectedUser) return
 
     try {
-      const response = await fetch(`${API_URL}/users/${selectedUser.id}`, {
+      const response = await fetch(`${API_BASE}/users/${selectedUser.id}`, {
         method: "DELETE",
+        credentials: "include",
       })
 
       if (!response.ok) {
-        const result = await response.json()
-        throw new Error(result.error || "Failed to delete user")
+        const errorText = await response.text();
+        console.error("API ERROR [confirmDelete]:", response.status, errorText);
+        throw new Error(errorText || "Failed to delete user")
       }
 
       toast.success("User deleted successfully")
@@ -228,9 +238,10 @@ export default function UserManagementPage() {
   const handleStatusToggle = async (user: User) => {
     try {
       const newStatus = user.status === "Active" ? "Suspended" : "Active"
-      const response = await fetch(`${API_URL}/users/${user.id}`, {
+      const response = await fetch(`${API_BASE}/users/${user.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ status: newStatus }),
       })
 

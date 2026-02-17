@@ -99,7 +99,8 @@ interface Student extends StudentFormValues {
   id?: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Internal API base path
+const API_BASE = "/api";
 
 export default function AdminStudentsPage() {
   const [students, setStudents] = useState<Student[]>([])
@@ -128,10 +129,17 @@ export default function AdminStudentsPage() {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`${API_URL}/students`)
-      if (!response.ok) throw new Error("Failed to fetch students")
-      const data = await response.json()
-      setStudents(data)
+      const response = await fetch(`${API_BASE}/students`, {
+        method: "GET",
+        credentials: "include",
+      })
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("API ERROR [fetchStudents]:", response.status, errorText);
+        throw new Error(errorText || "Failed to fetch students");
+      }
+      const result = await response.json()
+      setStudents(result.data || [])
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred")
       toast({
@@ -175,15 +183,14 @@ export default function AdminStudentsPage() {
     try {
       const studentId = editingStudent?.id || editingStudent?._id
       const url = editingStudent
-        ? `${API_URL}/students/${studentId}`
-        : `${API_URL}/students`
+        ? `${API_BASE}/students/${studentId}`
+        : `${API_BASE}/students`
       const method = editingStudent ? "PUT" : "POST"
-
-      console.log(`Submitting Student to ${url} [${method}]:`, data);
 
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(data),
       })
 
@@ -231,11 +238,16 @@ export default function AdminStudentsPage() {
     if (!confirm(`Are you sure you want to delete ${student.name}?`)) return
 
     try {
-      const response = await fetch(`${API_URL}/students/${id}`, {
+      const response = await fetch(`${API_BASE}/students/${id}`, {
         method: "DELETE",
+        credentials: "include",
       })
 
-      if (!response.ok) throw new Error("Failed to delete student")
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("API ERROR [handleDelete]:", response.status, errorText);
+        throw new Error(errorText || "Failed to delete student");
+      }
 
       toast({
         title: "Deleted",

@@ -100,7 +100,8 @@ const itemVariant = {
     visible: { opacity: 1, y: 0 }
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Internal API base path
+const API_BASE = "/api";
 
 import { useRequireAuth } from "@/hooks/useRequireAuth"
 
@@ -151,8 +152,15 @@ export default function SchoolSettingsPage() {
         setLoading(true)
         setError(null)
         try {
-            const response = await fetch(`${API_URL}/settings`)
-            if (!response.ok) throw new Error("Failed to load settings")
+            const response = await fetch(`${API_BASE}/settings`, {
+                method: "GET",
+                credentials: "include",
+            })
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("API ERROR [fetchSettings]:", response.status, errorText);
+                throw new Error(errorText || "Failed to load settings");
+            }
             const responseData = await response.json()
             const data = responseData.data || responseData
             setSettings(data)
@@ -177,15 +185,18 @@ export default function SchoolSettingsPage() {
     const onSubmit = async (data: SettingsFormValues) => {
         setIsSaving(true)
         try {
-            const response = await fetch(`${API_URL}/settings`, {
+            const response = await fetch(`${API_BASE}/settings`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify(data),
             })
 
             const result = await response.json()
 
             if (!response.ok) {
+                const errorText = await response.text();
+                console.error("API ERROR [onSubmit]:", response.status, errorText);
                 // Map backend Zod errors back to form fields
                 if (result.error && typeof result.error === 'string') {
                     const parts = result.error.split(': ')
@@ -195,7 +206,7 @@ export default function SchoolSettingsPage() {
                         form.setError(field, { message })
                     }
                 }
-                throw new Error(result.error || "Failed to update settings")
+                throw new Error(result.error || errorText || "Failed to update settings")
             }
 
             toast({

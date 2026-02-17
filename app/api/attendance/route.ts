@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { LogService } from '@/backend/services/logService';
 import { AttendanceService } from '@/backend/services/attendanceService';
 import { validateBody, AttendanceSchema } from '@/backend/validation/schemas';
-import { AuthPayload } from '@/backend/services/authService';
+import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
 
 export async function GET(req: NextRequest) {
     const auth = await requireRole(req, ['admin', 'teacher', 'student']);
@@ -24,15 +24,15 @@ export async function GET(req: NextRequest) {
     if (auth.user.role === 'student') {
         // Students should probably use a diff endpoint or filter here.
         // For now, let's block student from "Class List" view.
-        return NextResponse.json({ error: 'Students cannot view class lists' }, { status: 403 });
+        return createErrorResponse('Students cannot view class lists', 403);
     }
 
     try {
         const data = await AttendanceService.getClassAttendance(classId, date);
         LogService.logAction(auth.user.id, auth.user.role, 'READ_LIST', 'ATTENDANCE', classId, 'success');
-        return NextResponse.json(data);
+        return createSuccessResponse(data);
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return createErrorResponse(error.message, 500);
     }
 }
 
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
         // Validation
         const validation = await validateBody(AttendanceSchema, body);
         if (validation.error) {
-            return NextResponse.json({ error: validation.error }, { status: 400 });
+            return createErrorResponse(validation.error, 400);
         }
 
         const { classId, date, records } = validation.data!;
@@ -64,9 +64,9 @@ export async function POST(req: NextRequest) {
 
         LogService.logAction(auth.user.id, auth.user.role, 'CREATE_BULK', 'ATTENDANCE', classId, 'success', { count: records.length });
 
-        return NextResponse.json(result, { status: 201 });
+        return createSuccessResponse(result, 201);
 
     } catch (error: any) {
-        return NextResponse.json({ error: error.message || 'Internal Error' }, { status: 500 });
+        return createErrorResponse(error.message || 'Internal Error', 500);
     }
 }

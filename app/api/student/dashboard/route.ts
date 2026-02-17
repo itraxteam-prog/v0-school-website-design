@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { ClassService } from '@/backend/services/classes'; // For getting class details
 import { PeriodService } from '@/backend/services/periods';
 import { StudentService } from '@/backend/services/students';
 import { AcademicService } from '@/backend/services/academicService';
+import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
 
 export async function GET(req: NextRequest) {
     const auth = await requireRole(req, ['student']);
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest) {
         // 1. Get Student Profile to know Class ID
         const student = await StudentService.getById(studentId);
         if (!student) {
-            return NextResponse.json({ error: 'Student profile not found' }, { status: 404 });
+            return createErrorResponse('Student profile not found', 404);
         }
 
         // 2. Get Class Details
@@ -71,10 +72,10 @@ export async function GET(req: NextRequest) {
             ]
         };
 
-        return NextResponse.json(data);
+        return createSuccessResponse(data);
 
     } catch (error: any) {
         console.error('Student Dashboard Error:', error);
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        return createErrorResponse(error.message || 'Internal Server Error', 500);
     }
 }

@@ -101,7 +101,8 @@ interface ClassRecord {
     name: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Internal API base path
+const API_BASE = "/api";
 
 export default function AdminPeriodsPage() {
     const [periods, setPeriods] = useState<Period[]>([])
@@ -130,19 +131,28 @@ export default function AdminPeriodsPage() {
         setError(null)
         try {
             const [periodsRes, classesRes] = await Promise.all([
-                fetch(`${API_URL}/periods`),
-                fetch(`${API_URL}/classes`)
+                fetch(`${API_BASE}/periods`, { credentials: "include" }),
+                fetch(`${API_BASE}/classes`, { credentials: "include" })
             ])
 
-            if (!periodsRes.ok || !classesRes.ok) throw new Error("Failed to fetch data")
+            if (!periodsRes.ok) {
+                const errorText = await periodsRes.text();
+                console.error("API ERROR [fetchPeriods]:", periodsRes.status, errorText);
+                throw new Error(errorText || "Failed to fetch periods")
+            }
+            if (!classesRes.ok) {
+                const errorText = await classesRes.text();
+                console.error("API ERROR [fetchClasses]:", classesRes.status, errorText);
+                throw new Error(errorText || "Failed to fetch classes")
+            }
 
-            const [periodsData, classesData] = await Promise.all([
+            const [periodsResult, classesResult] = await Promise.all([
                 periodsRes.json(),
                 classesRes.json()
             ])
 
-            setPeriods(periodsData)
-            setClasses(classesData)
+            setPeriods(periodsResult.data || [])
+            setClasses(classesResult.data || [])
         } catch (err: any) {
             setError(err.message || "An unexpected error occurred")
             toast({
@@ -182,15 +192,14 @@ export default function AdminPeriodsPage() {
         try {
             const periodId = editingPeriod?.id || editingPeriod?._id
             const url = editingPeriod
-                ? `${API_URL}/periods/${periodId}`
-                : `${API_URL}/periods`
+                ? `${API_BASE}/periods/${periodId}`
+                : `${API_BASE}/periods`
             const method = editingPeriod ? "PUT" : "POST"
-
-            console.log(`Submitting Period to ${url} [${method}]:`, data);
 
             const response = await fetch(url, {
                 method,
                 headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify(data),
             })
 
@@ -238,11 +247,16 @@ export default function AdminPeriodsPage() {
         if (!confirm(`Are you sure you want to delete this period: ${period.name}?`)) return
 
         try {
-            const response = await fetch(`${API_URL}/periods/${id}`, {
+            const response = await fetch(`${API_BASE}/periods/${id}`, {
                 method: "DELETE",
+                credentials: "include",
             })
 
-            if (!response.ok) throw new Error("Failed to delete period")
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("API ERROR [handleDelete]:", response.status, errorText);
+                throw new Error(errorText || "Failed to delete period");
+            }
 
             toast({
                 title: "Deleted",

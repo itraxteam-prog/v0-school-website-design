@@ -97,7 +97,8 @@ interface Teacher extends TeacherFormValues {
   id?: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Internal API base path
+const API_BASE = "/api";
 
 export default function AdminTeachersPage() {
   const [teachers, setTeachers] = useState<Teacher[]>([])
@@ -124,10 +125,17 @@ export default function AdminTeachersPage() {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`${API_URL}/teachers`)
-      if (!response.ok) throw new Error("Failed to fetch teachers")
-      const data = await response.json()
-      setTeachers(data)
+      const response = await fetch(`${API_BASE}/teachers`, {
+        method: "GET",
+        credentials: "include",
+      })
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("API ERROR [fetchTeachers]:", response.status, errorText);
+        throw new Error(errorText || "Failed to fetch teachers");
+      }
+      const result = await response.json()
+      setTeachers(result.data || [])
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred")
       toast({
@@ -169,8 +177,8 @@ export default function AdminTeachersPage() {
     try {
       const teacherId = editingTeacher?.id || editingTeacher?._id
       const url = editingTeacher
-        ? `${API_URL}/teachers/${teacherId}`
-        : `${API_URL}/teachers`
+        ? `${API_BASE}/teachers/${teacherId}`
+        : `${API_BASE}/teachers`
       const method = editingTeacher ? "PUT" : "POST"
 
       // Map string to array for backend
@@ -179,14 +187,12 @@ export default function AdminTeachersPage() {
         classIds: data.classIds.split(',').map(s => s.trim()).filter(Boolean)
       }
 
-      console.log(`Submitting Teacher to ${url} [${method}]:`, payload);
-
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(payload),
       })
-
       console.log("Response Status:", response.status);
       const result = await response.json()
       console.log("Response JSON:", result);
@@ -231,11 +237,16 @@ export default function AdminTeachersPage() {
     if (!confirm(`Are you sure you want to delete ${teacher.name}?`)) return
 
     try {
-      const response = await fetch(`${API_URL}/teachers/${id}`, {
+      const response = await fetch(`${API_BASE}/teachers/${id}`, {
         method: "DELETE",
+        credentials: "include",
       })
 
-      if (!response.ok) throw new Error("Failed to delete teacher")
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("API ERROR [handleDelete]:", response.status, errorText);
+        throw new Error(errorText || "Failed to delete teacher");
+      }
 
       toast({
         title: "Deleted",

@@ -102,7 +102,8 @@ interface ClassRecord {
   studentCount: number;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Internal API base path
+const API_BASE = "/api";
 
 export default function AdminClassesPage() {
   const [classes, setClasses] = useState<ClassRecord[]>([])
@@ -130,21 +131,28 @@ export default function AdminClassesPage() {
     setError(null)
     try {
       const [classesRes, periodsRes] = await Promise.all([
-        fetch(`${API_URL}/classes`),
-        fetch(`${API_URL}/periods`)
+        fetch(`${API_BASE}/classes`, { credentials: "include" }),
+        fetch(`${API_BASE}/periods`, { credentials: "include" })
       ])
 
-      if (!classesRes.ok || !periodsRes.ok) {
-        throw new Error("Failed to fetch data from the server")
+      if (!classesRes.ok) {
+        const errorText = await classesRes.text();
+        console.error("API ERROR [fetchClasses]:", classesRes.status, errorText);
+        throw new Error(errorText || "Failed to fetch classes")
+      }
+      if (!periodsRes.ok) {
+        const errorText = await periodsRes.text();
+        console.error("API ERROR [fetchPeriods]:", periodsRes.status, errorText);
+        throw new Error(errorText || "Failed to fetch periods")
       }
 
-      const [classesData, periodsData] = await Promise.all([
+      const [classesResult, periodsResult] = await Promise.all([
         classesRes.json(),
         periodsRes.json()
       ])
 
-      setClasses(classesData)
-      setPeriods(periodsData)
+      setClasses(classesResult.data || [])
+      setPeriods(periodsResult.data || [])
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred")
       toast({
@@ -182,15 +190,14 @@ export default function AdminClassesPage() {
     try {
       const classId = editingClass?.id || editingClass?._id
       const url = editingClass
-        ? `${API_URL}/classes/${classId}`
-        : `${API_URL}/classes`
+        ? `${API_BASE}/classes/${classId}`
+        : `${API_BASE}/classes`
       const method = editingClass ? "PUT" : "POST"
-
-      console.log(`Submitting Class to ${url} [${method}]:`, data);
 
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(data),
       })
 
@@ -238,11 +245,16 @@ export default function AdminClassesPage() {
     if (!confirm(`Are you sure you want to delete ${classRecord.name}?`)) return
 
     try {
-      const response = await fetch(`${API_URL}/classes/${id}`, {
+      const response = await fetch(`${API_BASE}/classes/${id}`, {
         method: "DELETE",
+        credentials: "include",
       })
 
-      if (!response.ok) throw new Error("Failed to delete class")
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("API ERROR [handleDelete]:", response.status, errorText);
+        throw new Error(errorText || "Failed to delete class");
+      }
 
       toast({
         title: "Deleted",
