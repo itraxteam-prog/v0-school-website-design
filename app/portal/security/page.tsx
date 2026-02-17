@@ -1,6 +1,5 @@
 "use client"
-
-import { useAuth } from "@/context/AuthContext"
+import { useRequireAuth } from "@/hooks/useRequireAuth"
 import { AppLayout } from "@/components/layout/app-layout"
 import TwoFactorSetup from "@/components/portal/2fa-setup"
 import {
@@ -16,14 +15,19 @@ import {
     BookOpen,
     Calendar,
     MessageSquare,
-    ClipboardList
+    ClipboardList,
+    Loader2
 } from "lucide-react"
 
 export default function SecurityPage() {
-    const { user, loading } = useAuth()
+    const { user, loading } = useRequireAuth(['admin', 'teacher', 'student'])
 
     if (loading || !user) {
-        return null
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-secondary">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            </div>
+        )
     }
 
     // Get sidebar items based on role
