@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { LayoutDashboard, BookOpen, CalendarCheck, Clock, Megaphone, User, TrendingUp, Download, Filter } from "lucide-react"
+import { LayoutDashboard, BookOpen, CalendarCheck, Clock, Megaphone, User, TrendingUp, Download, Filter, ShieldCheck } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -19,6 +19,7 @@ const sidebarItems = [
   { href: "/portal/student/timetable", label: "Timetable", icon: Clock },
   { href: "/portal/student/announcements", label: "Announcements", icon: Megaphone },
   { href: "/portal/student/profile", label: "Profile", icon: User },
+  { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
 const terms = ["Fall 2025", "Spring 2026", "Fall 2026"]

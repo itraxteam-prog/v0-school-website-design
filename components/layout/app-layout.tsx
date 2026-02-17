@@ -160,13 +160,31 @@ export function AppLayout({ children, sidebarItems, userName, userRole }: AppLay
             <div className="relative">
               <div className={`${isSearchVisible ? 'fixed inset-x-0 top-0 h-14 z-50 bg-background flex items-center px-4 md:relative md:inset-auto md:h-auto md:bg-transparent md:px-0 md:flex' : 'hidden sm:block'}`}>
                 <Search className="absolute left-7 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground md:left-3" />
-                <Input
-                  placeholder="Search..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-9 w-full pl-9 text-xs transition-all focus:ring-primary md:w-40 md:focus:w-48 lg:w-64"
-                  autoFocus={isSearchVisible}
-                />
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (searchQuery.trim()) {
+                      const portalBase = pathname.startsWith('/portal/admin') ? '/portal/admin' :
+                        pathname.startsWith('/portal/teacher') ? '/portal/teacher' :
+                          '/portal/student';
+                      window.location.href = `${portalBase}/search?q=${encodeURIComponent(searchQuery.trim())}`;
+                    }
+                  }}
+                  className="w-full md:w-auto"
+                >
+                  <Input
+                    placeholder="Search..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.currentTarget.form?.requestSubmit();
+                      }
+                    }}
+                    className="h-9 w-full pl-9 text-xs transition-all focus:ring-primary md:w-40 md:focus:w-48 lg:w-64"
+                    autoFocus={isSearchVisible}
+                  />
+                </form>
                 {isSearchVisible && (
                   <Button
                     variant="ghost"

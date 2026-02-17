@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { LayoutDashboard, BookOpen, CalendarCheck, Clock, Megaphone, User, CheckCircle2, XCircle, AlertCircle } from "lucide-react"
+import { LayoutDashboard, BookOpen, CalendarCheck, Clock, Megaphone, User, CheckCircle2, XCircle, AlertCircle, ShieldCheck } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { AttendanceDistributionChart } from "@/components/portal/attendance-charts"
@@ -16,6 +16,7 @@ const sidebarItems = [
   { href: "/portal/student/timetable", label: "Timetable", icon: Clock },
   { href: "/portal/student/announcements", label: "Announcements", icon: Megaphone },
   { href: "/portal/student/profile", label: "Profile", icon: User },
+  { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
 const months = [
