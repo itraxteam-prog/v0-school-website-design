@@ -1,74 +1,79 @@
 import { Period } from '../data/periods';
-import { supabase } from '../utils/supabaseClient';
-import { handleSupabaseError } from '../utils/errors';
+import { sql } from '../utils/db';
 import { NotificationService } from './notificationService';
-import { unstable_cache, revalidateTag } from 'next/cache';
+import { revalidateTag } from 'next/cache';
 
 export const PeriodService = {
     getAll: async () => {
-        return unstable_cache(
-            async () => {
-                const { data, error } = await supabase
-                    .from('periods')
-                    .select('*');
-
-                if (error) throw new Error(handleSupabaseError(error));
-                return data as Period[];
-            },
-            ['periods-list'],
-            { tags: ['periods'], revalidate: 3600 }
-        )();
+        try {
+            const result = await sql`
+                SELECT id, name, start_time as "startTime", end_time as "endTime", class_id as "classId" 
+                FROM public.periods 
+                ORDER BY start_time ASC
+            `;
+            return result as unknown as Period[];
+        } catch (error: any) {
+            console.error('PeriodService.getAll Error:', error);
+            throw error;
+        }
     },
 
     getById: async (id: string) => {
-        return unstable_cache(
-            async (periodId: string) => {
-                const { data, error } = await supabase
-                    .from('periods')
-                    .select('*')
-                    .eq('id', periodId)
-                    .single();
-
-                if (error) return null;
-                return data as Period;
-            },
-            [`period-${id}`],
-            { tags: ['periods', `period-${id}`], revalidate: 3600 }
-        )(id);
+        try {
+            const result = await sql`
+                SELECT id, name, start_time as "startTime", end_time as "endTime", class_id as "classId" 
+                FROM public.periods 
+                WHERE id = ${id}
+            `;
+            return result.length > 0 ? (result[0] as unknown as Period) : null;
+        } catch (error: any) {
+            console.error('PeriodService.getById Error:', error);
+            throw error;
+        }
     },
 
     getByClassIds: async (classIds: string[]) => {
-        return unstable_cache(
-            async (cids: string[]) => {
-                if (!cids.length) return [];
-                const { data, error } = await supabase
-                    .from('periods')
-                    .select('*')
-                    .in('classId', cids);
-
-                if (error) return [];
-                return data as Period[];
-            },
-            [`periods-classes-${classIds.sort().join('-')}`],
-            { tags: ['periods'], revalidate: 3600 }
-        )(classIds);
+        try {
+            if (!classIds.length) return [];
+            const result = await sql`
+                SELECT id, name, start_time as "startTime", end_time as "endTime", class_id as "classId" 
+                FROM public.periods 
+                WHERE class_id IN ${sql(classIds)}
+                ORDER BY start_time ASC
+            `;
+            return result as unknown as Period[];
+        } catch (error: any) {
+            console.error('PeriodService.getByClassIds Error:', error);
+            return [];
+        }
     },
 
     create: async (data: Omit<Period, 'id'>) => {
-        const { data: newPeriod, error } = await supabase
-            .from('periods')
-            .insert([data])
-            .select()
-            .single();
+        try {
+            console.log('PeriodService.create - Data received:', data);
+            const id = `prd-${Math.random().toString(36).substr(2, 9)}`;
 
-        if (error) throw new Error(handleSupabaseError(error));
+            const result = await sql`
+                INSERT INTO public.periods (
+                    id, name, start_time, end_time, class_id
+                ) VALUES (
+                    ${id}, ${data.name}, ${data.startTime}, ${data.endTime}, ${data.classId}
+                ) RETURNING id, name, start_time as "startTime", end_time as "endTime", class_id as "classId"
+            `;
 
-        // Notify teachers and students about the new period (Async)
-        (async () => {
+            if (!result || result.length === 0) {
+                throw new Error('Failed to insert period');
+            }
+
+            const newPeriod = result[0];
+            console.log('PeriodService.create - Period created successfully:', newPeriod.id);
+            revalidateTag('periods');
+
+            // Notify about schedule change (Generic notify for now)
             try {
-                // Fetch relevant users or just do a generic role-based notify
-                const { data: users } = await supabase.from('users').select('id, role').in('role', ['teacher', 'student']);
-                if (users) {
+                // Background notify
+                (async () => {
+                    const users = await sql`SELECT id, role FROM public.users WHERE role IN ('teacher', 'student')`;
                     for (const user of users) {
                         NotificationService.sendEmailNotification(
                             user.id,
@@ -77,66 +82,59 @@ export const PeriodService = {
                             user.role
                         );
                     }
-                }
-            } catch (err) {
-                console.error('Failed to send schedule change notifications:', err);
+                })();
+            } catch (notifyError) {
+                console.error('Failed to send period notifications:', notifyError);
             }
-        })();
 
-        // Invalidate cache
-        revalidateTag('periods');
-
-        return newPeriod as Period;
+            return newPeriod as unknown as Period;
+        } catch (error: any) {
+            console.error('PeriodService.create Error:', error);
+            throw error;
+        }
     },
 
     update: async (id: string, data: Partial<Period>) => {
-        const { data: updatedPeriod, error } = await supabase
-            .from('periods')
-            .update(data)
-            .eq('id', id)
-            .select()
-            .single();
+        try {
+            const current = await PeriodService.getById(id);
+            if (!current) return null;
 
-        if (error) return null;
+            const updateData = { ...current, ...data };
 
-        // Notify about update (Async)
-        (async () => {
-            try {
-                const { data: users } = await supabase.from('users').select('id, role').in('role', ['teacher', 'student']);
-                if (users) {
-                    for (const user of users) {
-                        NotificationService.sendEmailNotification(
-                            user.id,
-                            'SCHEDULE_UPDATE',
-                            `A class period has been updated: ${updatedPeriod.name}`,
-                            user.role
-                        );
-                    }
-                }
-            } catch (err) {
-                console.error('Failed to send schedule update notifications:', err);
-            }
-        })();
+            const result = await sql`
+                UPDATE public.periods SET
+                    name = ${updateData.name},
+                    start_time = ${updateData.startTime},
+                    end_time = ${updateData.endTime},
+                    class_id = ${updateData.classId},
+                    updated_at = NOW()
+                WHERE id = ${id}
+                RETURNING id, name, start_time as "startTime", end_time as "endTime", class_id as "classId"
+            `;
 
-        // Invalidate cache
-        revalidateTag('periods');
-        revalidateTag(`period-${id}`);
+            const updatedPeriod = result[0];
+            revalidateTag('periods');
+            revalidateTag(`period-${id}`);
 
-        return updatedPeriod as Period;
+            return updatedPeriod as unknown as Period;
+        } catch (error: any) {
+            console.error('PeriodService.update Error:', error);
+            throw error;
+        }
     },
 
     delete: async (id: string) => {
-        const { error } = await supabase
-            .from('periods')
-            .delete()
-            .eq('id', id);
+        try {
+            await sql`DELETE FROM public.periods WHERE id = ${id}`;
 
-        if (error) return false;
+            revalidateTag('periods');
+            revalidateTag(`period-${id}`);
 
-        // Invalidate cache
-        revalidateTag('periods');
-        revalidateTag(`period-${id}`);
-
-        return true;
+            return true;
+        } catch (error: any) {
+            console.error('PeriodService.delete Error:', error);
+            return false;
+        }
     }
 };
+

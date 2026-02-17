@@ -23,25 +23,43 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json();
+        console.log('API POST /api/users - Request Body:', { ...body, password: '[REDACTED]' });
 
         // Validate
         const validation = await validateBody(RegisterSchema, body);
         if (validation.error) {
-            return NextResponse.json({ error: validation.error }, { status: 400 });
+            console.error('API POST /api/users - Validation Failed:', validation.error);
+            return NextResponse.json({
+                success: false,
+                error: validation.error
+            }, { status: 400 });
         }
 
         // Use AuthService to handle hashing and user creation
         const result = await AuthService.register(validation.data);
 
         if (result.error) {
+            console.error('API POST /api/users - AuthService Error:', result.error);
             LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'USER', undefined, 'failure', { error: result.error });
-            return NextResponse.json({ error: result.error }, { status: result.status || 500 });
+            return NextResponse.json({
+                success: false,
+                error: result.error
+            }, { status: result.status || 500 });
         }
 
+        console.log('API POST /api/users - Success:', (result.user as any)?.id);
         LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'USER', (result.user as any)?.id, 'success');
-        return NextResponse.json(result.user, { status: 201 });
+
+        return NextResponse.json({
+            success: true,
+            data: result.user
+        }, { status: 201 });
 
     } catch (error: any) {
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        console.error('API POST /api/users - Internal Error:', error);
+        return NextResponse.json({
+            success: false,
+            error: error.message || 'Internal Server Error'
+        }, { status: 500 });
     }
 }

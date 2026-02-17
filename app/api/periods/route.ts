@@ -23,15 +23,30 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json();
+        console.log('API POST /api/periods - Request Body:', body);
+
         const result = await periodRoutes.create(body, auth.user);
         if (result.status >= 400) {
+            console.error('API POST /api/periods - Route Error:', result.error || result.errors);
             LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'PERIOD', undefined, 'failure', { error: result.error || result.errors });
-            return NextResponse.json({ error: result.error || result.errors }, { status: result.status });
+            return NextResponse.json({
+                success: false,
+                error: result.error || result.errors
+            }, { status: result.status });
         }
 
+        console.log('API POST /api/periods - Success:', (result.data as any)?.id);
         LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'PERIOD', (result.data as any)?.id, 'success', result.data);
-        return NextResponse.json(result.data, { status: result.status });
-    } catch (error) {
-        return NextResponse.json({ error: 'Failed to parse request body' }, { status: 400 });
+
+        return NextResponse.json({
+            success: true,
+            data: result.data
+        }, { status: result.status });
+    } catch (error: any) {
+        console.error('API POST /api/periods - Internal Error:', error);
+        return NextResponse.json({
+            success: false,
+            error: error.message || 'Failed to process period creation'
+        }, { status: 500 });
     }
 }

@@ -165,15 +165,19 @@ export default function UserManagementPage() {
         status: data.status
       }
 
+      console.log("Submitting User Payload:", { ...payload, password: "[REDACTED]" });
+
       const response = await fetch(`${API_URL}/users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
 
+      console.log("Response Status:", response.status);
       const result = await response.json()
+      console.log("Response JSON:", result);
 
-      if (!response.ok) {
+      if (!response.ok || !result.success) {
         throw new Error(result.error || "Failed to create user")
       }
 
@@ -182,6 +186,7 @@ export default function UserManagementPage() {
       form.reset()
       fetchUsers()
     } catch (err: any) {
+      console.error("Submit Error:", err);
       toast.error(err.message || "Failed to add user")
     } finally {
       setIsSubmitting(false)

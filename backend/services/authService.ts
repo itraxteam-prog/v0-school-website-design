@@ -4,6 +4,7 @@ import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
 import { User } from '@/backend/data/users';
 import { supabase } from '../utils/supabaseClient';
+import { sql } from '../utils/db';
 import { handleSupabaseError } from '../utils/errors';
 import { validatePassword } from '@/utils/validation';
 import { NotificationService } from './notificationService';
@@ -43,39 +44,49 @@ export const AuthService = {
 
     register: async (data: any): Promise<LoginResult> => {
         try {
+            console.log('AuthService.register - Data received:', { ...data, password: '[REDACTED]' });
+
             // 1. Hash password
             const hashedPassword = await bcrypt.hash(data.password, 10);
 
-            // 2. Insert into users table
-            const { data: newUser, error } = await supabase
-                .from('users')
-                .insert([{
-                    email: data.email,
-                    password: hashedPassword,
-                    name: data.name,
-                    role: data.role || 'student',
-                    failed_login_attempts: 0,
-                    two_factor_enabled: false
-                }])
-                .select()
-                .single();
+            // 2. Insert into users table using SQL client for reliability
+            const result = await sql`
+                INSERT INTO public.users (
+                    id, email, password, name, role, failed_login_attempts, two_factor_enabled
+                ) VALUES (
+                    ${data.id || `u-${Math.random().toString(36).substr(2, 9)}`}, 
+                    ${data.email}, 
+                    ${hashedPassword}, 
+                    ${data.name}, 
+                    ${data.role || 'student'}, 
+                    0, 
+                    false
+                ) RETURNING *
+            `;
 
-            if (error) {
-                return { error: handleSupabaseError(error), status: 400 };
+            if (!result || result.length === 0) {
+                throw new Error('Failed to insert user into database');
             }
 
+            const newUser = result[0];
+            console.log('AuthService.register - User created successfully:', newUser.id);
+
             // 3. Trigger Welcome Email (Async)
-            NotificationService.sendEmailNotification(
-                newUser.id,
-                'WELCOME',
-                `Welcome to Pioneers High, ${newUser.name}! Your account has been created successfully.`,
-                newUser.role
-            );
+            try {
+                NotificationService.sendEmailNotification(
+                    newUser.id,
+                    'WELCOME',
+                    `Welcome to Pioneers High, ${newUser.name}! Your account has been created successfully.`,
+                    newUser.role
+                );
+            } catch (notifyError) {
+                console.error('Failed to send welcome notification:', notifyError);
+            }
 
             // 4. Return user data
             const { password: _, ...userWithoutPassword } = newUser;
             return {
-                user: userWithoutPassword,
+                user: userWithoutPassword as any,
                 status: 201
             };
         } catch (error: any) {
