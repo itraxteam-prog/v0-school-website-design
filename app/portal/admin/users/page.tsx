@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { toast } from "sonner"
 import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -79,6 +80,7 @@ const sidebarItems = [
   { href: "/portal/admin/users", label: "User Management", icon: Settings },
   { href: "/portal/admin/roles", label: "Roles & Permissions", icon: ShieldCheck },
   { href: "/portal/admin/school-settings", label: "School Settings", icon: Settings },
+  { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
 const userSchema = z.object({
@@ -136,6 +138,7 @@ export default function UserManagementPage() {
     console.log(data)
     setIsAddModalOpen(false)
     form.reset()
+    toast.success("User added successfully")
   }
 
   const filteredUsers = dummyUsers.filter(user =>
@@ -374,15 +377,24 @@ export default function UserManagementPage() {
                               <DropdownMenuContent align="end" className="glass-panel border-border/50">
                                 <DropdownMenuLabel>User Actions</DropdownMenuLabel>
                                 <DropdownMenuSeparator className="bg-border/50" />
-                                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer focus:bg-primary/5 focus:text-primary py-2">
+                                <DropdownMenuItem
+                                  className="flex items-center gap-2 cursor-pointer focus:bg-primary/5 py-2"
+                                  onClick={() => toast.info("Profile editing is currently restricted to HR department.")}
+                                >
                                   <Edit size={14} />
                                   Edit Profile
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer focus:bg-primary/5 py-2">
+                                <DropdownMenuItem
+                                  className="flex items-center gap-2 cursor-pointer focus:bg-primary/5 py-2"
+                                  onClick={() => toast.success(`User ${user.status === "Active" ? "suspended" : "activated"} successfully`)}
+                                >
                                   {user.status === "Active" ? <UserX size={14} className="text-amber-600" /> : <UserCheck size={14} className="text-emerald-600" />}
                                   {user.status === "Active" ? "Suspend Access" : "Activate User"}
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer focus:bg-primary/5 py-2">
+                                <DropdownMenuItem
+                                  className="flex items-center gap-2 cursor-pointer focus:bg-primary/5 py-2"
+                                  onClick={() => toast.success("Password reset link sent to email")}
+                                >
                                   <Key size={14} />
                                   Reset Password
                                 </DropdownMenuItem>
@@ -444,7 +456,16 @@ export default function UserManagementPage() {
             </DialogHeader>
             <DialogFooter className="grid grid-cols-2 gap-3 pt-4">
               <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>Cancel</Button>
-              <Button variant="destructive" className="shadow-lg shadow-destructive/20" onClick={() => setIsDeleteModalOpen(false)}>Delete User</Button>
+              <Button
+                variant="destructive"
+                className="shadow-lg shadow-destructive/20"
+                onClick={() => {
+                  setIsDeleteModalOpen(false)
+                  toast.success("User deleted successfully")
+                }}
+              >
+                Delete User
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
