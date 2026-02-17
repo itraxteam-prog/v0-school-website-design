@@ -99,6 +99,7 @@ const chartConfig = {
 }
 
 export default function AnalyticsPage() {
+  const { user, loading: authLoading } = useRequireAuth(['admin']);
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -106,8 +107,12 @@ export default function AnalyticsPage() {
     return () => clearTimeout(timer)
   }, [])
 
+  if (authLoading) {
+    return null;
+  }
+
   return (
-    <AppLayout sidebarItems={sidebarItems} userName="Dr. Ahmad Raza" userRole="admin">
+    <AppLayout sidebarItems={sidebarItems} userName={user?.name || "Dr. Ahmad Raza"} userRole="admin">
       <div className="flex flex-col gap-8 pb-8">
 
         {/* Header Section */}
