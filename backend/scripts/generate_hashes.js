@@ -1,9 +1,11 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 const saltRounds = 10;
-const password = 'password123';
+const passwords = ['Admin@2024!', 'Teacher@2024!', 'Student@2024!'];
 
-bcrypt.hash(password, saltRounds, function (err, hash) {
-    if (err) console.error(err);
-    console.log('Hash for password123:', hash);
+passwords.forEach(pw => {
+    bcrypt.hash(pw, saltRounds, function (err, hash) {
+        if (err) console.error(err);
+        console.log(`Hash for ${pw}:`, hash);
+    });
 });
