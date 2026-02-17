@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent } from '@/components/ui/card';
+import { useToast } from '@/components/ui/use-toast';
 import {
   InputOTP,
   InputOTPGroup,
@@ -39,6 +40,7 @@ export default function LoginPage() {
 
   const { login, verify2FA, user, loading: authLoading } = useAuth()
   const router = useRouter()
+  const { toast } = useToast()
 
   // Auto-login: Redirect if user is already authenticated
   useEffect(() => {
@@ -76,9 +78,23 @@ export default function LoginPage() {
       if (result && result.requires2FA) {
         setRequires2FA(true)
         setTempToken(result.tempToken || "")
+        toast({
+          title: "2FA Required",
+          description: "Please enter your verification code.",
+        })
+      } else if (result && result.user) {
+        toast({
+          title: "Login Successful",
+          description: `Welcome back, ${result.user.name}!`,
+        })
       }
     } catch (err: any) {
       setError(err.message || "Login failed. Please check your credentials.")
+      toast({
+        title: "Login Failed",
+        description: err.message || "Invalid email or password.",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
@@ -91,8 +107,17 @@ export default function LoginPage() {
 
     try {
       await verify2FA(tempToken, otpCode, rememberMe)
+      toast({
+        title: "Verification Successful",
+        description: "You have been logged in.",
+      })
     } catch (err: any) {
       setError(err.message || "Invalid 2FA code. Please try again.")
+      toast({
+        title: "Verification Failed",
+        description: err.message || "The code you entered is invalid.",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }

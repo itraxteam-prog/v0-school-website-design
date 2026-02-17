@@ -85,8 +85,8 @@ const sidebarItems = [
 const teacherSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   employeeId: z.string().min(4, { message: "Employee ID must be at least 4 characters." }),
-  departments: z.string().min(1, { message: "Please enter departments." }),
-  assignedClasses: z.string().min(1, { message: "Please enter assigned classes." }),
+  department: z.string().min(1, { message: "Please enter department." }),
+  classIds: z.string().min(1, { message: "Please enter assigned class IDs (comma separated)." }),
 })
 
 type TeacherFormValues = z.infer<typeof teacherSchema>
@@ -114,8 +114,8 @@ export default function AdminTeachersPage() {
     defaultValues: {
       name: "",
       employeeId: "",
-      departments: "",
-      assignedClasses: "",
+      department: "",
+      classIds: "",
     },
   })
 
@@ -148,15 +148,17 @@ export default function AdminTeachersPage() {
       form.reset({
         name: editingTeacher.name,
         employeeId: editingTeacher.employeeId,
-        departments: editingTeacher.departments,
-        assignedClasses: editingTeacher.assignedClasses,
+        department: (editingTeacher as any).department || (editingTeacher as any).departments,
+        classIds: Array.isArray((editingTeacher as any).classIds)
+          ? (editingTeacher as any).classIds.join(', ')
+          : ((editingTeacher as any).assignedClasses || ""),
       })
     } else {
       form.reset({
         name: "",
         employeeId: "",
-        departments: "",
-        assignedClasses: "",
+        department: "",
+        classIds: "",
       })
     }
   }, [editingTeacher, form])
@@ -170,13 +172,32 @@ export default function AdminTeachersPage() {
         : `${API_URL}/teachers`
       const method = editingTeacher ? "PUT" : "POST"
 
+      // Map string to array for backend
+      const payload = {
+        ...data,
+        classIds: data.classIds.split(',').map(s => s.trim()).filter(Boolean)
+      }
+
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       })
 
-      if (!response.ok) throw new Error(`Failed to ${editingTeacher ? 'update' : 'add'} teacher`)
+      const result = await response.json()
+
+      if (!response.ok) {
+        // Map backend Zod errors back to form fields
+        if (result.error && typeof result.error === 'string') {
+          const parts = result.error.split(': ')
+          if (parts.length > 1) {
+            const field = parts[0] as any
+            const message = parts[1]
+            form.setError(field, { message })
+          }
+        }
+        throw new Error(result.error || `Failed to ${editingTeacher ? 'update' : 'add'} teacher`)
+      }
 
       toast({
         title: "Success",
@@ -291,10 +312,10 @@ export default function AdminTeachersPage() {
                       />
                       <FormField
                         control={form.control}
-                        name="departments"
+                        name="department"
                         render={({ field }) => (
                           <FormItem className="col-span-2">
-                            <FormLabel>Departments</FormLabel>
+                            <FormLabel>Department</FormLabel>
                             <FormControl>
                               <Input placeholder="Mathematics, Physics" {...field} className="glass-card" />
                             </FormControl>
@@ -304,12 +325,12 @@ export default function AdminTeachersPage() {
                       />
                       <FormField
                         control={form.control}
-                        name="assignedClasses"
+                        name="classIds"
                         render={({ field }) => (
                           <FormItem className="col-span-2">
-                            <FormLabel>Assigned Classes</FormLabel>
+                            <FormLabel>Assigned Class IDs</FormLabel>
                             <FormControl>
-                              <Input placeholder="10-A, 9-B, 11-C" {...field} className="glass-card" />
+                              <Input placeholder="cls-001, cls-002" {...field} className="glass-card" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -407,7 +428,7 @@ export default function AdminTeachersPage() {
                       <TableRow className="border-border/50 hover:bg-transparent">
                         <TableHead className="pl-6 font-semibold h-12 uppercase text-[10px] tracking-wider">Name</TableHead>
                         <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Employee ID</TableHead>
-                        <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Departments</TableHead>
+                        <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Department</TableHead>
                         <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Assigned Classes</TableHead>
                         <TableHead className="pr-6 text-right font-semibold h-12 uppercase text-[10px] tracking-wider">Actions</TableHead>
                       </TableRow>
@@ -425,10 +446,10 @@ export default function AdminTeachersPage() {
                                 {teacher.employeeId}
                               </span>
                             </TableCell>
-                            <TableCell className="py-4 text-muted-foreground font-medium">{teacher.departments}</TableCell>
+                            <TableCell className="py-4 text-muted-foreground font-medium">{(teacher as any).department || (teacher as any).departments}</TableCell>
                             <TableCell className="py-4 text-muted-foreground">
                               <div className="flex flex-wrap gap-1">
-                                {teacher.assignedClasses.split(',').map((cls, idx) => (
+                                {(Array.isArray((teacher as any).classIds) ? (teacher as any).classIds : ((teacher as any).assignedClasses || "").split(',')).map((cls: string, idx: number) => (
                                   <Badge key={idx} variant="secondary" className="bg-muted/50 text-[10px] h-5">
                                     {cls.trim()}
                                   </Badge>
