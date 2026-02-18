@@ -45,13 +45,19 @@ A modern, high-performance School Management System built with Next.js 14, Supab
 3. Set up environment variables:
    Create a `.env.local` file with the following:
    ```env
+   DATABASE_URL=your_postgres_connection_string
+   JWT_SECRET=your_jwt_secret
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
    SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
    NEXT_PUBLIC_API_URL=http://localhost:3000/api
    ```
 
-4. Run the development server:
+4. Set up the database:
+   Run `backend/model/create_users_table.sql` and `backend/model/seed_users.sql` against your database.
+   Default credentials: admin@school.com / NewAdmin@2025!, teacher@school.com / NewTeacher@2025!, student@school.com / NewStudent@2025!
+
+5. Run the development server:
    ```bash
    pnpm run dev
    ```

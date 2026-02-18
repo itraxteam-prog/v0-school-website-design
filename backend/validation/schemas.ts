@@ -54,7 +54,10 @@ export const TeacherSchema = z.object({
     name: z.string().min(2, 'Name is required').transform(sanitize),
     employeeId: z.string().min(1, 'Employee ID is required').transform(sanitize),
     department: z.string().min(1, 'Department is required').transform(sanitize),
-    classIds: z.array(z.string()).min(1, 'At least one class assignment is required'),
+    classIds: z.union([
+        z.array(z.string()),
+        z.string().transform((s) => s.split(',').map((x) => x.trim()).filter(Boolean))
+    ]).refine((arr) => Array.isArray(arr) && arr.length >= 1, 'At least one class assignment is required'),
 });
 
 export const ClassSchema = z.object({

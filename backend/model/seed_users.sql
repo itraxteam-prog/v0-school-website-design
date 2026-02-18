@@ -5,9 +5,9 @@
 -- with new secure passwords for the School Management System
 -- 
 -- New Credentials:
--- - Admin:   admin@school.com   / Admin@2024!
--- - Teacher: teacher@school.com / Teacher@2024!
--- - Student: student@school.com / Student@2024!
+-- - Admin:   admin@school.com   / NewAdmin@2025!
+-- - Teacher: teacher@school.com / NewTeacher@2025!
+-- - Student: student@school.com / NewStudent@2025!
 -- =====================================================
 
 -- First, ensure the roles exist (if roles table is being used)
@@ -36,7 +36,7 @@ INSERT INTO users (
 ) VALUES (
     'u-admin-1',
     'admin@school.com',
-    '$2b$10$EkHUhS9ZKceTJedSteTYeOAwOliIy9mH7vPxsWU6e92OeURkPZPzy', -- Admin@2024!
+    '$2b$10$EkHUhS9ZKceTJedSteTYeOAwOliIy9mH7vPxsWU6e92OeURkPZPzy', -- NewAdmin@2025!
     'Dr. Ahmad Raza',
     'admin',
     0,
@@ -70,7 +70,7 @@ INSERT INTO users (
 ) VALUES (
     'u-teacher-1',
     'teacher@school.com',
-    '$2b$10$0d8uO0zcMsG3NT2Q3bkkEetR0033HCJ2VlfBOarIiBVChVEQM2pv6', -- Teacher@2024!
+    '$2b$10$0d8uO0zcMsG3NT2Q3bkkEetR0033HCJ2VlfBOarIiBVChVEQM2pv6', -- NewTeacher@2025!
     'Mr. Usman Sheikh',
     'teacher',
     0,
@@ -104,7 +104,7 @@ INSERT INTO users (
 ) VALUES (
     'u-student-1',
     'student@school.com',
-    '$2b$10$/kcXRpCMzgThHIqyIsc5seYWYp8PdkPnK3lEbbZ4byx26wxGiWLCq', -- Student@2024!
+    '$2b$10$/kcXRpCMzgThHIqyIsc5seYWYp8PdkPnK3lEbbZ4byx26wxGiWLCq', -- NewStudent@2025!
     'Ahmed Khan',
     'student',
     0,
