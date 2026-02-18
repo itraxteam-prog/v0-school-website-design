@@ -75,17 +75,18 @@ export default function LoginPage() {
 
     try {
       const result = await login(email, password, rememberMe)
-      if (result && result.requires2FA) {
+      const loginResult = result as any;
+      if (loginResult && loginResult.requires2FA) {
         setRequires2FA(true)
-        setTempToken(result.tempToken || "")
+        setTempToken(loginResult.tempToken || "")
         toast({
           title: "2FA Required",
           description: "Please enter your verification code.",
         })
-      } else if (result && result.user) {
+      } else if (loginResult && loginResult.user) {
         toast({
           title: "Login Successful",
-          description: `Welcome back, ${result.user.name}!`,
+          description: `Welcome back, ${loginResult.user.name}!`,
         })
       }
     } catch (err: any) {

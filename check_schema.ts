@@ -15,7 +15,7 @@ async function check() {
     const sql = postgres(url, { ssl: 'require' });
     try {
         const tables = ['students', 'academic_records', 'users', 'classes', 'teachers', 'periods'];
-        const schema = {};
+        const schema: Record<string, any> = {};
         for (const table of tables) {
             const result = await sql`SELECT column_name, data_type FROM information_schema.columns WHERE table_name = ${table} AND table_schema = 'public'`;
             schema[table] = result;

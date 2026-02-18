@@ -17,7 +17,7 @@ export const AttendanceService = {
             async (cid: string, d: string) => {
                 const { data, error } = await supabase
                     .from('attendance')
-                    .select('id, student_id, status, date, remarks')
+                    .select('id, student_id, class_id, status, date, recorded_by, remarks')
                     .eq('class_id', cid)
                     .eq('date', d);
 

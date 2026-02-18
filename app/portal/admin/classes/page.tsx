@@ -100,6 +100,8 @@ interface ClassRecord {
   teacher: string;
   room: string;
   studentCount: number;
+  classTeacherId?: string;
+  roomNo?: string;
 }
 
 // Internal API base path

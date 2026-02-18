@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     const date = searchParams.get('date');
 
     if (!classId || !date) {
-        return NextResponse.json({ error: 'Missing classId or date' }, { status: 400 });
+        return createErrorResponse('Missing classId or date', 400);
     }
 
     // Role Logic: 

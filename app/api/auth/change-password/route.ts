@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
             return createErrorResponse(validation.error, 400);
         }
 
-        const { currentPassword, newPassword } = validation.data;
+        const { currentPassword, newPassword } = validation.data!;
 
         const result = await authRoutes.changePassword(user.id, currentPassword, newPassword);
 

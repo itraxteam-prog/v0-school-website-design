@@ -33,17 +33,19 @@ export const LogService = {
             timestamp: new Date().toISOString()
         };
 
-        supabase
-            .from('activity_logs')
-            .insert([logEntry])
-            .then(({ error }) => {
+        (async () => {
+            try {
+                const { error } = await supabase
+                    .from('activity_logs')
+                    .insert([logEntry]);
+
                 if (error) {
                     console.error('Failed to write log entry:', error.message);
                 }
-            })
-            .catch(err => {
+            } catch (err) {
                 console.error('Unexpected error in LogService:', err);
-            });
+            }
+        })();
     },
 
     logPerformance: (path: string, method: string, durationMs: number, status: number) => {

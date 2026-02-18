@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
             return createErrorResponse(validation.error, 400);
         }
 
-        const { token, newPassword } = validation.data;
+        const { token, newPassword } = validation.data!;
         const result = await authRoutes.resetPassword(token, newPassword);
 
         if (result.status >= 400) {

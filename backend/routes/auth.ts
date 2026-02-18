@@ -22,7 +22,9 @@ export const authRoutes = {
             }
 
             // Log success
-            LogService.logAction(result.user.id, result.user.role, 'LOGIN', 'AUTH', undefined, 'success', { email });
+            if (result.user) {
+                LogService.logAction(result.user.id, result.user.role, 'LOGIN', 'AUTH', undefined, 'success', { email });
+            }
 
             return {
                 status: 200,
