@@ -192,7 +192,7 @@ export default function RolesPermissionsPage() {
                 : `${API_BASE}/roles`
             const method = editingRole ? "PUT" : "POST"
 
-            const response = await fetch(url.replace(process.env.NEXT_PUBLIC_API_URL || '', API_BASE), {
+            const response = await fetch(url, {
                 method,
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",

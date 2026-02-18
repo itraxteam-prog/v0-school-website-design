@@ -51,7 +51,7 @@ interface Announcement {
   audience: ("student" | "teacher" | "all")[];
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 const upcomingEvents = [
   { title: "Basketball Finals", date: "Feb 18", time: "02:00 PM", location: "Gym A" },
@@ -71,7 +71,7 @@ export default function AnnouncementsPage() {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`${API_URL}/announcements`)
+      const response = await fetch(`${API_BASE}/announcements`)
       if (!response.ok) throw new Error("Failed to fetch announcements")
       const result = await response.json()
       const data = result.data || result;
