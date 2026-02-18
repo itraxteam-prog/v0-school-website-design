@@ -9,6 +9,8 @@ export function middleware(request: NextRequest) {
     if (
         pathname === '/' ||
         pathname.startsWith('/portal/login') ||
+        pathname.startsWith('/portal/forgot-password') ||
+        pathname.startsWith('/portal/reset-password') ||
         pathname.startsWith('/api/auth') ||
         pathname.startsWith('/api/test-env') ||
         pathname.startsWith('/_next') ||
