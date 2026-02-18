@@ -1,3 +1,5 @@
+import { supabase } from '../utils/supabaseClient';
+import { handleSupabaseError } from '../utils/errors';
 import { unstable_cache, revalidateTag } from 'next/cache';
 
 export interface AcademicRecord {
@@ -16,8 +18,17 @@ export const AcademicService = {
     getStudentRecords: async (studentId: string) => {
         return unstable_cache(
             async (id: string) => {
-                console.warn(`AcademicService.getStudentRecords(${id}): Supabase logic removed.`);
-                return [];
+                const { data, error } = await supabase
+                    .from('academic_records')
+                    .select(`
+                        id, term, marks_obtained, total_marks, grade, exam_date, remarks,
+                        subjects (id, name, code)
+                    `)
+                    .eq('student_id', id)
+                    .order('exam_date', { ascending: false });
+
+                if (error) throw new Error(handleSupabaseError(error));
+                return data;
             },
             [`student-academic-${studentId}`],
             { tags: ['academic', `student-academic-${studentId}`], revalidate: 3600 }
@@ -27,8 +38,30 @@ export const AcademicService = {
     getGradeDistribution: async (classId?: string) => {
         return unstable_cache(
             async (cid?: string) => {
-                console.warn(`AcademicService.getGradeDistribution(${cid}): Supabase logic removed.`);
-                return [];
+                let query = supabase
+                    .from('academic_records')
+                    .select('grade');
+
+                if (cid) {
+                    const { data: students } = await supabase
+                        .from('students')
+                        .select('id')
+                        .eq('classId', cid);
+
+                    if (students) {
+                        query = query.in('student_id', students.map(s => s.id));
+                    }
+                }
+
+                const { data, error } = await query;
+                if (error) throw new Error(handleSupabaseError(error));
+
+                const distribution = (data as any[]).reduce((acc, curr) => {
+                    acc[curr.grade] = (acc[curr.grade] || 0) + 1;
+                    return acc;
+                }, {});
+
+                return Object.entries(distribution).map(([grade, count]) => ({ grade, count }));
             },
             [`grade-distribution-${classId || 'all'}`],
             { tags: ['academic'], revalidate: 3600 }
@@ -38,8 +71,25 @@ export const AcademicService = {
     getClassRecords: async (classId: string, subjectId: string, term: string) => {
         return unstable_cache(
             async (cid: string, sid: string, t: string) => {
-                console.warn(`AcademicService.getClassRecords(${cid}, ${sid}, ${t}): Supabase logic removed.`);
-                return [];
+                const { data: students, error: studentError } = await supabase
+                    .from('students')
+                    .select('id')
+                    .eq('classId', cid);
+
+                if (studentError) throw new Error(handleSupabaseError(studentError));
+
+                const studentIds = students?.map(s => s.id) || [];
+                if (studentIds.length === 0) return [];
+
+                const { data, error } = await supabase
+                    .from('academic_records')
+                    .select('id, student_id, marks_obtained, grade')
+                    .in('student_id', studentIds)
+                    .eq('subject_id', sid)
+                    .eq('term', t);
+
+                if (error) throw new Error(handleSupabaseError(error));
+                return data;
             },
             [`class-records-${classId}-${subjectId}-${term}`],
             { tags: ['academic', `class-records-${classId}`], revalidate: 3600 }
@@ -47,14 +97,36 @@ export const AcademicService = {
     },
 
     upsertBulk: async (records: Partial<AcademicRecord>[]) => {
-        console.warn("AcademicService.upsertBulk: Supabase logic removed.");
+        const { data, error } = await supabase
+            .from('academic_records')
+            .upsert(records)
+            .select();
+
+        if (error) throw new Error(handleSupabaseError(error));
+
         revalidateTag('academic');
-        return [];
+        records.forEach(r => {
+            if (r.student_id) {
+                revalidateTag(`student-academic-${r.student_id}`);
+            }
+        });
+
+        return data;
     },
 
     upsertRecord: async (data: Partial<AcademicRecord>) => {
-        console.warn("AcademicService.upsertRecord: Supabase logic removed.");
+        const { data: record, error } = await supabase
+            .from('academic_records')
+            .upsert(data)
+            .select()
+            .single();
+
+        if (error) throw new Error(handleSupabaseError(error));
+
         revalidateTag('academic');
-        return null;
+        if (data.student_id) {
+            revalidateTag(`student-academic-${data.student_id}`);
+        }
+        return record;
     }
 };

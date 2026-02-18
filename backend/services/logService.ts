@@ -1,19 +1,18 @@
+import { supabase } from '../utils/supabaseClient';
+
 export interface LogEntry {
     id?: string;
-    user_id: string; // Changed from userId to user_id to match DB
+    user_id: string;
     role: string;
     action: string;
     entity: string;
-    entity_id?: string; // Changed from entityId to entity_id to match DB
+    entity_id?: string;
     status: 'success' | 'failure';
-    metadata?: any; // Changed from details to metadata to match DB
+    metadata?: any;
     timestamp?: string;
 }
 
 export const LogService = {
-    /**
-     * Logs an action - Logic removed
-     */
     logAction: (
         userId: string,
         role: string,
@@ -23,12 +22,30 @@ export const LogService = {
         status: 'success' | 'failure' = 'success',
         details?: any
     ) => {
-        console.warn(`LogService.logAction(${action}): Supabase logic removed.`);
+        const logEntry: LogEntry = {
+            user_id: userId,
+            role: role,
+            action: action,
+            entity: entity,
+            entity_id: entityId,
+            status: status,
+            metadata: details,
+            timestamp: new Date().toISOString()
+        };
+
+        supabase
+            .from('activity_logs')
+            .insert([logEntry])
+            .then(({ error }) => {
+                if (error) {
+                    console.error('Failed to write log entry:', error.message);
+                }
+            })
+            .catch(err => {
+                console.error('Unexpected error in LogService:', err);
+            });
     },
 
-    /**
-     * Logs API performance metrics
-     */
     logPerformance: (path: string, method: string, durationMs: number, status: number) => {
         LogService.logAction(
             'system',
@@ -41,9 +58,6 @@ export const LogService = {
         );
     },
 
-    /**
-     * Logs system errors
-     */
     logError: (userId: string | 'system', role: string | 'system', error: any, context?: string) => {
         LogService.logAction(
             userId,

@@ -1,3 +1,5 @@
+import { supabase } from '../utils/supabaseClient';
+import { handleSupabaseError } from '../utils/errors';
 import { unstable_cache, revalidateTag } from 'next/cache';
 
 export interface User {
@@ -14,9 +16,16 @@ export const UserService = {
     getAll: async () => {
         return unstable_cache(
             async () => {
-                // Supabase logic removed
-                console.warn("UserService.getAll: Supabase logic removed.");
-                return [] as User[];
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('id, email, name, role, status, last_login, created_at')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error("Supabase Error [UserService.getAll]:", error);
+                    throw new Error(handleSupabaseError(error));
+                }
+                return data as User[];
             },
             ['users-list'],
             { tags: ['users'], revalidate: 60 }
@@ -26,9 +35,14 @@ export const UserService = {
     getById: async (id: string) => {
         return unstable_cache(
             async (userId: string) => {
-                // Supabase logic removed
-                console.warn(`UserService.getById(${userId}): Supabase logic removed.`);
-                return null;
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('id, email, name, role, status, last_login, created_at')
+                    .eq('id', userId)
+                    .single();
+
+                if (error) return null;
+                return data as User;
             },
             [`user-${id}`],
             { tags: ['users', `user-${id}`], revalidate: 60 }
@@ -36,16 +50,28 @@ export const UserService = {
     },
 
     update: async (id: string, data: Partial<User>) => {
-        // Supabase logic removed
-        console.warn(`UserService.update(${id}): Supabase logic removed.`);
+        const { data: updatedUser, error } = await supabase
+            .from('users')
+            .update(data)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw new Error(handleSupabaseError(error));
+
         revalidateTag('users');
         revalidateTag(`user-${id}`);
-        return null as any;
+        return updatedUser as User;
     },
 
     delete: async (id: string) => {
-        // Supabase logic removed
-        console.warn(`UserService.delete(${id}): Supabase logic removed.`);
+        const { error } = await supabase
+            .from('users')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw new Error(handleSupabaseError(error));
+
         revalidateTag('users');
         revalidateTag(`user-${id}`);
         return true;
