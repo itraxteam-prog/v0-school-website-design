@@ -36,7 +36,7 @@ INSERT INTO users (
 ) VALUES (
     'u-admin-1',
     'admin@school.com',
-    '$2b$10$EkHUhS9ZKceTJedSteTYeOAwOliIy9mH7vPxsWU6e92OeURkPZPzy', -- NewAdmin@2025!
+    '$2b$10$PfW8bkJsLtvXn2Bh6QEGje1U4zKsC.LTzM9Z7WQ2xEsiBreFCYR4e', -- NewAdmin@2025!
     'Dr. Ahmad Raza',
     'admin',
     0,
@@ -70,7 +70,7 @@ INSERT INTO users (
 ) VALUES (
     'u-teacher-1',
     'teacher@school.com',
-    '$2b$10$0d8uO0zcMsG3NT2Q3bkkEetR0033HCJ2VlfBOarIiBVChVEQM2pv6', -- NewTeacher@2025!
+    '$2b$10$Wy0qLqUIgOPQN0mk1w0lKOzzmOEZAxmNCBj4bXGepl08cX74xqhTa', -- NewTeacher@2025!
     'Mr. Usman Sheikh',
     'teacher',
     0,
@@ -104,7 +104,7 @@ INSERT INTO users (
 ) VALUES (
     'u-student-1',
     'student@school.com',
-    '$2b$10$/kcXRpCMzgThHIqyIsc5seYWYp8PdkPnK3lEbbZ4byx26wxGiWLCq', -- NewStudent@2025!
+    '$2b$10$cRuVNu86gdIz1bR/1JrXnu5mTPki65aKU0YOsA7yHCAGLlpcFF5UK', -- NewStudent@2025!
     'Ahmed Khan',
     'student',
     0,

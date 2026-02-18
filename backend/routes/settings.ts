@@ -8,7 +8,7 @@ export const settingsRoutes = {
     // GET /settings
     getSettings: async () => {
         try {
-            const settings = SettingsService.getSettings();
+            const settings = await SettingsService.getSettings();
             return { status: 200, data: settings };
         } catch (error) {
             return { status: 500, error: 'Internal Server Error' };
@@ -19,20 +19,12 @@ export const settingsRoutes = {
     updateSettings: async (data: any) => {
         try {
             // For updates, we might not require all fields, but let's check what's provided
-            const updatedSettings = SettingsService.updateSettings(data);
+            const updatedSettings = await SettingsService.updateSettings(data);
             return { status: 200, data: updatedSettings };
         } catch (error) {
             return { status: 500, error: 'Internal Server Error' };
         }
     },
 
-    // POST /settings/reset
-    resetSettings: async () => {
-        try {
-            const settings = SettingsService.resetSettings();
-            return { status: 200, data: settings };
-        } catch (error) {
-            return { status: 500, error: 'Internal Server Error' };
-        }
-    }
+
 };
