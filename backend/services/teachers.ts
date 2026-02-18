@@ -1,4 +1,4 @@
-import { Teacher } from '../data/teachers';
+import { Teacher } from '../types';
 import { sql } from '../utils/db';
 import { revalidateTag } from 'next/cache';
 

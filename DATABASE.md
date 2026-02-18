@@ -35,11 +35,8 @@ async function getUsers() {
 
 ## Verification
 
-To verify the connection locally, run:
-```bash
-pnpm tsx backend/scripts/verify-db.ts
-```
+To verify the connection locally, you can use the interactive debugging scripts in `backend/scripts/` or check the service logs.
 
-## Planned Transition
+## Current State
 
-The backend is currently moving from dummy JSON data (`backend/data/*.ts`) to direct SQL queries. All services in `backend/services/` should be updated to use the `sql` client.
+The backend has successfully moved from dummy JSON data to direct SQL queries using `postgres.js`. All services in `backend/services/` utilize the `sql` client for data operations.

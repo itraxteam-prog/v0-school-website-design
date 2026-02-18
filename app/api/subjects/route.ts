@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+﻿import { NextRequest } from 'next/server';
 import { SubjectService } from '@/backend/services/subjectService';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';

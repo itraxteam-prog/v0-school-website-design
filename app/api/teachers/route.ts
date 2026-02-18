@@ -1,5 +1,5 @@
-import { NextRequest } from 'next/server';
-import { teacherRoutes } from '@/backend/routes/teachers';
+﻿import { NextRequest } from 'next/server';
+import { teacherController } from '@/backend/controllers/teachers';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { LogService } from '@/backend/services/logService';
 import { NotificationService } from '@/backend/services/notificationService';
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     if (!auth.authorized || !auth.user) return auth.response;
 
     try {
-        const result = await teacherRoutes.getAll(auth.user);
+        const result = await teacherController.getAll(auth.user);
         if (result.status >= 400) {
             LogService.logAction(auth.user.id, auth.user.role, 'READ_LIST', 'TEACHER', undefined, 'failure', { error: result.error });
             return createErrorResponse(result.error, result.status);
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
             return createErrorResponse(validation.error, 400);
         }
 
-        const result = await teacherRoutes.create(validation.data, auth.user);
+        const result = await teacherController.create(validation.data, auth.user);
         if (result.status >= 400) {
             console.error('API POST /api/teachers - Route Error:', result.error || result.errors);
             LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'TEACHER', undefined, 'failure', { error: result.error || result.errors });

@@ -1,10 +1,10 @@
-import { RoleService } from '../services/roles';
+﻿import { RoleService } from '../services/roles';
 import { validateRole } from '../utils/validation';
 
-// Roles API Routes
+// Roles API Controller
 // Note: These are ready to be integrated into Next.js Route Handlers (app/api/roles/route.ts)
 
-export const roleRoutes = {
+export const roleController = {
     // GET /roles
     getAll: async () => {
         try {

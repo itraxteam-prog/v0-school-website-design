@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+﻿import { NextRequest } from 'next/server';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { AcademicService } from '@/backend/services/academicService';
 import { StudentService } from '@/backend/services/students';

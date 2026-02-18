@@ -1,5 +1,5 @@
-import { NextRequest } from 'next/server';
-import { announcementRoutes } from '@/backend/routes/announcements';
+﻿import { NextRequest } from 'next/server';
+import { announcementController } from '@/backend/controllers/announcements';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { LogService } from '@/backend/services/logService';
 import { validateBody, AnnouncementSchema } from '@/backend/validation/schemas';
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         const auth = await requireRole(req, ['admin', 'teacher', 'student', 'parent']);
         if (!auth.authorized || !auth.user) return auth.response;
 
-        const result = await announcementRoutes.getById(params.id, auth.user);
+        const result = await announcementController.getById(params.id, auth.user);
         if (result.status >= 400) {
             return createErrorResponse(result.error || 'Announcement not found', result.status);
         }
@@ -38,7 +38,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
             return createErrorResponse(error, 400);
         }
 
-        const result = await announcementRoutes.update(params.id, data!, auth.user);
+        const result = await announcementController.update(params.id, data!, auth.user);
         if (result.status >= 400) {
             LogService.logAction(auth.user.id, auth.user.role, 'UPDATE', 'ANNOUNCEMENT', params.id, 'failure', { error: result.error });
             return createErrorResponse(result.error || 'Update failed', result.status);
@@ -56,7 +56,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
         const auth = await requireRole(req, ['admin']);
         if (!auth.authorized || !auth.user) return auth.response;
 
-        const result = await announcementRoutes.delete(params.id, auth.user);
+        const result = await announcementController.delete(params.id, auth.user);
         if (result.status >= 400) {
             LogService.logAction(auth.user.id, auth.user.role, 'DELETE', 'ANNOUNCEMENT', params.id, 'failure', { error: result.error });
             return createErrorResponse(result.error || 'Delete failed', result.status);

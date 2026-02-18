@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+﻿import { NextRequest } from 'next/server';
 import { AuthService } from '@/backend/services/authService';
 import { AuditService } from '@/backend/services/auditService';
 import { verifyAuth } from '@/backend/middleware/authMiddleware';

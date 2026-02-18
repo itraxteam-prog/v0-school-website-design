@@ -1,5 +1,5 @@
-import { NextRequest } from 'next/server';
-import { authRoutes } from '@/backend/routes/auth';
+﻿import { NextRequest } from 'next/server';
+import { authController } from '@/backend/controllers/auth';
 import { createResponse, createErrorResponse } from '@/backend/utils/apiResponse';
 import { validateBody, ResetPasswordSchema } from '@/backend/validation/schemas';
 
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
         }
 
         const { token, newPassword } = validation.data!;
-        const result = await authRoutes.resetPassword(token, newPassword);
+        const result = await authController.resetPassword(token, newPassword);
 
         if (result.status >= 400) {
             return createErrorResponse(result.error || 'Failed to reset password', result.status);

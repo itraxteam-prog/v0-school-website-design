@@ -1,4 +1,4 @@
-import { Student } from '../data/students';
+import { Student } from '../types';
 import { sql } from '../utils/db';
 import { revalidateTag } from 'next/cache';
 

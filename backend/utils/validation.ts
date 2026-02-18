@@ -1,10 +1,4 @@
-import { Student } from '../data/students';
-import { Teacher } from '../data/teachers';
-import { Class } from '../data/classes';
-import { Period } from '../data/periods';
-import { Role } from '../data/roles';
-import { Announcement } from '../data/announcements';
-import { SchoolSettings } from '../data/settings';
+import { Student, Teacher, Class, Period, Role, Announcement, SchoolSettings } from '../types';
 
 // Validation Utility Functions
 

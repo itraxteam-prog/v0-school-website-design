@@ -1,4 +1,4 @@
-import { Announcement } from '../data/announcements';
+import { Announcement } from '../types';
 import { supabase } from '../utils/supabaseClient';
 import { handleSupabaseError } from '../utils/errors';
 import { NotificationService } from './notificationService';

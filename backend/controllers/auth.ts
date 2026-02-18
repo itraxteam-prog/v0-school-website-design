@@ -1,7 +1,7 @@
-import { AuthService } from '../services/authService';
+﻿import { AuthService } from '../services/authService';
 import { LogService } from '../services/logService';
 
-export const authRoutes = {
+export const authController = {
     // POST /auth/login
     login: async (credentials: any) => {
         try {

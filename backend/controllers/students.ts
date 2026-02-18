@@ -1,9 +1,9 @@
-import { StudentService } from '../services/students';
+﻿import { StudentService } from '../services/students';
 import { validateStudent } from '../utils/validation';
 import { AuthPayload } from '../middleware/authMiddleware';
 import { LogService } from '../services/logService';
 
-export const studentRoutes = {
+export const studentController = {
     // GET /students - RBAC Enforced
     getAll: async (user: AuthPayload) => {
         try {
@@ -23,7 +23,7 @@ export const studentRoutes = {
                 return { status: 403, error: 'Forbidden' };
             }
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'StudentRoutes.getAll');
+            LogService.logError(user.id, user.role, error, 'StudentController.getAll');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -53,7 +53,7 @@ export const studentRoutes = {
             if (!student) return { status: 404, error: 'Student not found' };
             return { status: 200, data: student };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'StudentRoutes.getById');
+            LogService.logError(user.id, user.role, error, 'StudentController.getById');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -75,14 +75,14 @@ export const studentRoutes = {
             // Log successful creation - duplicate of route handler log? 
             // The route handler logs success. Doing it here ensures business logic logging.
             // But we should pick ONE place to avoid duplicates in DB.
-            // The user requested "Update all /routes/* API handlers to write logs".
+            // The user requested "Update all /Controller/* API handlers to write logs".
             // So we write logs here. We should REMOVE logs from app/api/* handlers later or accept duplicates.
             // Given constraints, I will add it here as requested.
             LogService.logAction(user.id, user.role, 'CREATED_STUDENT', 'STUDENT', (newStudent as any).id, 'success');
 
             return { status: 201, data: newStudent };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'StudentRoutes.create');
+            LogService.logError(user.id, user.role, error, 'StudentController.create');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -102,7 +102,7 @@ export const studentRoutes = {
 
             return { status: 200, data: updatedStudent };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'StudentRoutes.update');
+            LogService.logError(user.id, user.role, error, 'StudentController.update');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -122,7 +122,7 @@ export const studentRoutes = {
 
             return { status: 200, data: { message: 'Student deleted successfully' } };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'StudentRoutes.delete');
+            LogService.logError(user.id, user.role, error, 'StudentController.delete');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     }

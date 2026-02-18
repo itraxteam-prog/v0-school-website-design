@@ -1,5 +1,5 @@
-import { NextRequest } from 'next/server';
-import { roleRoutes } from '@/backend/routes/roles';
+﻿import { NextRequest } from 'next/server';
+import { roleController } from '@/backend/controllers/roles';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
 
@@ -9,7 +9,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         const auth = await requireRole(req, ['admin']);
         if (!auth.authorized || !auth.user) return auth.response;
 
-        const result = await roleRoutes.getById(params.id);
+        const result = await roleController.getById(params.id);
         if (result.status >= 400) {
             return createErrorResponse(result.error || 'Role not found', result.status);
         }
@@ -26,7 +26,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         if (!auth.authorized || !auth.user) return auth.response;
 
         const body = await req.json();
-        const result = await roleRoutes.update(params.id, body);
+        const result = await roleController.update(params.id, body);
         if (result.status >= 400) {
             return createErrorResponse(result.error || 'Update failed', result.status);
         }
@@ -42,7 +42,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
         const auth = await requireRole(req, ['admin']);
         if (!auth.authorized || !auth.user) return auth.response;
 
-        const result = await roleRoutes.delete(params.id);
+        const result = await roleController.delete(params.id);
         if (result.status >= 400) {
             return createErrorResponse(result.error || 'Delete failed', result.status);
         }

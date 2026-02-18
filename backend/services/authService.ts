@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
-import { User } from '@/backend/data/users';
+import { User, AuthPayload } from '../types';
 import { supabase } from '../utils/supabaseClient';
 import { sql } from '../utils/db';
 import { handleSupabaseError } from '../utils/errors';
@@ -16,13 +16,6 @@ const ACCESS_TOKEN_EXPIRY = '15m';
 const REFRESH_TOKEN_EXPIRY = '30d';
 const REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * 30;
 const TWO_FACTOR_TEMP_TOKEN_EXPIRY = '5m';
-
-export interface AuthPayload {
-    id: string;
-    email: string;
-    role: string;
-    name?: string;
-}
 
 export interface LoginResult {
     user?: Omit<User, 'password'>;
