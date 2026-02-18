@@ -16,7 +16,7 @@ export const users: User[] = [
         id: 'u-admin-1',
         email: 'admin@school.com',
         name: 'Dr. Ahmad Raza',
-        // Admin@2024!
+        // NewAdmin@2025!
         password: '$2b$10$EkHUhS9ZKceTJedSteTYeOAwOliIy9mH7vPxsWU6e92OeURkPZPzy',
         role: 'admin',
         failed_login_attempts: 0,
@@ -27,7 +27,7 @@ export const users: User[] = [
         id: 'u-teacher-1',
         email: 'teacher@school.com',
         name: 'Mr. Usman Sheikh',
-        // Teacher@2024!
+        // NewTeacher@2025!
         password: '$2b$10$0d8uO0zcMsG3NT2Q3bkkEetR0033HCJ2VlfBOarIiBVChVEQM2pv6',
         role: 'teacher',
         failed_login_attempts: 0,
@@ -38,7 +38,7 @@ export const users: User[] = [
         id: 'u-student-1',
         email: 'student@school.com',
         name: 'Ahmed Khan',
-        // Student@2024!
+        // NewStudent@2025!
         password: '$2b$10$/kcXRpCMzgThHIqyIsc5seYWYp8PdkPnK3lEbbZ4byx26wxGiWLCq',
         role: 'student',
         failed_login_attempts: 0,
