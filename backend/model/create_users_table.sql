@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS public.users (
     two_factor_enabled BOOLEAN DEFAULT false,
     two_factor_secret TEXT,
     recovery_codes TEXT[],
+    status TEXT DEFAULT 'Active',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
