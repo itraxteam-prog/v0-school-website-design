@@ -1,5 +1,3 @@
-import { supabase } from '../utils/supabaseClient';
-import { handleSupabaseError } from '../utils/errors';
 import { unstable_cache, revalidateTag } from 'next/cache';
 
 export interface Subject {
@@ -14,30 +12,19 @@ export const SubjectService = {
     getAll: async () => {
         return unstable_cache(
             async () => {
-                const { data, error } = await supabase
-                    .from('subjects')
-                    .select('id, name, code, department')
-                    .order('name');
-
-                if (error) throw new Error(handleSupabaseError(error));
-                return data as Subject[];
+                console.warn("SubjectService.getAll: Supabase logic removed.");
+                return [] as Subject[];
             },
             ['subjects-list'],
-            { tags: ['subjects'], revalidate: 86400 } // Subjects change rarely, 24h cache
+            { tags: ['subjects'], revalidate: 86400 }
         )();
     },
 
     getById: async (id: string) => {
         return unstable_cache(
             async (subId: string) => {
-                const { data, error } = await supabase
-                    .from('subjects')
-                    .select('id, name, code, department')
-                    .eq('id', subId)
-                    .single();
-
-                if (error) return null;
-                return data as Subject;
+                console.warn(`SubjectService.getById(${subId}): Supabase logic removed.`);
+                return null;
             },
             [`subject-${id}`],
             { tags: ['subjects', `subject-${id}`], revalidate: 86400 }
@@ -45,41 +32,20 @@ export const SubjectService = {
     },
 
     create: async (data: Omit<Subject, 'id'>) => {
-        const { data: newSubject, error } = await supabase
-            .from('subjects')
-            .insert([data])
-            .select()
-            .single();
-
-        if (error) throw new Error(handleSupabaseError(error));
-
+        console.warn("SubjectService.create: Supabase logic removed.");
         revalidateTag('subjects');
-        return newSubject as Subject;
+        return null as any;
     },
 
     update: async (id: string, data: Partial<Subject>) => {
-        const { data: updatedSubject, error } = await supabase
-            .from('subjects')
-            .update(data)
-            .eq('id', id)
-            .select()
-            .single();
-
-        if (error) throw new Error(handleSupabaseError(error));
-
+        console.warn(`SubjectService.update(${id}): Supabase logic removed.`);
         revalidateTag('subjects');
         revalidateTag(`subject-${id}`);
-        return updatedSubject as Subject;
+        return null as any;
     },
 
     delete: async (id: string) => {
-        const { error } = await supabase
-            .from('subjects')
-            .delete()
-            .eq('id', id);
-
-        if (error) throw new Error(handleSupabaseError(error));
-
+        console.warn(`SubjectService.delete(${id}): Supabase logic removed.`);
         revalidateTag('subjects');
         revalidateTag(`subject-${id}`);
         return true;

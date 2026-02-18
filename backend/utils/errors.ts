@@ -26,9 +26,4 @@ export const handleError = (err: any, userId: string = 'system', role: string = 
     LogService.logError(userId, role, err);
 };
 
-export const handleSupabaseError = (error: any, userId: string = 'system', role: string = 'system') => {
-    if (!error) return null;
-    console.error('Supabase Error:', error);
-    LogService.logError(userId, role, error, 'Supabase');
-    return error.message || 'An unexpected database error occurred';
-};
+

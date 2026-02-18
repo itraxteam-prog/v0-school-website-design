@@ -1,5 +1,3 @@
-import { supabase } from '../utils/supabaseClient';
-
 export interface LogEntry {
     id?: string;
     user_id: string; // Changed from userId to user_id to match DB
@@ -14,8 +12,7 @@ export interface LogEntry {
 
 export const LogService = {
     /**
-     * Logs an action to the Supabase logs table.
-     * This is designed to be non-blocking - it doesn't await the database call.
+     * Logs an action - Logic removed
      */
     logAction: (
         userId: string,
@@ -26,31 +23,7 @@ export const LogService = {
         status: 'success' | 'failure' = 'success',
         details?: any
     ) => {
-        // Prepare the log entry matching the Supabase table schema
-        const logEntry: LogEntry = {
-            user_id: userId,
-            role: role,
-            action: action,
-            entity: entity,
-            entity_id: entityId,
-            status: status,
-            metadata: details,
-            timestamp: new Date().toISOString()
-        };
-
-        // Fire and forget - don't await to keep it non-blocking
-        // Using 'activity_logs' table as requested
-        supabase
-            .from('activity_logs')
-            .insert([logEntry])
-            .then(({ error }) => {
-                if (error) {
-                    console.error('Failed to write log entry:', error.message);
-                }
-            })
-            .catch(err => {
-                console.error('Unexpected error in LogService:', err);
-            });
+        console.warn(`LogService.logAction(${action}): Supabase logic removed.`);
     },
 
     /**
