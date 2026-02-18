@@ -1,10 +1,10 @@
-import { SettingsService } from '../services/settings';
+﻿import { SettingsService } from '../services/settings';
 import { validateSettings } from '../utils/validation';
 
-// School Settings API Routes
+// School Settings API Controller
 // Note: These are ready to be integrated into Next.js Route Handlers (app/api/settings/route.ts)
 
-export const settingsRoutes = {
+export const settingsController = {
     // GET /settings
     getSettings: async () => {
         try {

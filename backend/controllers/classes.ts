@@ -1,16 +1,16 @@
-import { ClassService } from '../services/classes';
+﻿import { ClassService } from '../services/classes';
 import { validateClass } from '../utils/validation';
 import { AuthPayload } from '../middleware/authMiddleware';
 import { LogService } from '../services/logService';
 
-export const classRoutes = {
+export const classController = {
     // GET /classes
     getAll: async (user: AuthPayload) => {
         try {
             const classes = await ClassService.getAll();
             return { status: 200, data: classes };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'ClassRoutes.getAll');
+            LogService.logError(user.id, user.role, error, 'ClassController.getAll');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -22,7 +22,7 @@ export const classRoutes = {
             if (!classItem) return { status: 404, error: 'Class not found' };
             return { status: 200, data: classItem };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'ClassRoutes.getById');
+            LogService.logError(user.id, user.role, error, 'ClassController.getById');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -45,7 +45,7 @@ export const classRoutes = {
 
             return { status: 201, data: newClass };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'ClassRoutes.create');
+            LogService.logError(user.id, user.role, error, 'ClassController.create');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -65,7 +65,7 @@ export const classRoutes = {
 
             return { status: 200, data: updatedClass };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'ClassRoutes.update');
+            LogService.logError(user.id, user.role, error, 'ClassController.update');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -85,7 +85,7 @@ export const classRoutes = {
 
             return { status: 200, data: { message: 'Class deleted successfully' } };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'ClassRoutes.delete');
+            LogService.logError(user.id, user.role, error, 'ClassController.delete');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     }

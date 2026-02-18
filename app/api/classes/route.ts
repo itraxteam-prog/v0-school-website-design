@@ -1,5 +1,5 @@
-import { NextRequest } from 'next/server';
-import { classRoutes } from '@/backend/routes/classes';
+﻿import { NextRequest } from 'next/server';
+import { classController } from '@/backend/controllers/classes';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { LogService } from '@/backend/services/logService';
 import { validateBody, ClassSchema } from '@/backend/validation/schemas';
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     if (!auth.authorized || !auth.user) return auth.response;
 
     try {
-        const result = await classRoutes.getAll(auth.user);
+        const result = await classController.getAll(auth.user);
         if (result.status >= 400) {
             LogService.logAction(auth.user.id, auth.user.role, 'READ_LIST', 'CLASS', undefined, 'failure', { error: result.error });
             return createErrorResponse(result.error, result.status);
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
             return createErrorResponse(validation.error, 400);
         }
 
-        const result = await classRoutes.create(validation.data, auth.user);
+        const result = await classController.create(validation.data, auth.user);
         if (result.status >= 400) {
             console.error('API POST /api/classes - Route Error:', result.error || result.errors);
             LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'CLASS', undefined, 'failure', { error: result.error || result.errors });

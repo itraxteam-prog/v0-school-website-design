@@ -1,8 +1,8 @@
-import { AttendanceService } from '../services/attendanceService';
+﻿import { AttendanceService } from '../services/attendanceService';
 import { AuthPayload } from '../middleware/authMiddleware';
 import { LogService } from '../services/logService';
 
-export const attendanceRoutes = {
+export const attendanceController = {
     // GET /attendance - View records
     get: async (classId: string, date: string, user: AuthPayload) => {
         try {
@@ -22,7 +22,7 @@ export const attendanceRoutes = {
             const records = await AttendanceService.getClassAttendance(classId, date);
             return { status: 200, data: records };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'AttendanceRoutes.get');
+            LogService.logError(user.id, user.role, error, 'AttendanceController.get');
             return { status: 500, error: error.message };
         }
     },
@@ -51,7 +51,7 @@ export const attendanceRoutes = {
             return { status: 201, data: result };
 
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'AttendanceRoutes.create');
+            LogService.logError(user.id, user.role, error, 'AttendanceController.create');
             return { status: 500, error: error.message };
         }
     }

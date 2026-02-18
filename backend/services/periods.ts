@@ -1,4 +1,4 @@
-import { Period } from '../data/periods';
+import { Period } from '../types';
 import { sql } from '../utils/db';
 import { NotificationService } from './notificationService';
 import { revalidateTag } from 'next/cache';

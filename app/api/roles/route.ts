@@ -1,5 +1,5 @@
-import { NextRequest } from 'next/server';
-import { roleRoutes } from '@/backend/routes/roles';
+﻿import { NextRequest } from 'next/server';
+import { roleController } from '@/backend/controllers/roles';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
 
@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     if (!auth.authorized) return auth.response;
 
     try {
-        const result = await roleRoutes.getAll();
+        const result = await roleController.getAll();
         if (result.status >= 400) {
             return createErrorResponse(result.error || 'Unknown error', result.status);
         }
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json();
-        const result = await roleRoutes.create(body);
+        const result = await roleController.create(body);
         if (result.status >= 400) {
             const errorMsg = typeof result.error === 'string'
                 ? result.error

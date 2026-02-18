@@ -1,4 +1,4 @@
-import { Class } from '../data/classes';
+import { Class } from '../types';
 import { sql } from '../utils/db';
 import { NotificationService } from './notificationService';
 import { revalidateTag } from 'next/cache';

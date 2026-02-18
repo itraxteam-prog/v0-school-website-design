@@ -1,5 +1,5 @@
-import { NextRequest } from 'next/server';
-import { periodRoutes } from '@/backend/routes/periods';
+﻿import { NextRequest } from 'next/server';
+import { periodController } from '@/backend/controllers/periods';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
 
@@ -8,7 +8,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         const auth = await requireRole(req, ['admin', 'teacher', 'student']);
         if (!auth.authorized || !auth.user) return auth.response;
 
-        const result = await periodRoutes.getById(params.id, auth.user);
+        const result = await periodController.getById(params.id, auth.user);
         if (result.status >= 400) {
             return createErrorResponse(result.error || 'Period not found', result.status);
         }
@@ -24,7 +24,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         if (!auth.authorized || !auth.user) return auth.response;
 
         const body = await req.json();
-        const result = await periodRoutes.update(params.id, body, auth.user);
+        const result = await periodController.update(params.id, body, auth.user);
         if (result.status >= 400) {
             return createErrorResponse(result.error || 'Update failed', result.status);
         }
@@ -39,7 +39,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
         const auth = await requireRole(req, ['admin']);
         if (!auth.authorized || !auth.user) return auth.response;
 
-        const result = await periodRoutes.delete(params.id, auth.user);
+        const result = await periodController.delete(params.id, auth.user);
         if (result.status >= 400) {
             return createErrorResponse(result.error || 'Delete failed', result.status);
         }

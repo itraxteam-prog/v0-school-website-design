@@ -1,16 +1,16 @@
-import { TeacherService } from '../services/teachers';
+﻿import { TeacherService } from '../services/teachers';
 import { validateTeacher } from '../utils/validation';
 import { AuthPayload } from '../middleware/authMiddleware';
 import { LogService } from '../services/logService';
 
-export const teacherRoutes = {
+export const teacherController = {
     // GET /teachers - Authenticated Users
     getAll: async (user: AuthPayload) => {
         try {
             const teachers = await TeacherService.getAll();
             return { status: 200, data: teachers };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'TeacherRoutes.getAll');
+            LogService.logError(user.id, user.role, error, 'TeacherController.getAll');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -22,7 +22,7 @@ export const teacherRoutes = {
             if (!teacher) return { status: 404, error: 'Teacher not found' };
             return { status: 200, data: teacher };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'TeacherRoutes.getById');
+            LogService.logError(user.id, user.role, error, 'TeacherController.getById');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -45,7 +45,7 @@ export const teacherRoutes = {
 
             return { status: 201, data: newTeacher };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'TeacherRoutes.create');
+            LogService.logError(user.id, user.role, error, 'TeacherController.create');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -65,7 +65,7 @@ export const teacherRoutes = {
 
             return { status: 200, data: updatedTeacher };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'TeacherRoutes.update');
+            LogService.logError(user.id, user.role, error, 'TeacherController.update');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -85,7 +85,7 @@ export const teacherRoutes = {
 
             return { status: 200, data: { message: 'Teacher deleted successfully' } };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'TeacherRoutes.delete');
+            LogService.logError(user.id, user.role, error, 'TeacherController.delete');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     }

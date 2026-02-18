@@ -5,7 +5,7 @@ This document describes the technical architecture and design patterns of the Vi
 ## 🏛 Directory Structure
 
 - `/app`: Next.js App Router pages and API routes.
-- `/backend`: Core server-side logic (Services, Routes, Utils).
+- `/backend`: Core server-side logic (Services, Controllers, Utils).
 - `/components`: Reusable UI components (Shadcn, Layouts).
 - `/context`: React Context providers (Auth, etc.).
 - `/hooks`: Custom React hooks (useRequireAuth, etc.).
@@ -13,10 +13,10 @@ This document describes the technical architecture and design patterns of the Vi
 
 ## 🛠 Backend Pattern
 
-We follow a modular Service-Route pattern:
+We follow a modular Service-Controller pattern:
 1. **Services** (`/backend/services`): Contain pure business logic and database interactions.
-2. **Routes** (`/backend/routes`): Handle response formatting, error logging, and high-level authorization.
-3. **API Controllers** (`/app/api/...`): Entry points that enforce middleware and call the corresponding routes.
+2. **Controllers** (`/backend/controllers`): Handle response formatting, error logging, and high-level authorization.
+3. **API Endpoints** (`/app/api/...`): Entry points that enforce middleware and call the corresponding controllers.
 
 ## 🔐 Security Model
 

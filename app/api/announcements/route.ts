@@ -1,5 +1,5 @@
-import { NextRequest } from 'next/server';
-import { announcementRoutes } from '@/backend/routes/announcements';
+﻿import { NextRequest } from 'next/server';
+import { announcementController } from '@/backend/controllers/announcements';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { LogService } from '@/backend/services/logService';
 import { validateBody, AnnouncementSchema } from '@/backend/validation/schemas';
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     if (!auth.authorized || !auth.user) return auth.response;
 
     try {
-        const result = await announcementRoutes.getAll(auth.user);
+        const result = await announcementController.getAll(auth.user);
         if (result.status >= 400) {
             LogService.logAction(auth.user.id, auth.user.role, 'READ_LIST', 'ANNOUNCEMENT', undefined, 'failure', { error: result.error });
             return createErrorResponse(result.error, result.status);
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
             return createErrorResponse(validation.error, 400);
         }
 
-        const result = await announcementRoutes.create(validation.data, auth.user);
+        const result = await announcementController.create(validation.data, auth.user);
         if (result.status >= 400) {
             LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'ANNOUNCEMENT', undefined, 'failure', { error: result.error || result.errors });
             return createErrorResponse(result.error || result.errors, result.status);

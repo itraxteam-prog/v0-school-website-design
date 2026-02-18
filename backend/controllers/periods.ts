@@ -1,9 +1,9 @@
-import { PeriodService } from '../services/periods';
+﻿import { PeriodService } from '../services/periods';
 import { validatePeriod } from '../utils/validation';
 import { AuthPayload } from '../middleware/authMiddleware';
 import { LogService } from '../services/logService';
 
-export const periodRoutes = {
+export const periodController = {
     // GET /periods
     getAll: async (user: AuthPayload) => {
         try {
@@ -11,7 +11,7 @@ export const periodRoutes = {
             const periods = await PeriodService.getAll();
             return { status: 200, data: periods };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'PeriodRoutes.getAll');
+            LogService.logError(user.id, user.role, error, 'PeriodController.getAll');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -23,7 +23,7 @@ export const periodRoutes = {
             if (!period) return { status: 404, error: 'Period not found' };
             return { status: 200, data: period };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'PeriodRoutes.getById');
+            LogService.logError(user.id, user.role, error, 'PeriodController.getById');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -46,7 +46,7 @@ export const periodRoutes = {
 
             return { status: 201, data: newPeriod };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'PeriodRoutes.create');
+            LogService.logError(user.id, user.role, error, 'PeriodController.create');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -65,7 +65,7 @@ export const periodRoutes = {
 
             return { status: 200, data: updatedPeriod };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'PeriodRoutes.update');
+            LogService.logError(user.id, user.role, error, 'PeriodController.update');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -84,7 +84,7 @@ export const periodRoutes = {
 
             return { status: 200, data: { message: 'Period deleted successfully' } };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'PeriodRoutes.delete');
+            LogService.logError(user.id, user.role, error, 'PeriodController.delete');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     }

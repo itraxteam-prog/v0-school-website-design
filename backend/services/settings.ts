@@ -1,4 +1,4 @@
-import { SchoolSettings } from '../data/settings';
+import { SchoolSettings } from '../types';
 import { supabase } from '../utils/supabaseClient';
 import { handleSupabaseError } from '../utils/errors';
 import { revalidateTag } from 'next/cache';

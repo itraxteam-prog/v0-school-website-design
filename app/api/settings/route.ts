@@ -1,6 +1,6 @@
-import { NextRequest } from 'next/server';
+﻿import { NextRequest } from 'next/server';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
-import { settingsRoutes } from '@/backend/routes/settings';
+import { settingsController } from '@/backend/controllers/settings';
 import { validateBody, SettingsSchema } from '@/backend/validation/schemas';
 import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
 
@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     if (!auth.authorized) return auth.response;
 
     try {
-        const result = await settingsRoutes.getSettings();
+        const result = await settingsController.getSettings();
         if (result.error) {
             return createErrorResponse(result.error, result.status);
         }
@@ -32,7 +32,7 @@ export async function PUT(req: NextRequest) {
             return createErrorResponse(validation.error, 400);
         }
 
-        const result = await settingsRoutes.updateSettings(validation.data);
+        const result = await settingsController.updateSettings(validation.data);
         if (result.error) {
             return createErrorResponse(result.error, result.status);
         }

@@ -1,5 +1,5 @@
-import { NextRequest } from 'next/server';
-import { authRoutes } from '@/backend/routes/auth';
+﻿import { NextRequest } from 'next/server';
+import { authController } from '@/backend/controllers/auth';
 import { validateBody, EmailOnlySchema } from '@/backend/validation/schemas';
 import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
 
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 
         const { email } = data!;
 
-        const result = await authRoutes.forgotPassword(email);
+        const result = await authController.forgotPassword(email);
 
         return createSuccessResponse({
             message: result.data?.message || 'Password reset link sent',

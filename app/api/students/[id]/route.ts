@@ -1,5 +1,5 @@
-import { NextRequest } from 'next/server';
-import { studentRoutes } from '@/backend/routes/students';
+﻿import { NextRequest } from 'next/server';
+import { studentController } from '@/backend/controllers/students';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { AuditService } from '@/backend/services/auditService';
 import { LogService } from '@/backend/services/logService';
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         const auth = await requireRole(req, ['admin', 'teacher', 'student']);
         if (!auth.authorized || !auth.user) return auth.response;
 
-        const result = await studentRoutes.getById(params.id, auth.user);
+        const result = await studentController.getById(params.id, auth.user);
         if (result.status >= 400) {
             LogService.logAction(auth.user.id, auth.user.role, 'READ', 'STUDENT', params.id, 'failure', { error: result.error });
             return createErrorResponse(result.error || 'Student not found', result.status);
@@ -44,7 +44,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
             return createErrorResponse(validation.error, 400);
         }
 
-        const result = await studentRoutes.update(params.id, validation.data, auth.user);
+        const result = await studentController.update(params.id, validation.data, auth.user);
         if (result.status >= 400) {
             await AuditService.logUserUpdate(auth.user.id, 'failure', { ...metadata, error: result.error });
             LogService.logAction(auth.user.id, auth.user.role, 'UPDATE', 'STUDENT', params.id, 'failure', { error: result.error, metadata });
@@ -68,7 +68,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
         const userAgent = req.headers.get('user-agent') || 'unknown';
         const metadata = { ip, userAgent, targetStudentId: params.id };
 
-        const result = await studentRoutes.delete(params.id, auth.user);
+        const result = await studentController.delete(params.id, auth.user);
         if (result.status >= 400) {
             await AuditService.logEvent(auth.user.id, 'DELETE_STUDENT', 'failure', { ...metadata, error: result.error });
             LogService.logAction(auth.user.id, auth.user.role, 'DELETE', 'STUDENT', params.id, 'failure', { error: result.error, metadata });

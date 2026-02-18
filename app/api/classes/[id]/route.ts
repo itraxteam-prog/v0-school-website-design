@@ -1,5 +1,5 @@
-import { NextRequest } from 'next/server';
-import { classRoutes } from '@/backend/routes/classes';
+﻿import { NextRequest } from 'next/server';
+import { classController } from '@/backend/controllers/classes';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { validateBody, ClassSchema } from '@/backend/validation/schemas';
 import { LogService } from '@/backend/services/logService';
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         const auth = await requireRole(req, ['admin', 'teacher', 'student']);
         if (!auth.authorized || !auth.user) return auth.response;
 
-        const result = await classRoutes.getById(params.id, auth.user);
+        const result = await classController.getById(params.id, auth.user);
         if (result.status >= 400) {
             return createErrorResponse(result.error || 'Class not found', result.status);
         }
@@ -34,7 +34,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
             return createErrorResponse(error, 400);
         }
 
-        const result = await classRoutes.update(params.id, data!, auth.user);
+        const result = await classController.update(params.id, data!, auth.user);
         if (result.status >= 400) {
             LogService.logAction(auth.user.id, auth.user.role, 'UPDATE', 'CLASS', params.id, 'failure', { error: result.error });
             return createErrorResponse(result.error || 'Update failed', result.status);
@@ -52,7 +52,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
         const auth = await requireRole(req, ['admin']);
         if (!auth.authorized || !auth.user) return auth.response;
 
-        const result = await classRoutes.delete(params.id, auth.user);
+        const result = await classController.delete(params.id, auth.user);
         if (result.status >= 400) {
             return createErrorResponse(result.error || 'Delete failed', result.status);
         }

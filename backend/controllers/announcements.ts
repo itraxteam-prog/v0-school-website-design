@@ -1,9 +1,9 @@
-import { AnnouncementService } from '../services/announcements';
+﻿import { AnnouncementService } from '../services/announcements';
 import { validateAnnouncement } from '../utils/validation';
 import { AuthPayload } from '../middleware/authMiddleware';
 import { LogService } from '../services/logService';
 
-export const announcementRoutes = {
+export const announcementController = {
     // GET /announcements - RBAC Enforced
     getAll: async (user: AuthPayload) => {
         try {
@@ -12,7 +12,7 @@ export const announcementRoutes = {
             const announcements = await AnnouncementService.getAll(filterRole);
             return { status: 200, data: announcements };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'AnnouncementRoutes.getAll');
+            LogService.logError(user.id, user.role, error, 'AnnouncementController.getAll');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -43,7 +43,7 @@ export const announcementRoutes = {
 
             return { status: 200, data: announcement };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'AnnouncementRoutes.getById');
+            LogService.logError(user.id, user.role, error, 'AnnouncementController.getById');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -66,7 +66,7 @@ export const announcementRoutes = {
 
             return { status: 201, data: newAnnouncement };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'AnnouncementRoutes.create');
+            LogService.logError(user.id, user.role, error, 'AnnouncementController.create');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -89,7 +89,7 @@ export const announcementRoutes = {
 
             return { status: 200, data: updatedAnnouncement };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'AnnouncementRoutes.update');
+            LogService.logError(user.id, user.role, error, 'AnnouncementController.update');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     },
@@ -108,7 +108,7 @@ export const announcementRoutes = {
 
             return { status: 200, data: { message: 'Announcement deleted successfully' } };
         } catch (error: any) {
-            LogService.logError(user.id, user.role, error, 'AnnouncementRoutes.delete');
+            LogService.logError(user.id, user.role, error, 'AnnouncementController.delete');
             return { status: 500, error: error.message || 'Internal Server Error' };
         }
     }
