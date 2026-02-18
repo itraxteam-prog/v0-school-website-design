@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
         }
 
         const { email, password, rememberMe } = body;
-        const result = await AuthService.login(email, password);
+        const result = await AuthService.login(email.trim(), password.trim());
 
         if (result.error) {
             // Log failed login
