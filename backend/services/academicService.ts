@@ -1,5 +1,3 @@
-import { supabase } from '../utils/supabaseClient';
-import { handleSupabaseError } from '../utils/errors';
 import { unstable_cache, revalidateTag } from 'next/cache';
 
 export interface AcademicRecord {
@@ -18,17 +16,8 @@ export const AcademicService = {
     getStudentRecords: async (studentId: string) => {
         return unstable_cache(
             async (id: string) => {
-                const { data, error } = await supabase
-                    .from('academic_records')
-                    .select(`
-                        id, term, marks_obtained, total_marks, grade, exam_date, remarks,
-                        subjects (id, name, code)
-                    `)
-                    .eq('student_id', id)
-                    .order('exam_date', { ascending: false });
-
-                if (error) throw new Error(handleSupabaseError(error));
-                return data;
+                console.warn(`AcademicService.getStudentRecords(${id}): Supabase logic removed.`);
+                return [];
             },
             [`student-academic-${studentId}`],
             { tags: ['academic', `student-academic-${studentId}`], revalidate: 3600 }
@@ -38,31 +27,8 @@ export const AcademicService = {
     getGradeDistribution: async (classId?: string) => {
         return unstable_cache(
             async (cid?: string) => {
-                let query = supabase
-                    .from('academic_records')
-                    .select('grade');
-
-                if (cid) {
-                    // Filter by students in a specific class
-                    const { data: students } = await supabase
-                        .from('students')
-                        .select('id')
-                        .eq('classId', cid);
-
-                    if (students) {
-                        query = query.in('student_id', students.map(s => s.id));
-                    }
-                }
-
-                const { data, error } = await query;
-                if (error) throw new Error(handleSupabaseError(error));
-
-                const distribution = (data as any[]).reduce((acc, curr) => {
-                    acc[curr.grade] = (acc[curr.grade] || 0) + 1;
-                    return acc;
-                }, {});
-
-                return Object.entries(distribution).map(([grade, count]) => ({ grade, count }));
+                console.warn(`AcademicService.getGradeDistribution(${cid}): Supabase logic removed.`);
+                return [];
             },
             [`grade-distribution-${classId || 'all'}`],
             { tags: ['academic'], revalidate: 3600 }
@@ -72,25 +38,8 @@ export const AcademicService = {
     getClassRecords: async (classId: string, subjectId: string, term: string) => {
         return unstable_cache(
             async (cid: string, sid: string, t: string) => {
-                const { data: students, error: studentError } = await supabase
-                    .from('students')
-                    .select('id')
-                    .eq('classId', cid); // Corrected to classId
-
-                if (studentError) throw new Error(handleSupabaseError(studentError));
-
-                const studentIds = students?.map(s => s.id) || [];
-                if (studentIds.length === 0) return [];
-
-                const { data, error } = await supabase
-                    .from('academic_records')
-                    .select('id, student_id, marks_obtained, grade')
-                    .in('student_id', studentIds)
-                    .eq('subject_id', sid)
-                    .eq('term', t);
-
-                if (error) throw new Error(handleSupabaseError(error));
-                return data;
+                console.warn(`AcademicService.getClassRecords(${cid}, ${sid}, ${t}): Supabase logic removed.`);
+                return [];
             },
             [`class-records-${classId}-${subjectId}-${term}`],
             { tags: ['academic', `class-records-${classId}`], revalidate: 3600 }
@@ -98,40 +47,14 @@ export const AcademicService = {
     },
 
     upsertBulk: async (records: Partial<AcademicRecord>[]) => {
-        const { data, error } = await supabase
-            .from('academic_records')
-            .upsert(records)
-            .select();
-
-        if (error) throw new Error(handleSupabaseError(error));
-
-        // Revalidate tags
+        console.warn("AcademicService.upsertBulk: Supabase logic removed.");
         revalidateTag('academic');
-        records.forEach(r => {
-            if (r.student_id) {
-                revalidateTag(`student-academic-${r.student_id}`);
-            }
-        });
-        // We might want to revalidate class-specific tags if we knew classId here, 
-        // but we don't store classId in academic_records directly.
-        // We can invalidate broadly or just rely on time-based revalidation for class views.
-
-        return data;
+        return [];
     },
 
     upsertRecord: async (data: Partial<AcademicRecord>) => {
-        const { data: record, error } = await supabase
-            .from('academic_records')
-            .upsert(data)
-            .select()
-            .single();
-
-        if (error) throw new Error(handleSupabaseError(error));
-
+        console.warn("AcademicService.upsertRecord: Supabase logic removed.");
         revalidateTag('academic');
-        if (data.student_id) {
-            revalidateTag(`student-academic-${data.student_id}`);
-        }
-        return record;
+        return null;
     }
 };
