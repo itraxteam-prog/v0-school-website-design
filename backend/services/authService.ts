@@ -96,7 +96,7 @@ export const AuthService = {
                 WHERE LOWER(email) = LOWER(${normalizedEmail}) 
                 LIMIT 1
             `;
-            const user = result?.[0];
+            const user = result?.[0] as any;
 
             if (!user) {
                 return { error: 'Invalid email or password', status: 401 };

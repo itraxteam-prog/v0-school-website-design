@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     try {
         const result = await roleRoutes.getAll();
         if (result.status >= 400) {
-            return createErrorResponse(result.error, result.status);
+            return createErrorResponse(result.error || 'Unknown error', result.status);
         }
         return createSuccessResponse(result.data, result.status);
     } catch (error: any) {
@@ -28,7 +28,10 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const result = await roleRoutes.create(body);
         if (result.status >= 400) {
-            return createErrorResponse(result.error || result.errors, result.status);
+            const errorMsg = typeof result.error === 'string'
+                ? result.error
+                : (Array.isArray(result.errors) ? result.errors.join(', ') : 'Failed to create role');
+            return createErrorResponse(errorMsg, result.status);
         }
         return createSuccessResponse(result.data, result.status);
     } catch (error: any) {

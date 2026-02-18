@@ -13,7 +13,7 @@ interface User {
 interface AuthContextType {
     user: User | null;
     loading: boolean;
-    login: (email: string, password: string, rememberMe: boolean) => Promise<{ requires2FA?: boolean; tempToken?: string } | void>;
+    login: (email: string, password: string, rememberMe: boolean) => Promise<{ requires2FA?: boolean; tempToken?: string; user?: User } | void>;
     verify2FA: (tempToken: string, code: string, rememberMe: boolean) => Promise<void>;
     logout: () => Promise<void>;
 }
@@ -124,6 +124,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (rolePortalMap[role]) {
                 router.push(rolePortalMap[role]);
             }
+
+            return { user: userData };
         } catch (error) {
             console.error(error);
             throw error;

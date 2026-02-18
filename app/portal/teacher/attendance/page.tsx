@@ -59,7 +59,6 @@ interface Student {
 }
 
 
-type AttendanceStatus = "present" | "absent" | "late"
 
 interface AttendanceRecord {
   status: AttendanceStatus

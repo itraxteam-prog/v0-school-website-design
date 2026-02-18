@@ -13,6 +13,8 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay,
 // Internal API base path
 const API_BASE = "/api";
 
+type AttendanceStatus = "present" | "absent" | "late" | "none";
+
 const statusColors = {
   present: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
   absent: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
