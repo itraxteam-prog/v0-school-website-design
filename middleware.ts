@@ -10,6 +10,7 @@ export function middleware(request: NextRequest) {
         pathname === '/' ||
         pathname.startsWith('/portal/login') ||
         pathname.startsWith('/api/auth') ||
+        pathname.startsWith('/api/test-env') ||
         pathname.startsWith('/_next') ||
         pathname.includes('.') // Static files
     ) {

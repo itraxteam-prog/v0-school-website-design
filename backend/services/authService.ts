@@ -90,10 +90,11 @@ export const AuthService = {
 
     login: async (email: string, password: string): Promise<LoginResult> => {
         try {
+            const normalizedEmail = email.toLowerCase().trim();
             const { data: user, error } = await supabase
                 .from('users')
                 .select('*')
-                .eq('email', email)
+                .eq('email', normalizedEmail)
                 .single();
 
             if (error || !user) {
