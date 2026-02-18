@@ -91,13 +91,14 @@ export const AuthService = {
     login: async (email: string, password: string): Promise<LoginResult> => {
         try {
             const normalizedEmail = email.toLowerCase().trim();
-            const { data: user, error } = await supabase
-                .from('users')
-                .select('*')
-                .eq('email', normalizedEmail)
-                .single();
+            const result = await sql`
+                SELECT * FROM public.users 
+                WHERE LOWER(email) = LOWER(${normalizedEmail}) 
+                LIMIT 1
+            `;
+            const user = result?.[0];
 
-            if (error || !user) {
+            if (!user) {
                 return { error: 'Invalid email or password', status: 401 };
             }
 
@@ -109,20 +110,31 @@ export const AuthService = {
 
             if (!isPasswordValid) {
                 const failedAttempts = (user.failed_login_attempts || 0) + 1;
-                const updateData: any = { failed_login_attempts: failedAttempts };
 
                 if (failedAttempts >= MAX_FAILED_ATTEMPTS) {
-                    updateData.lock_until = new Date(Date.now() + LOCK_TIME_MS).toISOString();
+                    await sql`
+                        UPDATE public.users 
+                        SET failed_login_attempts = ${failedAttempts}, lock_until = ${new Date(Date.now() + LOCK_TIME_MS).toISOString()}
+                        WHERE id = ${user.id}
+                    `;
+                } else {
+                    await sql`
+                        UPDATE public.users 
+                        SET failed_login_attempts = ${failedAttempts}
+                        WHERE id = ${user.id}
+                    `;
                 }
-
-                await supabase.from('users').update(updateData).eq('id', user.id);
                 return {
                     error: failedAttempts >= MAX_FAILED_ATTEMPTS ? 'Account locked. Try again later.' : 'Invalid email or password',
                     status: failedAttempts >= MAX_FAILED_ATTEMPTS ? 403 : 401
                 };
             }
 
-            await supabase.from('users').update({ failed_login_attempts: 0, lock_until: null }).eq('id', user.id);
+            await sql`
+                UPDATE public.users 
+                SET failed_login_attempts = 0, lock_until = NULL 
+                WHERE id = ${user.id}
+            `;
 
             if (user.two_factor_enabled) {
                 const tempToken = jwt.sign(
