@@ -89,6 +89,7 @@
   },
   "pnpm": {
     "overrides": {
+      "@next/swc-win32-x64-msvc": "14.2.35",
       "@types/react": "^18.3.12",
       "@types/react-dom": "^18.3.1"
     }
