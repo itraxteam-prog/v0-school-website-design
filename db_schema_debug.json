@@ -1,0 +1,222 @@
+{
+  "students": [
+    {
+      "column_name": "id",
+      "data_type": "text"
+    },
+    {
+      "column_name": "name",
+      "data_type": "text"
+    },
+    {
+      "column_name": "roll_no",
+      "data_type": "text"
+    },
+    {
+      "column_name": "class_id",
+      "data_type": "text"
+    },
+    {
+      "column_name": "dob",
+      "data_type": "text"
+    },
+    {
+      "column_name": "guardian_phone",
+      "data_type": "text"
+    },
+    {
+      "column_name": "address",
+      "data_type": "text"
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone"
+    },
+    {
+      "column_name": "user_id",
+      "data_type": "text"
+    }
+  ],
+  "academic_records": [
+    {
+      "column_name": "id",
+      "data_type": "text"
+    },
+    {
+      "column_name": "student_id",
+      "data_type": "text"
+    },
+    {
+      "column_name": "subject_id",
+      "data_type": "text"
+    },
+    {
+      "column_name": "term",
+      "data_type": "text"
+    },
+    {
+      "column_name": "marks_obtained",
+      "data_type": "numeric"
+    },
+    {
+      "column_name": "total_marks",
+      "data_type": "numeric"
+    },
+    {
+      "column_name": "grade",
+      "data_type": "text"
+    },
+    {
+      "column_name": "exam_date",
+      "data_type": "date"
+    },
+    {
+      "column_name": "remarks",
+      "data_type": "text"
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone"
+    }
+  ],
+  "users": [
+    {
+      "column_name": "id",
+      "data_type": "text"
+    },
+    {
+      "column_name": "email",
+      "data_type": "text"
+    },
+    {
+      "column_name": "password",
+      "data_type": "text"
+    },
+    {
+      "column_name": "name",
+      "data_type": "text"
+    },
+    {
+      "column_name": "role",
+      "data_type": "text"
+    },
+    {
+      "column_name": "status",
+      "data_type": "text"
+    },
+    {
+      "column_name": "failed_login_attempts",
+      "data_type": "integer"
+    },
+    {
+      "column_name": "lock_until",
+      "data_type": "timestamp with time zone"
+    },
+    {
+      "column_name": "two_factor_enabled",
+      "data_type": "boolean"
+    },
+    {
+      "column_name": "two_factor_secret",
+      "data_type": "text"
+    },
+    {
+      "column_name": "two_factor_temp_secret",
+      "data_type": "text"
+    },
+    {
+      "column_name": "recovery_codes",
+      "data_type": "ARRAY"
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone"
+    },
+    {
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone"
+    }
+  ],
+  "classes": [
+    {
+      "column_name": "id",
+      "data_type": "text"
+    },
+    {
+      "column_name": "name",
+      "data_type": "text"
+    },
+    {
+      "column_name": "class_teacher_id",
+      "data_type": "text"
+    },
+    {
+      "column_name": "room_no",
+      "data_type": "text"
+    },
+    {
+      "column_name": "student_ids",
+      "data_type": "ARRAY"
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone"
+    }
+  ],
+  "teachers": [
+    {
+      "column_name": "id",
+      "data_type": "text"
+    },
+    {
+      "column_name": "name",
+      "data_type": "text"
+    },
+    {
+      "column_name": "employee_id",
+      "data_type": "text"
+    },
+    {
+      "column_name": "department",
+      "data_type": "text"
+    },
+    {
+      "column_name": "class_ids",
+      "data_type": "ARRAY"
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone"
+    },
+    {
+      "column_name": "user_id",
+      "data_type": "text"
+    }
+  ],
+  "periods": [
+    {
+      "column_name": "id",
+      "data_type": "text"
+    },
+    {
+      "column_name": "name",
+      "data_type": "text"
+    },
+    {
+      "column_name": "start_time",
+      "data_type": "text"
+    },
+    {
+      "column_name": "end_time",
+      "data_type": "text"
+    },
+    {
+      "column_name": "class_id",
+      "data_type": "text"
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone"
+    }
+  ]
+}

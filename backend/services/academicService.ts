@@ -46,7 +46,7 @@ export const AcademicService = {
                     const { data: students } = await supabase
                         .from('students')
                         .select('id')
-                        .eq('classId', cid);
+                        .eq('class_id', cid);
 
                     if (students) {
                         query = query.in('student_id', students.map(s => s.id));
@@ -74,7 +74,7 @@ export const AcademicService = {
                 const { data: students, error: studentError } = await supabase
                     .from('students')
                     .select('id')
-                    .eq('classId', cid);
+                    .eq('class_id', cid);
 
                 if (studentError) throw new Error(handleSupabaseError(studentError));
 

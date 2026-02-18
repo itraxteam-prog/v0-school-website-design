@@ -18,17 +18,13 @@ export const PermissionService = {
         try {
             const { data, error } = await supabase
                 .from('users')
-                .select(`
-                  roles (
-                    name
-                  )
-                `)
+                .select('role')
                 .eq('id', userId)
                 .single();
 
-            if (error || !data || !data.roles) return false;
-            const roleName = Array.isArray(data.roles) ? data.roles[0]?.name : (data.roles as any).name;
-            return roleName === requiredRole;
+            if (error || !data) return false;
+            // Support both internal role name and passed role name
+            return data.role.toLowerCase() === requiredRole.toLowerCase();
         } catch (err) {
             console.error('PermissionService.checkRole error:', err);
             return false;
@@ -37,21 +33,25 @@ export const PermissionService = {
 
     checkPermission: async (userId: string, actionName: string): Promise<boolean> => {
         try {
-            const { data, error } = await supabase
+            // 1. Get user's role name
+            const { data: user, error: userError } = await supabase
                 .from('users')
-                .select(`
-                  roles (
-                    name,
-                    permissions
-                  )
-                `)
+                .select('role')
                 .eq('id', userId)
                 .single();
 
-            if (error || !data || !data.roles) return false;
+            if (userError || !user) return false;
 
-            const roles = Array.isArray(data.roles) ? data.roles[0] : (data.roles as any);
-            return roles.permissions?.includes(actionName) || false;
+            // 2. Get permissions for that role
+            const { data: role, error: roleError } = await supabase
+                .from('roles')
+                .select('permissions')
+                .eq('name', user.role)
+                .single();
+
+            if (roleError || !role) return false;
+
+            return role.permissions?.includes(actionName) || false;
         } catch (err) {
             console.error('PermissionService.checkPermission error:', err);
             return false;
