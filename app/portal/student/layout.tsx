@@ -1,4 +1,4 @@
-import { withAuth } from '@/backend/utils/withAuth';
+import { withAuth } from '@/utils/mockAuth';
 
 export default async function StudentLayout({
     children,
