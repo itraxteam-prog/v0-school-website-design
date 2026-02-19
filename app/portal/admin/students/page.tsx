@@ -69,6 +69,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 
+import { MOCK_USERS } from "@/utils/mocks"
+
 const sidebarItems = [
   { href: "/portal/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/portal/admin/students", label: "Students", icon: GraduationCap },
@@ -99,9 +101,6 @@ interface Student extends StudentFormValues {
   id?: string;
 }
 
-// Internal API base path
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api";
-
 export default function AdminStudentsPage() {
   const [students, setStudents] = useState<Student[]>([])
   const [loading, setLoading] = useState(true)
@@ -129,17 +128,24 @@ export default function AdminStudentsPage() {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`${API_BASE}/students`, {
-        method: "GET",
-        credentials: "include",
-      })
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("API ERROR [fetchStudents]:", response.status, errorText);
-        throw new Error(errorText || "Failed to fetch students");
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // Initialize with mock data if state is empty
+      if (students.length === 0) {
+        const mockStudents = MOCK_USERS
+          .filter(u => u.role === "student")
+          .map(u => ({
+            id: u.id,
+            name: u.name,
+            rollNo: `2025-${u.id.split('-')[0].toUpperCase()}`,
+            classId: "10-A",
+            dob: "2010-01-01",
+            guardianPhone: "+92 300 1234567",
+            address: "123 School Street, Sector 4"
+          }));
+        setStudents(mockStudents);
       }
-      const result = await response.json()
-      setStudents(result.data || [])
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred")
       toast({
@@ -150,7 +156,7 @@ export default function AdminStudentsPage() {
     } finally {
       setLoading(false)
     }
-  }, [toast])
+  }, [toast, students.length])
 
   useEffect(() => {
     fetchStudents()
@@ -181,36 +187,21 @@ export default function AdminStudentsPage() {
   const onSubmit = async (data: StudentFormValues) => {
     setIsSubmitting(true)
     try {
-      const studentId = editingStudent?.id || editingStudent?._id
-      const url = editingStudent
-        ? `${API_BASE}/students/${studentId}`
-        : `${API_BASE}/students`
-      const method = editingStudent ? "PUT" : "POST"
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 800));
 
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(data),
-      })
-
-      console.log("Response Status:", response.status);
-      const result = await response.json()
-      console.log("Response JSON:", result);
-
-      if (!response.ok || (result.success === false)) {
-        // Map backend Zod errors back to form fields
-        if (result.error && typeof result.error === 'string') {
-          const parts = result.error.split(': ')
-          if (parts.length > 1) {
-            const field = parts[0].toLowerCase() as any
-            const message = parts[1]
-            if (['name', 'rollno', 'classid', 'dob', 'guardianphone', 'address'].includes(field)) {
-              form.setError(field as any, { message })
-            }
-          }
+      if (editingStudent) {
+        setStudents(prev => prev.map(s =>
+          (s.id === editingStudent.id || s._id === editingStudent._id)
+            ? { ...s, ...data }
+            : s
+        ));
+      } else {
+        const newStudent: Student = {
+          id: Math.random().toString(36).substr(2, 9),
+          ...data
         }
-        throw new Error(result.error || `Failed to ${editingStudent ? 'update' : 'add'} student`)
+        setStudents(prev => [newStudent, ...prev]);
       }
 
       toast({
@@ -220,7 +211,6 @@ export default function AdminStudentsPage() {
 
       setIsModalOpen(false)
       setEditingStudent(null)
-      fetchStudents()
     } catch (err: any) {
       console.error("Submit Error:", err);
       toast({
@@ -238,22 +228,15 @@ export default function AdminStudentsPage() {
     if (!confirm(`Are you sure you want to delete ${student.name}?`)) return
 
     try {
-      const response = await fetch(`${API_BASE}/students/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      })
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("API ERROR [handleDelete]:", response.status, errorText);
-        throw new Error(errorText || "Failed to delete student");
-      }
+      setStudents(prev => prev.filter(s => s.id !== id && s._id !== id));
 
       toast({
         title: "Deleted",
         description: "Student has been removed from the system.",
       })
-      fetchStudents()
     } catch (err: any) {
       toast({
         title: "Error",

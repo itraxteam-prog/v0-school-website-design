@@ -1,14 +1,10 @@
-import { withAuth } from '@/backend/utils/withAuth';
+import { withAuth } from '@/utils/mockAuth';
 
 /**
- * Server-side auth guard for protecting pages
+ * Mock server-side auth guard for protecting pages
  * Use this in Server Components
  * @param allowedRoles - Array of roles that can access the page
- * @returns Decoded JWT payload if authorized, otherwise redirects
- * 
- * @example
- * // In a Server Component
- * const user = await requireAuth(['admin']);
+ * @returns Decoded JWT payload if authorized
  */
 export async function requireAuth(allowedRoles: string[]) {
     return await withAuth(allowedRoles);

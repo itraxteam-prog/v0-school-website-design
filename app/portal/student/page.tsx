@@ -22,8 +22,7 @@ const sidebarItems = [
 ]
 
 
-// Internal API base path
-const API_BASE = "/api";
+import { MOCK_STUDENT_DASHBOARD_DATA } from "@/utils/mocks"
 
 export default function StudentDashboard() {
   const { user, loading: authLoading } = useRequireAuth(['student']);
@@ -33,17 +32,9 @@ export default function StudentDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`${API_BASE}/student/dashboard`, {
-          method: "GET",
-          credentials: "include",
-        });
-        if (!res.ok) {
-          const errorText = await res.text();
-          console.error("API ERROR [fetchStudentDashboard]:", res.status, errorText);
-          throw new Error(errorText || "Failed to fetch dashboard data");
-        }
-        const result = await res.json();
-        setData(result.data || result);
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setData(MOCK_STUDENT_DASHBOARD_DATA);
       } catch (error: any) {
         console.error("Failed to fetch dashboard data", error);
       } finally {

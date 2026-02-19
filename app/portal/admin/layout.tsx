@@ -1,4 +1,4 @@
-import { withAuth } from '@/backend/utils/withAuth';
+import { withAuth } from '@/utils/mockAuth';
 import { redirect } from 'next/navigation';
 
 export default async function AdminLayout({

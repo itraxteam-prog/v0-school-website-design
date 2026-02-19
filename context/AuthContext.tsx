@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { MOCK_USERS } from '@/utils/mocks';
 
 interface User {
     id: string;
@@ -30,57 +31,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         checkAuth();
     }, []);
 
-    const safeFetch = async (url: string, options: RequestInit) => {
-        try {
-            const res = await fetch(url, options);
-            const text = await res.text();
-            let data;
-            try {
-                data = text ? JSON.parse(text) : {};
-            } catch (e) {
-                console.error('Failed to parse JSON response:', text);
-                throw new Error('Invalid JSON response from server');
-            }
-
-            return { res, data };
-        } catch (error) {
-            console.error('Fetch error:', error);
-            throw error;
-        }
-    };
-
     const checkAuth = async () => {
+        setLoading(true);
         try {
-            // 1. Try to verify current access token
-            let { res, data } = await safeFetch('/api/auth/verify', {
-                method: 'GET',
-                credentials: 'include',
-            });
-
-            if (!res.ok) {
-                // 2. If verify fails, try to refresh the session
-                const refreshResult = await safeFetch('/api/auth/refresh', {
-                    method: 'POST',
-                    credentials: 'include'
-                });
-
-                if (refreshResult.res.ok) {
-                    // 3. If refresh succeeds, try verifying again
-                    const verifyResult = await safeFetch('/api/auth/verify', {
-                        method: 'GET',
-                        credentials: 'include',
-                    });
-                    res = verifyResult.res;
-                    data = verifyResult.data;
-                } else {
-                    setUser(null);
-                    return;
-                }
-            }
-
-            const userData = data.data?.user || data.user;
-            if (res.ok && userData) {
-                setUser(userData);
+            const storedUser = localStorage.getItem('auth_user');
+            if (storedUser) {
+                setUser(JSON.parse(storedUser));
             }
         } catch (error) {
             console.error('Auth check failed:', error);
@@ -91,41 +47,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const login = async (email: string, password: string, rememberMe: boolean) => {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 800));
+
         try {
-            const { res, data } = await safeFetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ email, password, rememberMe }),
-            });
+            const userData = MOCK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
 
-            const requires2FA = data.data?.requires2FA || data.requires2FA;
-            if (res.status === 202 && requires2FA) {
-                return { requires2FA: true, tempToken: data.data?.tempToken || data.tempToken };
+            if (!userData) {
+                throw new Error('Invalid email or password');
             }
 
-            if (!res.ok || !data.success) {
-                throw new Error(data.error || data.message || 'Login failed');
+            // In a real app, we'd verify the password here. 
+            // For mock purposes, any non-empty password works.
+            if (!password) {
+                throw new Error('Password is required');
             }
 
-            // Set user from response (tokens are handled as HttpOnly cookies by the server)
-            // Support both data.data.user (new standard) and data.user (legacy/fallback)
-            const userData = data.data?.user || data.user;
-            setUser(userData);
+            const userToSet = {
+                id: userData.id,
+                role: userData.role.toLowerCase(),
+                email: userData.email,
+                name: userData.name
+            };
+
+            setUser(userToSet);
+            localStorage.setItem('auth_user', JSON.stringify(userToSet));
 
             // Redirect based on role
-            const role = userData.role;
             const rolePortalMap: Record<string, string> = {
                 'admin': '/portal/admin',
                 'teacher': '/portal/teacher',
                 'student': '/portal/student'
             };
 
-            if (rolePortalMap[role]) {
-                router.push(rolePortalMap[role]);
+            if (rolePortalMap[userToSet.role]) {
+                router.push(rolePortalMap[userToSet.role]);
             }
 
-            return { user: userData };
+            return { user: userToSet };
         } catch (error) {
             console.error(error);
             throw error;
@@ -133,44 +92,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const verify2FA = async (tempToken: string, code: string, rememberMe: boolean) => {
-        try {
-            const { res, data } = await safeFetch('/api/auth/2fa/verify-login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ tempToken, code, rememberMe }),
-            });
-
-            if (!res.ok || !data.success) {
-                throw new Error(data.error || data.message || '2FA Verification failed');
-            }
-
-            const userData = data.data?.user || data.user;
-            setUser(userData);
-
-            // Redirect based on role
-            const role = userData.role;
-            const rolePortalMap: Record<string, string> = {
-                'admin': '/portal/admin',
-                'teacher': '/portal/teacher',
-                'student': '/portal/student'
+        // Simplified mock 2FA - always succeeds with the student role for demo
+        const studentUser = MOCK_USERS.find(u => u.role === 'student');
+        if (studentUser) {
+            const userToSet = {
+                id: studentUser.id,
+                role: studentUser.role.toLowerCase(),
+                email: studentUser.email,
+                name: studentUser.name
             };
-
-            if (rolePortalMap[role]) {
-                router.push(rolePortalMap[role]);
-            }
-        } catch (error) {
-            console.error(error);
-            throw error;
+            setUser(userToSet);
+            localStorage.setItem('auth_user', JSON.stringify(userToSet));
+            router.push('/portal/student');
         }
     };
 
     const logout = async () => {
         try {
-            await safeFetch('/api/auth/logout', {
-                method: 'POST',
-                credentials: 'include',
-            });
+            localStorage.removeItem('auth_user');
         } catch (error) {
             console.error('Logout error:', error);
         } finally {

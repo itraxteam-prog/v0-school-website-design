@@ -22,8 +22,7 @@ const sidebarItems = [
   { href: "/portal/security", label: "Security", icon: ShieldCheck },
 ]
 
-// Internal API base path
-const API_BASE = "/api";
+import { MOCK_TEACHER_DASHBOARD_DATA } from "@/utils/mocks"
 
 export default function TeacherDashboard() {
   const { user, loading: authLoading } = useRequireAuth(['teacher']);
@@ -33,17 +32,9 @@ export default function TeacherDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`${API_BASE}/teacher/dashboard`, {
-          method: "GET",
-          credentials: "include",
-        });
-        if (!res.ok) {
-          const errorText = await res.text();
-          console.error("API ERROR [fetchTeacherDashboard]:", res.status, errorText);
-          throw new Error(errorText || "Failed to fetch dashboard data");
-        }
-        const result = await res.json();
-        setData(result.data || result);
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setData(MOCK_TEACHER_DASHBOARD_DATA);
       } catch (error: any) {
         console.error("Failed to fetch dashboard data", error);
       } finally {
