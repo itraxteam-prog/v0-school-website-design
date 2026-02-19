@@ -33,6 +33,8 @@ import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 
+import { MOCK_ANNOUNCEMENTS, MOCK_UPCOMING_EVENTS } from "@/utils/mocks"
+
 const sidebarItems = [
   { href: "/portal/student", label: "Dashboard", icon: LayoutDashboard },
   { href: "/portal/student/grades", label: "My Grades", icon: BookOpen },
@@ -48,16 +50,8 @@ interface Announcement {
   title: string;
   message: string;
   createdAt: string;
-  audience: ("student" | "teacher" | "all")[];
+  audience: string[];
 }
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api";
-
-const upcomingEvents = [
-  { title: "Basketball Finals", date: "Feb 18", time: "02:00 PM", location: "Gym A" },
-  { title: "Drama Club Play", date: "Feb 22", time: "05:30 PM", location: "Auditorium" },
-  { title: "Career Fair", date: "Feb 25", time: "09:00 AM", location: "Main Hall" },
-]
 
 export default function AnnouncementsPage() {
   const [loading, setLoading] = useState(true)
@@ -71,21 +65,16 @@ export default function AnnouncementsPage() {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`${API_BASE}/announcements`)
-      if (!response.ok) throw new Error("Failed to fetch announcements")
-      const result = await response.json()
-      const data = result.data || result;
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 800));
 
-      if (!Array.isArray(data)) {
-        console.error("Expected array for announcements but got:", result);
-        throw new Error("Invalid data format received from server");
-      }
+      const data = MOCK_ANNOUNCEMENTS;
 
       // Filter for student-relevant announcements
-      const studentData = data.filter((a: Announcement) =>
+      const studentData = data.filter((a: any) =>
         a.audience && (a.audience.includes("student") || a.audience.includes("all"))
       )
-      setAnnouncements(studentData)
+      setAnnouncements(studentData as Announcement[])
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred")
       toast({
@@ -269,7 +258,7 @@ export default function AnnouncementsPage() {
               <CardHeader className="bg-muted/30 border-b border-border/50 pb-3">
                 <CardTitle className="text-sm font-semibold flex items-center justify-between">
                   This Month
-                  <Badge variant="secondary" className="text-[10px] font-bold uppercase">{upcomingEvents.length} Events</Badge>
+                  <Badge variant="secondary" className="text-[10px] font-bold uppercase">{`${MOCK_UPCOMING_EVENTS.length} Events`}</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
@@ -282,7 +271,7 @@ export default function AnnouncementsPage() {
                       </div>
                     ))
                   ) : (
-                    upcomingEvents.map((event, i) => (
+                    MOCK_UPCOMING_EVENTS.map((event, i) => (
                       <div key={i} className="group p-4 border-b border-border/50 last:border-0 hover:bg-primary/5 transition-colors cursor-pointer">
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">{event.title}</h4>
