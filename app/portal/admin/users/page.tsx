@@ -71,7 +71,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 
-import { MOCK_USERS } from "@/utils/mocks"
+
 
 const sidebarItems = [
   { href: "/portal/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -139,14 +139,7 @@ export default function UserManagementPage() {
     try {
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 800));
-
-      // Initialize with mock data if state is empty
-      if (users.length === 0) {
-        .toUpperCase() + u.role.slice(1)) as any,
-  status: u.status === "Active" ? "Active" : "Suspended"
-}))).toUpperCase() + u.role.slice(1)) as any
-        })));
-      }
+      // Data is expected to be empty for this pure frontend demonstration
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred")
       toast.error("Could not load users. Please try again.")
@@ -174,7 +167,7 @@ export default function UserManagementPage() {
         last_login: undefined
       }
 
-      
+
       toast.success("User added successfully")
       setIsAddModalOpen(false)
       form.reset()
