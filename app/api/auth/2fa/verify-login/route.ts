@@ -1,5 +1,5 @@
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 import { NextRequest } from 'next/server';
 import { TwoFactorService } from '@/backend/services/twoFactorService';
 import { LogService } from '@/backend/services/logService';

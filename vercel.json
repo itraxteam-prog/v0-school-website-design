@@ -4,7 +4,7 @@
     "installCommand": "pnpm install",
     "functions": {
         "app/api/**/*.ts": {
-            "runtime": "nodejs22.x",
+            "runtime": "nodejs20.x",
             "maxDuration": 30
         }
     },

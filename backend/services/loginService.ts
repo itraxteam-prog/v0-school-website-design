@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
 import { User, AuthPayload } from '../types';
 import { supabase } from '../utils/supabaseClient';
@@ -7,6 +7,7 @@ import { NotificationService } from './notificationService';
 import { SessionService } from './sessionService';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-123';
+const ENCODED_SECRET = new TextEncoder().encode(JWT_SECRET);
 const TWO_FACTOR_TEMP_TOKEN_EXPIRY = '5m';
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCK_TIME_MS = 15 * 60 * 1000;
@@ -121,11 +122,11 @@ export const LoginService = {
                 .eq('id', user.id);
 
             if (user.two_factor_enabled) {
-                const tempToken = jwt.sign(
-                    { id: user.id, email: user.email, role: user.role, purpose: '2fa_verification' },
-                    JWT_SECRET,
-                    { expiresIn: TWO_FACTOR_TEMP_TOKEN_EXPIRY }
-                );
+                const tempToken = await new SignJWT({ id: user.id, email: user.email, role: user.role, purpose: '2fa_verification' })
+                    .setProtectedHeader({ alg: 'HS256' })
+                    .setIssuedAt()
+                    .setExpirationTime(TWO_FACTOR_TEMP_TOKEN_EXPIRY)
+                    .sign(ENCODED_SECRET);
 
                 return {
                     requires2FA: true,
@@ -187,7 +188,12 @@ export const LoginService = {
                 return { success: true, message: 'If an account exists with this email, a reset link has been sent.' };
             }
 
-            const resetToken = jwt.sign({ userId: user.id, type: 'reset' }, JWT_SECRET, { expiresIn: '1h' });
+            const resetToken = await new SignJWT({ userId: user.id, type: 'reset' })
+                .setProtectedHeader({ alg: 'HS256' })
+                .setIssuedAt()
+                .setExpirationTime('1h')
+                .sign(ENCODED_SECRET);
+
             const resetLink = `/portal/reset-password?token=${resetToken}`;
 
             NotificationService.sendEmailNotification(user.id, 'PASSWORD_RESET_REQUEST', `You requested a password reset. Use this link: ${resetLink}`, user.role);
@@ -204,8 +210,11 @@ export const LoginService = {
 
     resetPassword: async (token: string, newPassword: string): Promise<{ success: boolean; message: string }> => {
         try {
-            const decoded = jwt.verify(token, JWT_SECRET) as { userId: string, type: string };
-            if (!decoded || decoded.type !== 'reset') {
+            const { payload: decoded } = await jwtVerify(token, ENCODED_SECRET);
+            const userId = decoded.userId as string;
+            const type = decoded.type as string;
+
+            if (!decoded || type !== 'reset') {
                 return { success: false, message: 'Invalid or expired reset token' };
             }
 
@@ -215,16 +224,16 @@ export const LoginService = {
             }
 
             const hashedPassword = await bcrypt.hash(newPassword, 10);
-            const { data: user, error: userError } = await supabase.from('users').select('role').eq('id', decoded.userId).single();
+            const { data: user, error: userError } = await supabase.from('users').select('role').eq('id', userId).single();
 
             const { error: updateError } = await supabase
                 .from('users')
                 .update({ password: hashedPassword, failed_login_attempts: 0, lock_until: null })
-                .eq('id', decoded.userId);
+                .eq('id', userId);
 
             if (updateError) return { success: false, message: 'Failed to reset password' };
 
-            NotificationService.sendEmailNotification(decoded.userId, 'PASSWORD_RESET_SUCCESS', 'Your password has been successfully reset.', user?.role || 'user');
+            NotificationService.sendEmailNotification(userId, 'PASSWORD_RESET_SUCCESS', 'Your password has been successfully reset.', user?.role || 'user');
 
             return { success: true, message: 'Password reset successfully.' };
         } catch (error) {

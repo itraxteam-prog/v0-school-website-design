@@ -1,11 +1,11 @@
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 import { SessionService } from '@/backend/services/sessionService';
 import { createResponse, createErrorResponse } from '@/backend/utils/apiResponse';
 
-export const dynamic = 'force-dynamic';
+
 
 export async function GET(req: NextRequest) {
     try {
