@@ -142,9 +142,7 @@ export default function UserManagementPage() {
 
       // Initialize with mock data if state is empty
       if (users.length === 0) {
-        setUsers(MOCK_USERS.map(u => ({
-  ...u,
-  role: (u.role.charAt(0).toUpperCase() + u.role.slice(1)) as any,
+        .toUpperCase() + u.role.slice(1)) as any,
   status: u.status === "Active" ? "Active" : "Suspended"
 }))).toUpperCase() + u.role.slice(1)) as any
         })));
