@@ -174,7 +174,7 @@ export default function UserManagementPage() {
         last_login: undefined
       }
 
-      setUsers(prev => [newUser, ...prev]);
+      
       toast.success("User added successfully")
       setIsAddModalOpen(false)
       form.reset()
