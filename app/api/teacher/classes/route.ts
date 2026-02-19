@@ -1,10 +1,13 @@
-export const runtime = 'nodejs'export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 import { NextRequest } from 'next/server';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { ClassService } from '@/backend/services/classes';
 import { PeriodService } from '@/backend/services/periods';
 import { AttendanceService } from '@/backend/services/attendanceService';
 import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
+import { unstable_cache } from 'next/cache';
 
 export async function GET(req: NextRequest) {
     const auth = await requireRole(req, ['teacher']);
@@ -12,36 +15,45 @@ export async function GET(req: NextRequest) {
 
     try {
         const teacherId = auth.user.id;
-        const classes = await ClassService.getByTeacherId(teacherId);
 
-        // Enhance class data
+        // Cache the core class and period data
+        const { classes, periodsByClass } = await unstable_cache(
+            async (tid: string) => {
+                const cls = await ClassService.getByTeacherId(tid);
+                const classIds = cls.map(c => c.id);
+                const prds = await PeriodService.getByClassIds(classIds);
+
+                const grouped = prds.reduce((acc, p) => {
+                    if (!acc[p.classId]) acc[p.classId] = [];
+                    acc[p.classId].push(p);
+                    return acc;
+                }, {} as Record<string, any[]>);
+
+                return { classes: cls, periodsByClass: grouped };
+            },
+            [`teacher-classes-${teacherId}`],
+            { tags: ['classes', 'periods'], revalidate: 3600 }
+        )(teacherId);
+
+        // Enhance class data with attendance and inferred subjects
         const enhancedClasses = await Promise.all(classes.map(async (cls) => {
-            // Get today's attendance for last active status
+            // Attendance check (considered dynamic, not cached here for now)
             const today = new Date().toISOString().split('T')[0];
             const attendance = await AttendanceService.getClassAttendance(cls.id, today);
             const lastActive = attendance && attendance.length > 0 ? 'Today' : 'Recently';
 
-            // get subject name from periods? Classes don't have subjects in this schema, 
-            // but multiple periods might have subjects. 
-            // We'll try to find a subject from periods or default to 'General'.
-            // Accessing periods might be heavy if we do it for all classes.
-            // Let's check if we can get it from a "Main Subject" field if it existed, otherwise 'General'.
-            // Actually, previously the Period interface showed `name` as subject. 
-            // The UI mocks "Mathematics", "Science" etc.
-            // I'll pick the most frequent subject from periods or default.
-
-            // Optimization: Maybe just return 'General' for now to avoid N+1 queries for periods
-            // or fetch periods for all these classIds in one go.
+            // Infer subject from periods (use first period name as primary subject)
+            const classPeriods = periodsByClass[cls.id] || [];
+            const subject = classPeriods.length > 0 ? classPeriods[0].name : 'General';
 
             return {
                 id: cls.id,
                 name: cls.name,
-                subject: 'General', // TODO: Infer from periods
+                subject: subject,
                 studentCount: cls.studentIds?.length || 0,
                 room: cls.roomNo,
                 performance: 82, // Mocked consistent value for now
                 lastActive: lastActive,
-                // Assign a color based on ID hash for consistency
                 color: getColorForId(cls.id)
             };
         }));

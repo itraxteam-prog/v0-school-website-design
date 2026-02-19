@@ -38,10 +38,10 @@ export async function POST(req: NextRequest) {
         // Use AuthService to handle hashing and user creation
         const result = await LoginService.register(validation.data);
 
-        if (!result.success) {
-            console.error('API POST /api/users - LoginService Error:', result.message);
-            LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'USER', undefined, 'failure', { error: result.message });
-            return createErrorResponse(result.message || 'Failed to create user', 400);
+        if (result.error) {
+            console.error('API POST /api/users - LoginService Error:', result.error);
+            LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'USER', undefined, 'failure', { error: result.error });
+            return createErrorResponse(result.error || 'Failed to create user', result.status || 400);
         }
 
         console.log('API POST /api/users - Success:', (result.user as any)?.id);

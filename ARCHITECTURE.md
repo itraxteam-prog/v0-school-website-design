@@ -21,8 +21,8 @@ We follow a modular Service-Controller pattern:
 ## 🔐 Security Model
 
 ### Authentication
-- JWT stored in `HttpOnly` cookies.
-- CSRF protection via middleware.
+- JWT (JSON Web Tokens) managed via `jose` library, stored in `HttpOnly` cookies.
+- CSRF protection via middleware checks.
 - 2FA support using `speakeasy` and `qrcode`.
 
 ### Authorization (RBAC)
@@ -40,9 +40,9 @@ The schema is optimized for a school environment:
 - `settings`: Global institutional config.
 
 ## 🚀 Performance
-- **Caching**: `unstable_cache` is used for read-heavy API responses (Classes, Announcements).
-- **Optimization**: Specific column selection in SQL queries to reduce payload size.
-- **Skeletons**: Seamless loading experience across all portals.
+- **Caching**: Next.js `unstable_cache` is implemented at the Service layer for read-heavy operations (e.g., Announcements, Classes, and Academic records) to minimize Supabase load.
+- **Data Fetching**: Specific column selection and efficient joins are used in Supabase queries to reduce payload size.
+- **UX**: React Skeletons provide a seamless loading experience across all portals.
 
 ## 📊 Analytics
 Interactive dashboards are powered by `recharts`, fetching aggregated data from the backend to visualize attendance, grade distributions, and enrollment trends.

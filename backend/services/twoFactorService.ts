@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import { jwtVerify } from 'jose';
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
 import bcrypt from 'bcryptjs';
@@ -8,7 +8,7 @@ import { SessionService } from './sessionService';
 import { AuthPayload } from '../types';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-123';
-const TWO_FACTOR_TEMP_TOKEN_EXPIRY = '5m';
+const ENCODED_SECRET = new TextEncoder().encode(JWT_SECRET);
 
 export const TwoFactorService = {
     setup2FA: async (userId: string): Promise<{ secret: string; qrCode: string } | null> => {
@@ -72,12 +72,16 @@ export const TwoFactorService = {
 
     verify2FALogin: async (tempToken: string, code: string) => {
         try {
-            const decoded = jwt.verify(tempToken, JWT_SECRET) as { id: string, purpose: string };
+            // Use jose for signature-verified JWT decoding (replaces jsonwebtoken)
+            const { payload: decoded } = await jwtVerify(tempToken, ENCODED_SECRET);
+
             if (decoded.purpose !== '2fa_verification') {
                 return { error: 'Invalid 2FA session', status: 401 };
             }
 
-            const { data: user, error } = await supabase.from('users').select('*').eq('id', decoded.id).single();
+            const userId = decoded.id as string;
+
+            const { data: user, error } = await supabase.from('users').select('*').eq('id', userId).single();
             if (error || !user || !user.two_factor_secret) {
                 return { error: '2FA not enabled for this account', status: 400 };
             }
