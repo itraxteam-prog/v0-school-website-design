@@ -1,10 +1,13 @@
-import jwt from 'jsonwebtoken';
+import { SignJWT, jwtVerify } from 'jose';
 import { createHash } from 'crypto';
 import { supabase } from '../utils/supabaseClient';
 import { AuthPayload } from '../types';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-123';
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret-key-123';
+
+const ENCODED_SECRET = new TextEncoder().encode(JWT_SECRET);
+const ENCODED_REFRESH_SECRET = new TextEncoder().encode(REFRESH_SECRET);
 
 const ACCESS_TOKEN_EXPIRY = '15m';
 const REFRESH_TOKEN_EXPIRY = '30d';
@@ -16,9 +19,17 @@ export const SessionService = {
     },
 
     generateTokens: async (payload: AuthPayload) => {
-        // Remove roles specifically to avoid claim bloat if necessary, but middleware expects it
-        const token = jwt.sign(payload, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
-        const refreshToken = jwt.sign({ id: payload.id }, REFRESH_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY });
+        const token = await new SignJWT({ ...payload })
+            .setProtectedHeader({ alg: 'HS256' })
+            .setIssuedAt()
+            .setExpirationTime(ACCESS_TOKEN_EXPIRY)
+            .sign(ENCODED_SECRET);
+
+        const refreshToken = await new SignJWT({ id: payload.id })
+            .setProtectedHeader({ alg: 'HS256' })
+            .setIssuedAt()
+            .setExpirationTime(REFRESH_TOKEN_EXPIRY)
+            .sign(ENCODED_REFRESH_SECRET);
 
         const refreshTokenHash = SessionService.hashToken(refreshToken);
 
@@ -39,13 +50,15 @@ export const SessionService = {
 
     refreshSession: async (refreshToken: string) => {
         try {
-            const decoded = jwt.verify(refreshToken, REFRESH_SECRET) as { id: string };
+            const { payload: decoded } = await jwtVerify(refreshToken, ENCODED_REFRESH_SECRET);
+            const userId = decoded.id as string;
+
             const refreshTokenHash = SessionService.hashToken(refreshToken);
 
             const { data: session, error } = await supabase
                 .from('user_sessions')
                 .select('*, users(*)')
-                .eq('user_id', decoded.id)
+                .eq('user_id', userId)
                 .eq('refresh_token_hash', refreshTokenHash)
                 .single();
 
@@ -62,6 +75,7 @@ export const SessionService = {
             const payload: AuthPayload = { id: user.id, email: user.email, name: user.name, role: user.role };
             return await SessionService.generateTokens(payload);
         } catch (error) {
+            console.error('Refresh Token Verification Error:', error);
             return null;
         }
     },
@@ -70,9 +84,10 @@ export const SessionService = {
         await supabase.from('user_sessions').delete().eq('user_id', userId);
     },
 
-    verifyToken: (token: string): AuthPayload | null => {
+    verifyToken: async (token: string): Promise<AuthPayload | null> => {
         try {
-            return jwt.verify(token, JWT_SECRET) as AuthPayload;
+            const { payload } = await jwtVerify(token, ENCODED_SECRET);
+            return payload as unknown as AuthPayload;
         } catch (error) {
             return null;
         }
