@@ -69,6 +69,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 
+import { MOCK_USERS } from "@/utils/mocks"
+
 const sidebarItems = [
   { href: "/portal/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/portal/admin/students", label: "Students", icon: GraduationCap },
@@ -97,9 +99,6 @@ interface Teacher extends TeacherFormValues {
   id?: string;
 }
 
-// Internal API base path
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api";
-
 export default function AdminTeachersPage() {
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [loading, setLoading] = useState(true)
@@ -125,17 +124,22 @@ export default function AdminTeachersPage() {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`${API_BASE}/teachers`, {
-        method: "GET",
-        credentials: "include",
-      })
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("API ERROR [fetchTeachers]:", response.status, errorText);
-        throw new Error(errorText || "Failed to fetch teachers");
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // Initialize with mock data if state is empty
+      if (teachers.length === 0) {
+        const mockTeachers = MOCK_USERS
+          .filter(u => u.role === "teacher")
+          .map(u => ({
+            id: u.id,
+            name: u.name,
+            employeeId: `T-${u.id.split('-')[0].toUpperCase()}`,
+            department: "Faculty",
+            classIds: "cls-001, cls-002"
+          }));
+        setTeachers(mockTeachers);
       }
-      const result = await response.json()
-      setTeachers(result.data || [])
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred")
       toast({
@@ -146,7 +150,7 @@ export default function AdminTeachersPage() {
     } finally {
       setLoading(false)
     }
-  }, [toast])
+  }, [toast, teachers.length])
 
   useEffect(() => {
     fetchTeachers()
@@ -160,7 +164,7 @@ export default function AdminTeachersPage() {
         department: (editingTeacher as any).department || (editingTeacher as any).departments,
         classIds: Array.isArray((editingTeacher as any).classIds)
           ? (editingTeacher as any).classIds.join(', ')
-          : ((editingTeacher as any).assignedClasses || ""),
+          : ((editingTeacher as any).classIds || ""),
       })
     } else {
       form.reset({
@@ -175,41 +179,21 @@ export default function AdminTeachersPage() {
   const onSubmit = async (data: TeacherFormValues) => {
     setIsSubmitting(true)
     try {
-      const teacherId = editingTeacher?.id || editingTeacher?._id
-      const url = editingTeacher
-        ? `${API_BASE}/teachers/${teacherId}`
-        : `${API_BASE}/teachers`
-      const method = editingTeacher ? "PUT" : "POST"
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 800));
 
-      // Map string to array for backend
-      const payload = {
-        ...data,
-        classIds: data.classIds.split(',').map(s => s.trim()).filter(Boolean)
-      }
-
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(payload),
-      })
-      console.log("Response Status:", response.status);
-      const result = await response.json()
-      console.log("Response JSON:", result);
-
-      if (!response.ok || (result.success === false)) {
-        // Map backend Zod errors back to form fields
-        if (result.error && typeof result.error === 'string') {
-          const parts = result.error.split(': ')
-          if (parts.length > 1) {
-            const field = parts[0].toLowerCase() as any
-            const message = parts[1]
-            if (['name', 'employeeid', 'department', 'classids'].includes(field)) {
-              form.setError(field as any, { message })
-            }
-          }
+      if (editingTeacher) {
+        setTeachers(prev => prev.map(t =>
+          (t.id === editingTeacher.id || t._id === editingTeacher._id)
+            ? { ...t, ...data }
+            : t
+        ));
+      } else {
+        const newTeacher: Teacher = {
+          id: Math.random().toString(36).substr(2, 9),
+          ...data
         }
-        throw new Error(result.error || `Failed to ${editingTeacher ? 'update' : 'add'} teacher`)
+        setTeachers(prev => [newTeacher, ...prev]);
       }
 
       toast({
@@ -219,7 +203,6 @@ export default function AdminTeachersPage() {
 
       setIsModalOpen(false)
       setEditingTeacher(null)
-      fetchTeachers()
     } catch (err: any) {
       console.error("Submit Error:", err);
       toast({
@@ -237,22 +220,15 @@ export default function AdminTeachersPage() {
     if (!confirm(`Are you sure you want to delete ${teacher.name}?`)) return
 
     try {
-      const response = await fetch(`${API_BASE}/teachers/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      })
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("API ERROR [handleDelete]:", response.status, errorText);
-        throw new Error(errorText || "Failed to delete teacher");
-      }
+      setTeachers(prev => prev.filter(t => t.id !== id && t._id !== id));
 
       toast({
         title: "Deleted",
         description: "Teacher has been removed from the system.",
       })
-      fetchTeachers()
     } catch (err: any) {
       toast({
         title: "Error",

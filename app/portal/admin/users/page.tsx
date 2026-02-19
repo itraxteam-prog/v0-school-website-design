@@ -71,6 +71,8 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 
+import { MOCK_USERS } from "@/utils/mocks"
+
 const sidebarItems = [
   { href: "/portal/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/portal/admin/students", label: "Students", icon: GraduationCap },
@@ -101,9 +103,6 @@ const userSchema = z.object({
 })
 
 type UserFormValues = z.infer<typeof userSchema>
-
-// Internal API base path
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 interface User {
   id: string;
@@ -138,17 +137,16 @@ export default function UserManagementPage() {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`${API_BASE}/users`, {
-        method: "GET",
-        credentials: "include",
-      })
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("API ERROR [fetchUsers]:", response.status, errorText);
-        throw new Error(errorText || "Failed to fetch users");
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // Initialize with mock data if state is empty
+      if (users.length === 0) {
+        setUsers(MOCK_USERS.map(u => ({
+          ...u,
+          role: (u.role.charAt(0).toUpperCase() + u.role.slice(1)) as any
+        })));
       }
-      const result = await response.json()
-      setUsers(result.data || [])
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred")
       toast.error("Could not load users. Please try again.")
@@ -164,35 +162,22 @@ export default function UserManagementPage() {
   async function onSubmit(data: UserFormValues) {
     setIsSubmitting(true)
     try {
-      const payload = {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      const newUser: User = {
+        id: Math.random().toString(36).substr(2, 9),
         name: data.fullName,
         email: data.email,
-        password: data.password,
-        role: data.role.toLowerCase(),
-        status: data.status
+        role: data.role,
+        status: data.status,
+        last_login: undefined
       }
 
-      console.log("Submitting User Payload:", { ...payload, password: "[REDACTED]" });
-
-      const response = await fetch(`${API_BASE}/users`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(payload),
-      })
-
-      console.log("Response Status:", response.status);
-      const result = await response.json()
-      console.log("Response JSON:", result);
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || "Failed to create user")
-      }
-
+      setUsers(prev => [newUser, ...prev]);
       toast.success("User added successfully")
       setIsAddModalOpen(false)
       form.reset()
-      fetchUsers()
     } catch (err: any) {
       console.error("Submit Error:", err);
       toast.error(err.message || "Failed to add user")
@@ -215,21 +200,13 @@ export default function UserManagementPage() {
     if (!selectedUser) return
 
     try {
-      const response = await fetch(`${API_BASE}/users/${selectedUser.id}`, {
-        method: "DELETE",
-        credentials: "include",
-      })
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("API ERROR [confirmDelete]:", response.status, errorText);
-        throw new Error(errorText || "Failed to delete user")
-      }
-
+      setUsers(prev => prev.filter(u => u.id !== selectedUser.id));
       toast.success("User deleted successfully")
       setIsDeleteModalOpen(false)
       setSelectedUser(null)
-      fetchUsers()
     } catch (err: any) {
       toast.error(err.message || "Failed to delete user")
     }
@@ -237,21 +214,15 @@ export default function UserManagementPage() {
 
   const handleStatusToggle = async (user: User) => {
     try {
-      const newStatus = user.status === "Active" ? "Suspended" : "Active"
-      const response = await fetch(`${API_BASE}/users/${user.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ status: newStatus }),
-      })
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      if (!response.ok) {
-        const result = await response.json()
-        throw new Error(result.error || "Failed to update user status")
-      }
+      const newStatus = user.status === "Active" ? "Suspended" : "Active"
+      setUsers(prev => prev.map(u =>
+        u.id === user.id ? { ...u, status: newStatus } : u
+      ));
 
       toast.success(`User ${newStatus === "Active" ? "activated" : "suspended"} successfully`)
-      fetchUsers()
     } catch (err: any) {
       toast.error(err.message || "Failed to update user status")
     }
