@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { jwtVerify } from 'jose';
 
-export function middleware(request: NextRequest) {
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-123';
+const ENCODED_SECRET = new TextEncoder().encode(JWT_SECRET);
+
+export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const token = request.cookies.get('token')?.value;
 
@@ -31,11 +35,13 @@ export function middleware(request: NextRequest) {
     }
 
     try {
-        const payloadBase64 = token.split('.')[1];
-        if (!payloadBase64) throw new Error('Invalid token');
+        const { payload } = await jwtVerify(token, ENCODED_SECRET);
 
-        const decoded = JSON.parse(atob(payloadBase64));
-        const userRole = decoded.role;
+        const userRole = payload.role as string;
+
+        if (!userRole) {
+            throw new Error('Role claim missing');
+        }
 
         // Role-based path protection
         const isAdminPath = pathname.startsWith('/portal/admin');

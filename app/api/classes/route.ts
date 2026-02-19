@@ -1,4 +1,5 @@
-﻿import { NextRequest } from 'next/server';
+export const runtime = 'nodejs'export const dynamic = 'force-dynamic'
+import { NextRequest } from 'next/server';
 import { classController } from '@/backend/controllers/classes';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { LogService } from '@/backend/services/logService';
@@ -57,3 +58,4 @@ export async function POST(req: NextRequest) {
         return createErrorResponse(error.message || 'Failed to process class creation', 500);
     }
 }
+

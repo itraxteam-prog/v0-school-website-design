@@ -1,4 +1,6 @@
-﻿import { NextRequest } from 'next/server';
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+import { NextRequest } from 'next/server';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { AcademicService } from '@/backend/services/academicService';
 import { StudentService } from '@/backend/services/students';
@@ -124,3 +126,4 @@ function calculateGrade(marks: number) {
     if (marks >= 50) return "D";
     return "F";
 }
+

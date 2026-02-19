@@ -1,5 +1,7 @@
-﻿import { NextRequest } from 'next/server';
-import { authController } from '@/backend/controllers/auth';
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+import { NextRequest } from 'next/server';
+import { LoginService } from '@/backend/services/loginService';
 import { validateBody, EmailOnlySchema } from '@/backend/validation/schemas';
 import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
 
@@ -15,13 +17,14 @@ export async function POST(req: NextRequest) {
 
         const { email } = data!;
 
-        const result = await authController.forgotPassword(email);
+        const result = await LoginService.forgotPassword(email);
 
         return createSuccessResponse({
-            message: result.data?.message || 'Password reset link sent',
-            resetLink: result.data?.resetLink // Strictly for development/demo purposes
+            message: result.message || 'Password reset link sent',
+            resetLink: result.resetLink // Strictly for development/demo purposes
         });
     } catch (error: any) {
         return createErrorResponse(error.message || 'Internal Server Error', 500);
     }
 }
+

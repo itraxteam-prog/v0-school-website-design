@@ -1,4 +1,5 @@
-﻿import { NextRequest } from 'next/server';
+export const runtime = 'nodejs'export const dynamic = 'force-dynamic'
+import { NextRequest } from 'next/server';
 import { roleController } from '@/backend/controllers/roles';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
@@ -38,3 +39,4 @@ export async function POST(req: NextRequest) {
         return createErrorResponse(error.message || 'Failed to process role creation', 400);
     }
 }
+

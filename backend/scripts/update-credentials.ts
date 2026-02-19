@@ -1,24 +1,22 @@
 
 import * as dotenv from 'dotenv';
 import path from 'path';
-import postgres from 'postgres';
 import bcrypt from 'bcryptjs';
+import { createClient } from '@supabase/supabase-js';
 
 // Manually load env vars
 const envPath = path.resolve(process.cwd(), '.env.local');
 dotenv.config({ path: envPath });
 
-const DATABASE_URL = process.env.DATABASE_URL;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-if (!DATABASE_URL) {
-    console.error('Error: DATABASE_URL is not defined in .env.local');
+if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('Error: NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is not defined in .env.local');
     process.exit(1);
 }
 
-// Connect directly using postgres.js to avoid issues with importing db.ts before env vars are loaded
-const sql = postgres(DATABASE_URL, {
-    ssl: 'require',
-});
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 async function updateCredentials() {
     console.log('Starting credential update...');
@@ -33,22 +31,24 @@ async function updateCredentials() {
         for (const user of updates) {
             const hashedPassword = await bcrypt.hash(user.password, 10);
 
-            await sql`
-                UPDATE users 
-                SET 
-                    password = ${hashedPassword},
-                    failed_login_attempts = 0,
-                    lock_until = NULL
-                WHERE email = ${user.email}
-            `;
+            const { error } = await supabase
+                .from('users')
+                .update({
+                    password: hashedPassword,
+                    failed_login_attempts: 0,
+                    lock_until: null
+                })
+                .ilike('email', user.email);
 
-            console.log(`Updated password for ${user.email}`);
+            if (error) {
+                console.error(`Failed to update password for ${user.email}:`, error.message);
+            } else {
+                console.log(`Updated password for ${user.email}`);
+            }
         }
         console.log('All credentials updated successfully.');
     } catch (error) {
         console.error('Error updating credentials:', error);
-    } finally {
-        await sql.end();
     }
 }
 

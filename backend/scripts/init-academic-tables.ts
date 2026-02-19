@@ -1,22 +1,26 @@
-import postgres from 'postgres';
+
 import * as dotenv from 'dotenv';
 import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 
 async function initTables() {
-    const url = process.env.DATABASE_URL;
-    if (!url) {
-        console.error('DATABASE_URL missing');
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+        console.error('NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is missing in .env.local');
         return;
     }
-    const sql = postgres(url, { ssl: 'require' });
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     try {
-        console.log('Creating academic tables...');
+        console.log('Creating academic tables via RPC...');
 
-        // 1. Teachers
-        await sql`
+        const sql = `
+            -- 1. Teachers
             CREATE TABLE IF NOT EXISTS public.teachers (
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
@@ -25,11 +29,8 @@ async function initTables() {
                 class_ids TEXT[],
                 created_at TIMESTAMPTZ DEFAULT NOW()
             );
-        `;
-        console.log('✅ Teachers table created or exists');
 
-        // 2. Classes
-        await sql`
+            -- 2. Classes
             CREATE TABLE IF NOT EXISTS public.classes (
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
@@ -38,11 +39,8 @@ async function initTables() {
                 student_ids TEXT[],
                 created_at TIMESTAMPTZ DEFAULT NOW()
             );
-        `;
-        console.log('✅ Classes table created or exists');
 
-        // 3. Students
-        await sql`
+            -- 3. Students
             CREATE TABLE IF NOT EXISTS public.students (
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
@@ -53,11 +51,8 @@ async function initTables() {
                 address TEXT,
                 created_at TIMESTAMPTZ DEFAULT NOW()
             );
-        `;
-        console.log('✅ Students table created or exists');
 
-        // 4. Periods
-        await sql`
+            -- 4. Periods
             CREATE TABLE IF NOT EXISTS public.periods (
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
@@ -67,14 +62,18 @@ async function initTables() {
                 created_at TIMESTAMPTZ DEFAULT NOW()
             );
         `;
-        console.log('✅ Periods table created or exists');
 
-        console.log('All academic tables initialized successfully!');
+        const { error } = await supabase.rpc('exec_sql', { sql_query: sql });
+
+        if (error) {
+            console.error('Failed to initialize tables via RPC:', error.message);
+            console.log('Ensure the exec_sql RPC function exists in your database.');
+        } else {
+            console.log('All academic tables initialized successfully!');
+        }
 
     } catch (e) {
         console.error('Failed to initialize tables:', e);
-    } finally {
-        await sql.end();
     }
 }
 

@@ -1,4 +1,6 @@
-﻿import { NextRequest } from 'next/server';
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+import { NextRequest } from 'next/server';
 import { classController } from '@/backend/controllers/classes';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { validateBody, ClassSchema } from '@/backend/validation/schemas';

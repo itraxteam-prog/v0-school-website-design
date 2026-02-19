@@ -1,4 +1,5 @@
-﻿import { NextRequest } from 'next/server';
+export const runtime = 'nodejs'export const dynamic = 'force-dynamic'
+import { NextRequest } from 'next/server';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { ClassService } from '@/backend/services/classes';
 import { PeriodService } from '@/backend/services/periods';
@@ -68,3 +69,4 @@ function getColorForId(id: string) {
     }
     return colors[Math.abs(hash) % colors.length];
 }
+

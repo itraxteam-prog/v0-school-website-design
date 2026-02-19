@@ -1,4 +1,5 @@
-﻿import { NextRequest } from 'next/server';
+export const runtime = 'nodejs'export const dynamic = 'force-dynamic'
+import { NextRequest } from 'next/server';
 import { teacherController } from '@/backend/controllers/teachers';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { LogService } from '@/backend/services/logService';
@@ -64,3 +65,4 @@ export async function POST(req: NextRequest) {
         return createErrorResponse(error.message || 'Failed to process teacher creation', 500);
     }
 }
+

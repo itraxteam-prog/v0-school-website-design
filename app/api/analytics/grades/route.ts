@@ -1,4 +1,5 @@
-﻿import { NextRequest } from 'next/server';
+export const runtime = 'nodejs'export const dynamic = 'force-dynamic'
+import { NextRequest } from 'next/server';
 import { AcademicService } from '@/backend/services/academicService';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
@@ -19,3 +20,4 @@ export async function GET(request: NextRequest) {
         return createErrorResponse(error.message, 500);
     }
 }
+

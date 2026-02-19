@@ -1,5 +1,7 @@
-﻿import { NextRequest } from 'next/server';
-import { AuthService } from '@/backend/services/authService';
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+import { NextRequest } from 'next/server';
+import { TwoFactorService } from '@/backend/services/twoFactorService';
 import { LogService } from '@/backend/services/logService';
 import { createResponse, createErrorResponse } from '@/backend/utils/apiResponse';
 import { validateBody, TwoFactorSchema } from '@/backend/validation/schemas';
@@ -21,7 +23,7 @@ export async function POST(req: NextRequest) {
 
         const { tempToken, code, rememberMe } = body;
 
-        const result = await AuthService.verify2FALogin(tempToken, code);
+        const result = await TwoFactorService.verify2FALogin(tempToken, code);
 
         if (result.error || !result.token) {
             // Log failed 2FA login
@@ -70,3 +72,4 @@ export async function POST(req: NextRequest) {
         return createErrorResponse('Internal server error', 500);
     }
 }
+

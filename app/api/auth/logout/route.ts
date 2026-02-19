@@ -1,5 +1,7 @@
-﻿import { NextRequest } from 'next/server';
-import { AuthService } from '@/backend/services/authService';
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+import { NextRequest } from 'next/server';
+import { SessionService } from '@/backend/services/sessionService';
 import { verifyAuth } from '@/backend/middleware/authMiddleware';
 import { LogService } from '@/backend/services/logService';
 import { createResponse, createErrorResponse } from '@/backend/utils/apiResponse';
@@ -13,7 +15,7 @@ export async function POST(req: NextRequest) {
         // 1. Identify user to revoke session in DB
         const user = await verifyAuth(req);
         if (user) {
-            await AuthService.logout(user.id);
+            await SessionService.logout(user.id);
             LogService.logAction(user.id, user.role, 'LOGOUT', 'AUTH', undefined, 'success', metadata);
         }
 
@@ -37,3 +39,4 @@ export async function POST(req: NextRequest) {
         return createErrorResponse('Internal server error', 500);
     }
 }
+
