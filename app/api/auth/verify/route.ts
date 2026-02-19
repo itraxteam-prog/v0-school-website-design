@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
             return createErrorResponse('Authentication required', 401);
         }
 
-        const decoded = SessionService.verifyToken(token);
+        const decoded = await SessionService.verifyToken(token);
 
         if (!decoded) {
             // Invalid or expired access token - return 401

@@ -1,8 +1,9 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import jwt from 'jsonwebtoken';
+import { jwtVerify } from 'jose';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-123';
+const ENCODED_SECRET = new TextEncoder().encode(JWT_SECRET);
 
 export interface JWTPayload {
     id: string;
@@ -29,17 +30,18 @@ export async function withAuth(allowedRoles: string[]): Promise<JWTPayload> {
     }
 
     try {
-        const payload = jwt.verify(token, JWT_SECRET) as JWTPayload;
+        const { payload } = await jwtVerify(token, ENCODED_SECRET);
+        const userPayload = payload as unknown as JWTPayload;
 
         // User has valid token but wrong role - redirect to their portal
-        if (!allowedRoles.includes(payload.role)) {
+        if (!allowedRoles.includes(userPayload.role)) {
             const rolePortalMap: Record<string, string> = {
                 'admin': '/portal/admin',
                 'teacher': '/portal/teacher',
                 'student': '/portal/student'
             };
 
-            const userPortal = rolePortalMap[payload.role];
+            const userPortal = rolePortalMap[userPayload.role];
             if (userPortal) {
                 redirect(userPortal);
             } else {
@@ -49,7 +51,7 @@ export async function withAuth(allowedRoles: string[]): Promise<JWTPayload> {
         }
 
         // User is authorized
-        return payload;
+        return userPayload;
     } catch (error) {
         console.error('JWT verification failed in withAuth:', error);
         redirect('/portal/login');

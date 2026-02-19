@@ -6,7 +6,7 @@ import path from 'path';
 const envPath = path.resolve(process.cwd(), '.env.local');
 dotenv.config({ path: envPath });
 
-import { AuthService } from '../services/authService';
+import { LoginService } from '../services/loginService';
 
 async function testLogin() {
     const email = 'admin@school.com';
@@ -14,7 +14,7 @@ async function testLogin() {
 
     console.log(`Attempting login for ${email}...`);
     try {
-        const result = await AuthService.login(email, password);
+        const result = await LoginService.login(email, password);
         console.log('Login result:', JSON.stringify(result, null, 2));
         if (result.user && result.token) {
             console.log('SUCCESS: Login works and returns user data.');
@@ -22,7 +22,7 @@ async function testLogin() {
             console.error('FAILED: Login returned error:', result.error);
         }
     } catch (error: any) {
-        console.error('CRITICAL: AuthService.login threw an error:');
+        console.error('CRITICAL: LoginService.login threw an error:');
         console.error('Error Message:', error.message);
         console.error('Stack Trace:', error.stack);
     }

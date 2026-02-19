@@ -1,42 +1,38 @@
 # Database Configuration (Supabase)
 
-This project uses **Supabase** via a direct PostgreSQL connection.
+This project uses **Supabase** via the official Supabase JS client.
 
 ## Environment Variables
 
-The database connection is managed via the `DATABASE_URL` environment variable.
+The database connection is managed via Supabase credentials.
 
-- **Local:** Defined in `.env.local`
-- **Production/Vercel:** Must be set in the Vercel Project Settings.
-
-### Connection String
-```text
-postgresql://[user]:[password]@[host]:5432/postgres
-```
-*Note: Special characters in the password (like `#` or `*`) have been URL-encoded to ensure compatibility with database drivers.*
+- **URL:** `NEXT_PUBLIC_SUPABASE_URL`
+- **Anon Key:** `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- **Service Role Key:** `SUPABASE_SERVICE_ROLE_KEY` (Server-side only)
 
 ## Tools and Drivers
 
-- **Client:** `postgres.js` (installed via `pnpm add postgres`)
-- **Utility:** `backend/utils/db.ts` exports the `sql` instance for running queries.
+- **Client:** `@supabase/supabase-js`
+- **Utility:** `backend/utils/supabaseClient.ts` exports the `supabase` instance for running queries.
 
 ## Usage in Services
 
-To use the database in your backend services, import the `sql` utility:
+To use the database in your backend services, import the `supabase` utility:
 
 ```typescript
-import { sql } from '@/backend/utils/db';
+import { supabase } from '@/backend/utils/supabaseClient';
 
 async function getUsers() {
-    const users = await sql`SELECT * FROM users`;
-    return users;
+    const { data, error } = await supabase.from('users').select('*');
+    if (error) throw error;
+    return data;
 }
 ```
 
+## Security (RLS)
+
+This project utilizes Supabase Row Level Security (RLS) to enforce data access policies at the database level. Ensure all tables have appropriate RLS policies configured in the Supabase dashboard.
+
 ## Verification
 
-To verify the connection locally, you can use the interactive debugging scripts in `backend/scripts/` or check the service logs.
-
-## Current State
-
-The backend has successfully moved from dummy JSON data to direct SQL queries using `postgres.js`. All services in `backend/services/` utilize the `sql` client for data operations.
+To verify the connection, check the service logs or use the verification scripts if provided.

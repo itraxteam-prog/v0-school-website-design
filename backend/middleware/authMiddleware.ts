@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
+import { jwtVerify } from 'jose';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-123';
+const ENCODED_SECRET = new TextEncoder().encode(JWT_SECRET);
 
 export interface AuthPayload {
     id: string;
@@ -13,7 +14,7 @@ export interface AuthPayload {
 }
 
 // Function to verify JWT token from request headers or cookies
-export async function verifyAuth(req: NextRequest | Request) {
+export async function verifyAuth(req: NextRequest | Request): Promise<AuthPayload | null> {
     let token = '';
 
     // Check Authorization header
@@ -39,8 +40,9 @@ export async function verifyAuth(req: NextRequest | Request) {
     }
 
     try {
-        const decoded = jwt.verify(token, JWT_SECRET) as AuthPayload;
-        return decoded;
+        const { payload } = await jwtVerify(token, ENCODED_SECRET);
+        if (!payload.role) return null;
+        return payload as unknown as AuthPayload;
     } catch (error) {
         return null;
     }
