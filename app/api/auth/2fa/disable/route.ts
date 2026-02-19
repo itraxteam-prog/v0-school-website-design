@@ -1,5 +1,7 @@
-﻿import { NextRequest } from 'next/server';
-import { AuthService } from '@/backend/services/authService';
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+import { NextRequest } from 'next/server';
+import { TwoFactorService } from '@/backend/services/twoFactorService';
 import { AuditService } from '@/backend/services/auditService';
 import { verifyAuth } from '@/backend/middleware/authMiddleware';
 import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
@@ -16,7 +18,7 @@ export async function POST(req: NextRequest) {
         }
 
         const { password } = await req.json();
-        const result = await AuthService.disable2FA(user.id, password);
+        const result = await TwoFactorService.disable2FA(user.id, password);
 
         if (!result.success) {
             await AuditService.log2FASetup(user.id, 'DISABLE', 'failure', { ...metadata, error: result.message });
@@ -32,3 +34,4 @@ export async function POST(req: NextRequest) {
         return createErrorResponse(error.message || 'Internal Server Error', 500);
     }
 }
+

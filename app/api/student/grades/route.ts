@@ -1,4 +1,5 @@
-﻿import { NextRequest } from 'next/server';
+export const runtime = 'nodejs'export const dynamic = 'force-dynamic'
+import { NextRequest } from 'next/server';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { AcademicService } from '@/backend/services/academicService';
 import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
@@ -63,3 +64,4 @@ export async function GET(req: NextRequest) {
         return createErrorResponse(error.message || 'Internal Server Error', 500);
     }
 }
+

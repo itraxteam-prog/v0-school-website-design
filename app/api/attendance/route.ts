@@ -1,4 +1,5 @@
-﻿import { NextRequest } from 'next/server';
+export const runtime = 'nodejs'export const dynamic = 'force-dynamic'
+import { NextRequest } from 'next/server';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { LogService } from '@/backend/services/logService';
 import { AttendanceService } from '@/backend/services/attendanceService';
@@ -70,3 +71,4 @@ export async function POST(req: NextRequest) {
         return createErrorResponse(error.message || 'Internal Error', 500);
     }
 }
+

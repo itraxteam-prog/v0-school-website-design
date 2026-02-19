@@ -1,6 +1,8 @@
-﻿import { NextRequest } from 'next/server';
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+import { NextRequest } from 'next/server';
 import { UserService } from '@/backend/services/userService';
-import { AuthService } from '@/backend/services/authService';
+import { LoginService } from '@/backend/services/loginService';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
 import { validateBody, RegisterSchema } from '@/backend/validation/schemas';
@@ -34,12 +36,12 @@ export async function POST(req: NextRequest) {
         }
 
         // Use AuthService to handle hashing and user creation
-        const result = await AuthService.register(validation.data);
+        const result = await LoginService.register(validation.data);
 
-        if (result.error) {
-            console.error('API POST /api/users - AuthService Error:', result.error);
-            LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'USER', undefined, 'failure', { error: result.error });
-            return createErrorResponse(result.error, result.status || 500);
+        if (!result.success) {
+            console.error('API POST /api/users - LoginService Error:', result.message);
+            LogService.logAction(auth.user.id, auth.user.role, 'CREATE', 'USER', undefined, 'failure', { error: result.message });
+            return createErrorResponse(result.message || 'Failed to create user', 400);
         }
 
         console.log('API POST /api/users - Success:', (result.user as any)?.id);

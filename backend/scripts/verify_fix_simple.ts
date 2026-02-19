@@ -1,20 +1,22 @@
 
 import * as dotenv from 'dotenv';
 import path from 'path';
-import postgres from 'postgres';
 import bcrypt from 'bcryptjs';
+import { createClient } from '@supabase/supabase-js';
 
 async function verifyLoginQuery() {
     const envPath = path.resolve(process.cwd(), '.env.local');
     dotenv.config({ path: envPath });
 
-    const DATABASE_URL = process.env.DATABASE_URL;
-    if (!DATABASE_URL) {
-        console.error('DATABASE_URL is missing in .env.local');
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+        console.error('NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is missing in .env.local');
         return;
     }
 
-    const sql = postgres(DATABASE_URL, { ssl: 'require' });
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const email = 'admin@school.com';
     const password = 'NewAdmin@2025!';
@@ -22,17 +24,14 @@ async function verifyLoginQuery() {
     try {
         console.log(`Checking database for user ${email}...`);
 
-        // This is exactly what AuthService.login does: SELECT * FROM public.users
-        const result = await sql`
-            SELECT * FROM public.users 
-            WHERE LOWER(email) = LOWER(${email}) 
-            LIMIT 1
-        `;
+        const { data: user, error } = await supabase
+            .from('users')
+            .select('*')
+            .ilike('email', email)
+            .single();
 
-        const user = result?.[0] as any;
-
-        if (!user) {
-            console.error('FAILED: User not found in database.');
+        if (error || !user) {
+            console.error('FAILED: User not found in database.', error?.message);
             return;
         }
 
@@ -56,8 +55,6 @@ async function verifyLoginQuery() {
     } catch (error: any) {
         console.error('CRITICAL: Query failed:');
         console.error(error.message);
-    } finally {
-        await sql.end();
     }
 }
 

@@ -1,5 +1,7 @@
-﻿import { NextRequest } from 'next/server';
-import { authController } from '@/backend/controllers/auth';
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+import { NextRequest } from 'next/server';
+import { LoginService } from '@/backend/services/loginService';
 import { verifyAuth } from '@/backend/middleware/authMiddleware';
 import { validateBody, ChangePasswordSchema } from '@/backend/validation/schemas';
 import { createResponse, createErrorResponse, createSuccessResponse } from '@/backend/utils/apiResponse';
@@ -26,10 +28,10 @@ export async function POST(req: NextRequest) {
 
         const { currentPassword, newPassword } = validation.data!;
 
-        const result = await authController.changePassword(user.id, currentPassword, newPassword);
+        const result = await LoginService.changePassword(user.id, currentPassword, newPassword);
 
-        if (result.status >= 400) {
-            return createErrorResponse(result.error || 'Failed to change password', result.status);
+        if (!result.success) {
+            return createErrorResponse(result.message || 'Failed to change password', 400);
         }
 
         return createSuccessResponse(null, 200, 'Password changed successfully');
@@ -37,3 +39,4 @@ export async function POST(req: NextRequest) {
         return createErrorResponse(error.message || 'Internal Server Error', 500);
     }
 }
+

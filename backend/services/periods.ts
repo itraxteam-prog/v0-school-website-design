@@ -1,17 +1,25 @@
 import { Period } from '../types';
-import { sql } from '../utils/db';
+import { supabase } from '../utils/supabaseClient';
 import { NotificationService } from './notificationService';
 import { revalidateTag } from 'next/cache';
 
 export const PeriodService = {
     getAll: async () => {
         try {
-            const result = await sql`
-                SELECT id, name, start_time as "startTime", end_time as "endTime", class_id as "classId" 
-                FROM public.periods 
-                ORDER BY start_time ASC
-            `;
-            return result as unknown as Period[];
+            const { data, error } = await supabase
+                .from('periods')
+                .select('id, name, start_time, end_time, class_id')
+                .order('start_time', { ascending: true });
+
+            if (error) throw error;
+
+            return data.map(item => ({
+                id: item.id,
+                name: item.name,
+                startTime: item.start_time,
+                endTime: item.end_time,
+                classId: item.class_id
+            })) as Period[];
         } catch (error: any) {
             console.error('PeriodService.getAll Error:', error);
             throw error;
@@ -20,12 +28,21 @@ export const PeriodService = {
 
     getById: async (id: string) => {
         try {
-            const result = await sql`
-                SELECT id, name, start_time as "startTime", end_time as "endTime", class_id as "classId" 
-                FROM public.periods 
-                WHERE id = ${id}
-            `;
-            return result.length > 0 ? (result[0] as unknown as Period) : null;
+            const { data, error } = await supabase
+                .from('periods')
+                .select('id, name, start_time, end_time, class_id')
+                .eq('id', id)
+                .single();
+
+            if (error) return null;
+
+            return {
+                id: data.id,
+                name: data.name,
+                startTime: data.start_time,
+                endTime: data.end_time,
+                classId: data.class_id
+            } as Period;
         } catch (error: any) {
             console.error('PeriodService.getById Error:', error);
             throw error;
@@ -35,13 +52,21 @@ export const PeriodService = {
     getByClassIds: async (classIds: string[]) => {
         try {
             if (!classIds.length) return [];
-            const result = await sql`
-                SELECT id, name, start_time as "startTime", end_time as "endTime", class_id as "classId" 
-                FROM public.periods 
-                WHERE class_id IN ${sql(classIds)}
-                ORDER BY start_time ASC
-            `;
-            return result as unknown as Period[];
+            const { data, error } = await supabase
+                .from('periods')
+                .select('id, name, start_time, end_time, class_id')
+                .in('class_id', classIds)
+                .order('start_time', { ascending: true });
+
+            if (error) throw error;
+
+            return data.map(item => ({
+                id: item.id,
+                name: item.name,
+                startTime: item.start_time,
+                endTime: item.end_time,
+                classId: item.class_id
+            })) as Period[];
         } catch (error: any) {
             console.error('PeriodService.getByClassIds Error:', error);
             return [];
@@ -53,19 +78,30 @@ export const PeriodService = {
             console.log('PeriodService.create - Data received:', data);
             const id = `prd-${Math.random().toString(36).substr(2, 9)}`;
 
-            const result = await sql`
-                INSERT INTO public.periods (
-                    id, name, start_time, end_time, class_id
-                ) VALUES (
-                    ${id}, ${data.name}, ${data.startTime}, ${data.endTime}, ${data.classId}
-                ) RETURNING id, name, start_time as "startTime", end_time as "endTime", class_id as "classId"
-            `;
+            const { data: newPeriodData, error } = await supabase
+                .from('periods')
+                .insert({
+                    id,
+                    name: data.name,
+                    start_time: data.startTime,
+                    end_time: data.endTime,
+                    class_id: data.classId
+                })
+                .select('id, name, start_time, end_time, class_id')
+                .single();
 
-            if (!result || result.length === 0) {
-                throw new Error('Failed to insert period');
+            if (error || !newPeriodData) {
+                throw new Error(error?.message || 'Failed to insert period');
             }
 
-            const newPeriod = result[0];
+            const newPeriod = {
+                id: newPeriodData.id,
+                name: newPeriodData.name,
+                startTime: newPeriodData.start_time,
+                endTime: newPeriodData.end_time,
+                classId: newPeriodData.class_id
+            } as Period;
+
             console.log('PeriodService.create - Period created successfully:', newPeriod.id);
             revalidateTag('periods');
 
@@ -73,21 +109,27 @@ export const PeriodService = {
             try {
                 // Background notify
                 (async () => {
-                    const users = await sql`SELECT id, role FROM public.users WHERE role IN ('teacher', 'student')`;
-                    for (const user of users) {
-                        NotificationService.sendEmailNotification(
-                            user.id,
-                            'SCHEDULE_CHANGE',
-                            `A new class period has been added: ${data.name} (${data.startTime} - ${data.endTime})`,
-                            user.role
-                        );
+                    const { data: users } = await supabase
+                        .from('users')
+                        .select('id, role')
+                        .in('role', ['teacher', 'student']);
+
+                    if (users) {
+                        for (const user of users) {
+                            NotificationService.sendEmailNotification(
+                                user.id,
+                                'SCHEDULE_CHANGE',
+                                `A new class period has been added: ${data.name} (${data.startTime} - ${data.endTime})`,
+                                user.role
+                            );
+                        }
                     }
                 })();
             } catch (notifyError) {
                 console.error('Failed to send period notifications:', notifyError);
             }
 
-            return newPeriod as unknown as Period;
+            return newPeriod;
         } catch (error: any) {
             console.error('PeriodService.create Error:', error);
             throw error;
@@ -99,24 +141,37 @@ export const PeriodService = {
             const current = await PeriodService.getById(id);
             if (!current) return null;
 
-            const updateData = { ...current, ...data };
+            const updateData = {
+                name: data.name ?? current.name,
+                start_time: data.startTime ?? current.startTime,
+                end_time: data.endTime ?? current.endTime,
+                class_id: data.classId ?? current.classId,
+                updated_at: new Date().toISOString()
+            };
 
-            const result = await sql`
-                UPDATE public.periods SET
-                    name = ${updateData.name},
-                    start_time = ${updateData.startTime},
-                    end_time = ${updateData.endTime},
-                    class_id = ${updateData.classId},
-                    updated_at = NOW()
-                WHERE id = ${id}
-                RETURNING id, name, start_time as "startTime", end_time as "endTime", class_id as "classId"
-            `;
+            const { data: updatedPeriodData, error } = await supabase
+                .from('periods')
+                .update(updateData)
+                .eq('id', id)
+                .select('id, name, start_time, end_time, class_id')
+                .single();
 
-            const updatedPeriod = result[0];
+            if (error || !updatedPeriodData) {
+                throw new Error(error?.message || 'Failed to update period');
+            }
+
+            const updatedPeriod = {
+                id: updatedPeriodData.id,
+                name: updatedPeriodData.name,
+                startTime: updatedPeriodData.start_time,
+                endTime: updatedPeriodData.end_time,
+                classId: updatedPeriodData.class_id
+            } as Period;
+
             revalidateTag('periods');
             revalidateTag(`period-${id}`);
 
-            return updatedPeriod as unknown as Period;
+            return updatedPeriod;
         } catch (error: any) {
             console.error('PeriodService.update Error:', error);
             throw error;
@@ -125,7 +180,12 @@ export const PeriodService = {
 
     delete: async (id: string) => {
         try {
-            await sql`DELETE FROM public.periods WHERE id = ${id}`;
+            const { error } = await supabase
+                .from('periods')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
 
             revalidateTag('periods');
             revalidateTag(`period-${id}`);

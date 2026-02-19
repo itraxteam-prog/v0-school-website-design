@@ -1,4 +1,5 @@
-﻿import { NextRequest } from 'next/server';
+export const runtime = 'nodejs'export const dynamic = 'force-dynamic'
+import { NextRequest } from 'next/server';
 import { requireRole } from '@/backend/middleware/roleMiddleware';
 import { settingsController } from '@/backend/controllers/settings';
 import { validateBody, SettingsSchema } from '@/backend/validation/schemas';
@@ -41,3 +42,4 @@ export async function PUT(req: NextRequest) {
         return createErrorResponse(error.message || 'Failed to parse request body', 400);
     }
 }
+

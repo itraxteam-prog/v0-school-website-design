@@ -1,16 +1,24 @@
 import { Teacher } from '../types';
-import { sql } from '../utils/db';
+import { supabase } from '../utils/supabaseClient';
 import { revalidateTag } from 'next/cache';
 
 export const TeacherService = {
     getAll: async () => {
         try {
-            const result = await sql`
-                SELECT id, name, employee_id as "employeeId", department, class_ids as "classIds" 
-                FROM public.teachers 
-                ORDER BY name ASC
-            `;
-            return result as unknown as Teacher[];
+            const { data, error } = await supabase
+                .from('teachers')
+                .select('id, name, employee_id, department, class_ids')
+                .order('name', { ascending: true });
+
+            if (error) throw error;
+
+            return data.map(item => ({
+                id: item.id,
+                name: item.name,
+                employeeId: item.employee_id,
+                department: item.department,
+                classIds: item.class_ids
+            })) as Teacher[];
         } catch (error: any) {
             console.error('TeacherService.getAll Error:', error);
             throw error;
@@ -19,12 +27,21 @@ export const TeacherService = {
 
     getById: async (id: string) => {
         try {
-            const result = await sql`
-                SELECT id, name, employee_id as "employeeId", department, class_ids as "classIds" 
-                FROM public.teachers 
-                WHERE id = ${id}
-            `;
-            return result.length > 0 ? (result[0] as unknown as Teacher) : null;
+            const { data, error } = await supabase
+                .from('teachers')
+                .select('id, name, employee_id, department, class_ids')
+                .eq('id', id)
+                .single();
+
+            if (error) return null;
+
+            return {
+                id: data.id,
+                name: data.name,
+                employeeId: data.employee_id,
+                department: data.department,
+                classIds: data.class_ids
+            } as Teacher;
         } catch (error: any) {
             console.error('TeacherService.getById Error:', error);
             throw error;
@@ -36,21 +53,33 @@ export const TeacherService = {
             console.log('TeacherService.create - Data received:', data);
             const id = `tch-${Math.random().toString(36).substr(2, 9)}`;
 
-            const result = await sql`
-                INSERT INTO public.teachers (
-                    id, name, employee_id, department, class_ids
-                ) VALUES (
-                    ${id}, ${data.name}, ${data.employeeId}, ${data.department}, ${data.classIds || []}
-                ) RETURNING id, name, employee_id as "employeeId", department, class_ids as "classIds"
-            `;
+            const { data: newTeacherData, error } = await supabase
+                .from('teachers')
+                .insert({
+                    id,
+                    name: data.name,
+                    employee_id: data.employeeId,
+                    department: data.department,
+                    class_ids: data.classIds || []
+                })
+                .select('id, name, employee_id, department, class_ids')
+                .single();
 
-            if (!result || result.length === 0) {
-                throw new Error('Failed to insert teacher');
+            if (error || !newTeacherData) {
+                throw new Error(error?.message || 'Failed to insert teacher');
             }
 
-            console.log('TeacherService.create - Teacher created successfully:', result[0].id);
+            const newTeacher = {
+                id: newTeacherData.id,
+                name: newTeacherData.name,
+                employeeId: newTeacherData.employee_id,
+                department: newTeacherData.department,
+                classIds: newTeacherData.class_ids
+            } as Teacher;
+
+            console.log('TeacherService.create - Teacher created successfully:', newTeacher.id);
             revalidateTag('teachers');
-            return result[0] as unknown as Teacher;
+            return newTeacher;
         } catch (error: any) {
             console.error('TeacherService.create Error:', error);
             throw error;
@@ -62,23 +91,37 @@ export const TeacherService = {
             const existing = await TeacherService.getById(id);
             if (!existing) return null;
 
-            const updateData = { ...existing, ...data };
+            const updateData = {
+                name: data.name ?? existing.name,
+                employee_id: data.employeeId ?? existing.employeeId,
+                department: data.department ?? existing.department,
+                class_ids: data.classIds ?? existing.classIds,
+                updated_at: new Date().toISOString()
+            };
 
-            const result = await sql`
-                UPDATE public.teachers SET
-                    name = ${updateData.name},
-                    employee_id = ${updateData.employeeId},
-                    department = ${updateData.department},
-                    class_ids = ${updateData.classIds || []},
-                    updated_at = NOW()
-                WHERE id = ${id}
-                RETURNING id, name, employee_id as "employeeId", department, class_ids as "classIds"
-            `;
+            const { data: updatedTeacherData, error } = await supabase
+                .from('teachers')
+                .update(updateData)
+                .eq('id', id)
+                .select('id, name, employee_id, department, class_ids')
+                .single();
+
+            if (error || !updatedTeacherData) {
+                throw new Error(error?.message || 'Failed to update teacher');
+            }
+
+            const updatedTeacher = {
+                id: updatedTeacherData.id,
+                name: updatedTeacherData.name,
+                employeeId: updatedTeacherData.employee_id,
+                department: updatedTeacherData.department,
+                classIds: updatedTeacherData.class_ids
+            } as Teacher;
 
             revalidateTag('teachers');
             revalidateTag(`teacher-${id}`);
 
-            return result[0] as unknown as Teacher;
+            return updatedTeacher;
         } catch (error: any) {
             console.error('TeacherService.update Error:', error);
             throw error;
@@ -87,9 +130,12 @@ export const TeacherService = {
 
     delete: async (id: string) => {
         try {
-            const result = await sql`
-                DELETE FROM public.teachers WHERE id = ${id}
-            `;
+            const { error } = await supabase
+                .from('teachers')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
 
             revalidateTag('teachers');
             revalidateTag(`teacher-${id}`);

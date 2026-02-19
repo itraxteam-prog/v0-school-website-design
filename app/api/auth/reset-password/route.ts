@@ -1,5 +1,7 @@
-﻿import { NextRequest } from 'next/server';
-import { authController } from '@/backend/controllers/auth';
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+import { NextRequest } from 'next/server';
+import { LoginService } from '@/backend/services/loginService';
 import { createResponse, createErrorResponse } from '@/backend/utils/apiResponse';
 import { validateBody, ResetPasswordSchema } from '@/backend/validation/schemas';
 
@@ -14,10 +16,10 @@ export async function POST(req: NextRequest) {
         }
 
         const { token, newPassword } = validation.data!;
-        const result = await authController.resetPassword(token, newPassword);
+        const result = await LoginService.resetPassword(token, newPassword);
 
-        if (result.status >= 400) {
-            return createErrorResponse(result.error || 'Failed to reset password', result.status);
+        if (!result.success) {
+            return createErrorResponse(result.message || 'Failed to reset password', 400);
         }
 
         return createResponse({ message: 'Password reset successfully' }, 200);
@@ -26,3 +28,4 @@ export async function POST(req: NextRequest) {
         return createErrorResponse('Internal server error', 500);
     }
 }
+

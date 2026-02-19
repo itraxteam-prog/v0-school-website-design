@@ -1,5 +1,7 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
-import { AuthService } from '@/backend/services/authService';
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+import { NextRequest, NextResponse } from 'next/server';
+import { LoginService } from '@/backend/services/loginService';
 import { LogService } from '@/backend/services/logService';
 import { createResponse, createErrorResponse } from '@/backend/utils/apiResponse';
 import { validateBody, LoginSchema } from '@/backend/validation/schemas';
@@ -20,7 +22,7 @@ export async function POST(req: NextRequest) {
         }
 
         const { email, password, rememberMe } = body;
-        const result = await AuthService.login(email.trim(), password.trim());
+        const result = await LoginService.login(email.trim(), password.trim());
 
         if (result.error) {
             // Log failed login
@@ -82,3 +84,4 @@ export async function POST(req: NextRequest) {
         return createErrorResponse('Internal server error', 500);
     }
 }
+

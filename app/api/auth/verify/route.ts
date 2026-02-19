@@ -1,6 +1,8 @@
-﻿import { NextRequest } from 'next/server';
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
-import { AuthService } from '@/backend/services/authService';
+import { SessionService } from '@/backend/services/sessionService';
 import { createResponse, createErrorResponse } from '@/backend/utils/apiResponse';
 
 export const dynamic = 'force-dynamic';
@@ -15,7 +17,7 @@ export async function GET(req: NextRequest) {
             return createErrorResponse('Authentication required', 401);
         }
 
-        const decoded = AuthService.verifyToken(token);
+        const decoded = SessionService.verifyToken(token);
 
         if (!decoded) {
             // Invalid or expired access token - return 401
@@ -35,3 +37,4 @@ export async function GET(req: NextRequest) {
         return createErrorResponse('Internal server error', 500);
     }
 }
+
