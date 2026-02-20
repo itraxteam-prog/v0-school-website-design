@@ -13,7 +13,7 @@ const notices = [
 
 export function NoticeBoard() {
     return (
-        <section className="py-16 bg-white relative">
+        <section className="py-16 bg-background relative">
             <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
             <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8">
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">

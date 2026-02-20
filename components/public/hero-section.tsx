@@ -11,7 +11,7 @@ export function HeroSection() {
   const portalLabel = "Login"
 
   return (
-    <section className="relative flex min-h-[70vh] items-center overflow-hidden bg-foreground lg:min-h-[80vh]">
+    <section className="relative flex min-h-[70vh] items-center overflow-hidden bg-[#0a0a0a] lg:min-h-[80vh]">
       {/* Background overlay pattern */}
       <div className="absolute inset-0 bg-burgundy-gradient opacity-90" />
       <div className="absolute inset-0 bg-black/40" />

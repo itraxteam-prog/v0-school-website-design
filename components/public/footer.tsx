@@ -25,7 +25,7 @@ const socialLinks = [
 
 export function Footer() {
   return (
-    <footer className="bg-burgundy-glow text-background relative overflow-hidden">
+    <footer className="bg-burgundy-glow text-white relative overflow-hidden">
       <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,white_0%,transparent_70%)]" />
       <div className="mx-auto max-w-[1280px] px-4 py-12 md:px-6 lg:px-8 relative z-10">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
@@ -40,10 +40,10 @@ export function Footer() {
                 className="h-[140px] w-[140px] object-contain lg:h-[160px] lg:w-[160px]"
               />
               <div>
-                <p className="font-serif text-lg font-bold text-background sm:text-xl">
+                <p className="font-serif text-lg font-bold text-white sm:text-xl">
                   The Pioneers High School
                 </p>
-                <p className="text-xs font-medium uppercase tracking-wider text-background/60 sm:text-sm">
+                <p className="text-xs font-medium uppercase tracking-wider text-white/60 sm:text-sm">
                   The Institute for Quality Education
                 </p>
               </div>
@@ -55,7 +55,7 @@ export function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-background/50">
+            <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-white/50">
               Quick Links
             </h3>
             <ul className="flex flex-col gap-2">
@@ -63,7 +63,7 @@ export function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-background/70 transition-colors hover:text-background"
+                    className="text-sm text-white/70 transition-colors hover:text-white"
                   >
                     {link.label}
                   </Link>
@@ -74,7 +74,7 @@ export function Footer() {
 
           {/* Portals */}
           <div>
-            <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-background/50">
+            <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-white/50">
               Portals
             </h3>
             <ul className="flex flex-col gap-2">
@@ -82,7 +82,7 @@ export function Footer() {
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-sm text-background/70 transition-colors hover:text-background"
+                    className="text-sm text-white/70 transition-colors hover:text-white"
                   >
                     {link.label}
                   </Link>
@@ -93,19 +93,19 @@ export function Footer() {
 
           {/* Contact Info */}
           <div>
-            <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-background/50">
+            <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-white/50">
               Contact Us
             </h3>
             <ul className="flex flex-col gap-3">
-              <li className="flex items-start gap-2 text-sm text-background/70">
+              <li className="flex items-start gap-2 text-sm text-white/70">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>123 Education Avenue, Academic City</span>
               </li>
-              <li className="flex items-center gap-2 text-sm text-background/70">
+              <li className="flex items-center gap-2 text-sm text-white/70">
                 <Phone className="h-4 w-4 shrink-0" />
                 <span>+92 300 1234567</span>
               </li>
-              <li className="flex items-center gap-2 text-sm text-background/70">
+              <li className="flex items-center gap-2 text-sm text-white/70">
                 <Mail className="h-4 w-4 shrink-0" />
                 <span>info@pioneershigh.edu</span>
               </li>
@@ -113,11 +113,11 @@ export function Footer() {
           </div>
         </div>
 
-        <Separator className="my-8 bg-background/10" />
+        <Separator className="my-8 bg-white/10" />
 
         {/* Bottom Bar */}
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-          <p className="text-xs text-background/50">
+          <p className="text-xs text-white/50">
             &copy; {new Date().getFullYear()} The Pioneers High School. All rights reserved.
           </p>
           <div className="flex items-center gap-3">
@@ -126,7 +126,7 @@ export function Footer() {
                 key={s.label}
                 href={s.href}
                 aria-label={s.label}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-background/10 text-background/70 transition-colors hover:bg-primary hover:text-primary-foreground"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/70 transition-colors hover:bg-white hover:text-primary"
               >
                 <s.icon className="h-4 w-4" />
               </a>
