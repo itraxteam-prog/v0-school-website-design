@@ -128,7 +128,16 @@ export default function UserManagementPage() {
     try {
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 800));
-      // Data is expected to be empty for this pure frontend demonstration
+
+      // Initialize with mock data
+      const mockUsers: User[] = [
+        { id: "1", name: "Dr. Ahmad Raza", email: "admin@school.com", role: "Admin", status: "Active", last_login: new Date().toISOString() },
+        { id: "2", name: "Sarah Jenkins", email: "teacher@school.com", role: "Teacher", status: "Active", last_login: new Date().toISOString() },
+        { id: "3", name: "Ahmed Khan", email: "student@school.com", role: "Student", status: "Active", last_login: new Date(Date.now() - 86400000).toISOString() },
+        { id: "4", name: "John Smith", email: "john.s@school.com", role: "Teacher", status: "Active", last_login: new Date(Date.now() - 172800000).toISOString() },
+      ];
+
+      setUsers(mockUsers);
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred")
       toast.error("Could not load users. Please try again.")
@@ -153,10 +162,10 @@ export default function UserManagementPage() {
         email: data.email,
         role: data.role,
         status: data.status,
-        last_login: undefined
+        last_login: new Date().toISOString()
       }
 
-
+      setUsers(prev => [newUser, ...prev]);
       toast.success("User added successfully")
       setIsAddModalOpen(false)
       form.reset()

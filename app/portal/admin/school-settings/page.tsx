@@ -46,19 +46,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { motion } from "framer-motion"
 
-const sidebarItems = [
-    { href: "/portal/admin", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/portal/admin/students", label: "Students", icon: GraduationCap },
-    { href: "/portal/admin/teachers", label: "Teachers", icon: Users },
-    { href: "/portal/admin/classes", label: "Classes", icon: School },
-    { href: "/portal/admin/periods", label: "Periods", icon: Clock },
-    { href: "/portal/admin/analytics", label: "Analytics", icon: BarChart3 },
-    { href: "/portal/admin/reports", label: "Reports", icon: FileBarChart },
-    { href: "/portal/admin/users", label: "User Management", icon: Settings },
-    { href: "/portal/admin/roles", label: "Roles & Permissions", icon: ShieldCheck },
-    { href: "/portal/admin/school-settings", label: "School Settings", icon: Settings },
-    { href: "/portal/security", label: "Security", icon: ShieldCheck },
-]
+import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
 const settingsSchema = z.object({
     schoolName: z.string().min(2, "School name is required"),
@@ -152,25 +140,41 @@ export default function SchoolSettingsPage() {
         setLoading(true)
         setError(null)
         try {
-            const response = await fetch(`${API_BASE}/settings`, {
-                method: "GET",
-                credentials: "include",
-            })
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error("API ERROR [fetchSettings]:", response.status, errorText);
-                throw new Error(errorText || "Failed to load settings");
-            }
-            const responseData = await response.json()
-            const data = responseData.data || responseData
-            setSettings(data)
-            form.reset(data)
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            // Mock Settings Data
+            const mockSettings: SettingsFormValues = {
+                schoolName: "The Pioneers High School",
+                schoolCode: "PHS-2026",
+                address: "Plot 123, Academic Block, Sector 4, Islamabad, Pakistan",
+                contactNumber: "+92 51 1234567",
+                email: "info@thepioneers.edu.pk",
+                termStructure: "2",
+                gradingSystem: "percentage",
+                promotionThreshold: 40,
+                schoolHours: {
+                    startTime: "08:00 AM",
+                    endTime: "02:00 PM"
+                },
+                maxClassesPerDay: 8,
+                portalPreferences: {
+                    darkMode: false,
+                    language: "en",
+                    timezone: "pk",
+                    smsNotifications: true,
+                    emailNotifications: true,
+                }
+            };
+
+            setSettings(mockSettings)
+            form.reset(mockSettings)
         } catch (err: any) {
             console.error("Fetch error:", err)
             setError(err.message)
             toast({
                 title: "Error",
-                description: "Could not fetch school settings. Please check your connection.",
+                description: "Could not fetch school settings. Please try again.",
                 variant: "destructive"
             })
         } finally {
@@ -185,29 +189,8 @@ export default function SchoolSettingsPage() {
     const onSubmit = async (data: SettingsFormValues) => {
         setIsSaving(true)
         try {
-            const response = await fetch(`${API_BASE}/settings`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify(data),
-            })
-
-            const result = await response.json()
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error("API ERROR [onSubmit]:", response.status, errorText);
-                // Map backend Zod errors back to form fields
-                if (result.error && typeof result.error === 'string') {
-                    const parts = result.error.split(': ')
-                    if (parts.length > 1) {
-                        const field = parts[0] as any
-                        const message = parts[1]
-                        form.setError(field, { message })
-                    }
-                }
-                throw new Error(result.error || errorText || "Failed to update settings")
-            }
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 800));
 
             toast({
                 title: "Settings Updated",
