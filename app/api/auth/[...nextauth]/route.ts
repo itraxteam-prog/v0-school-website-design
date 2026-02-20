@@ -6,7 +6,7 @@ import { prisma } from "@/prisma/client";
 import bcrypt from "bcrypt";
 import { SessionStrategy } from "next-auth/core/types";
 
-// Define AuthOptions with proper typing
+// Auth configuration
 const options: AuthOptions = {
     adapter: PrismaAdapter(prisma),
     providers: [
@@ -22,7 +22,12 @@ const options: AuthOptions = {
                     where: { email: credentials.email },
                 });
                 if (user && (await bcrypt.compare(credentials.password, user.password))) {
-                    return { id: user.id, name: user.name, email: user.email, role: user.role };
+                    return {
+                        id: user.id,
+                        name: user.name,
+                        email: user.email,
+                        role: user.role,
+                    };
                 }
                 return null;
             },
@@ -31,12 +36,16 @@ const options: AuthOptions = {
     session: { strategy: "database" as SessionStrategy },
     callbacks: {
         async session({ session, user }) {
-            session.user.id = user.id;
-            session.user.role = user.role;
+            // Ensure session.user exists
+            if (session.user && user) {
+                session.user.id = user.id;
+                session.user.role = user.role;
+            }
             return session;
         },
     },
     pages: { signIn: "/auth/login" },
+    debug: false, // toggle true for debugging during dev
 };
 
 // Export only GET and POST for Next.js 14 App Router
