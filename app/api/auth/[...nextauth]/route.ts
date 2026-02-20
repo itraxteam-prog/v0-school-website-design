@@ -1,12 +1,21 @@
 // File: app/api/auth/[...nextauth]/route.ts
-import NextAuth, { AuthOptions } from "next-auth";
+import NextAuth, { AuthOptions, DefaultSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/prisma/client";
 import bcrypt from "bcrypt";
-import { SessionStrategy } from "next-auth/core/types";
 
-// Auth configuration
+// 1️⃣ Extend session type to include id and role
+declare module "next-auth" {
+    interface Session {
+        user: {
+            id: string;
+            role: string;
+        } & DefaultSession["user"];
+    }
+}
+
+// 2️⃣ Configure NextAuth
 const options: AuthOptions = {
     adapter: PrismaAdapter(prisma),
     providers: [
@@ -33,10 +42,10 @@ const options: AuthOptions = {
             },
         }),
     ],
-    session: { strategy: "database" as SessionStrategy },
+    session: { strategy: "database" },
     callbacks: {
         async session({ session, user }) {
-            // Ensure session.user exists
+            // Safe assign extended fields
             if (session.user && user) {
                 session.user.id = user.id;
                 session.user.role = user.role;
@@ -45,9 +54,9 @@ const options: AuthOptions = {
         },
     },
     pages: { signIn: "/auth/login" },
-    debug: false, // toggle true for debugging during dev
+    debug: false,
 };
 
-// Export only GET and POST for Next.js 14 App Router
+// 3️⃣ Export only GET and POST for App Router
 const handler = NextAuth(options);
 export { handler as GET, handler as POST };
