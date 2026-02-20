@@ -90,7 +90,7 @@ function AcademicsContent() {
   return (
     <div>
       {/* Hero */}
-      <section className="bg-foreground py-16 md:py-24 relative overflow-hidden">
+      <section className="bg-[#0a0a0a] py-16 md:py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-burgundy-gradient opacity-90" />
         <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8 relative z-10">
           <AnimatedWrapper direction="down" className="max-w-2xl">
@@ -145,7 +145,7 @@ function AcademicsContent() {
                       </div>
                       <div className="flex flex-wrap gap-2 md:max-w-xs justify-end">
                         {grade.subjects.map((subject) => (
-                          <Badge key={subject} variant="outline" className="border-primary/20 text-primary bg-white/50 text-xs py-1">
+                          <Badge key={subject} variant="outline" className="border-primary/20 text-primary bg-background/50 text-xs py-1">
                             {subject}
                           </Badge>
                         ))}

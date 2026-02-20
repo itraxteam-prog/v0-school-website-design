@@ -177,25 +177,27 @@ export default function AdminDashboard() {
                 <div className="h-[280px] w-full pt-4">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={enrollmentData}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" strokeOpacity={0.1} />
                       <XAxis
                         dataKey="month"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fontSize: 12, fill: '#6B7280' }}
+                        tick={{ fontSize: 12, fill: 'currentColor', opacity: 0.6 }}
                         dy={10}
                       />
                       <YAxis
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fontSize: 12, fill: '#6B7280' }}
+                        tick={{ fontSize: 12, fill: 'currentColor', opacity: 0.6 }}
                       />
                       <Tooltip
                         contentStyle={{
                           borderRadius: '8px',
                           border: 'none',
                           boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                          fontSize: '12px'
+                          fontSize: '12px',
+                          backgroundColor: 'hsl(var(--card))',
+                          color: 'hsl(var(--foreground))'
                         }}
                       />
                       <Line
@@ -203,7 +205,7 @@ export default function AdminDashboard() {
                         dataKey="students"
                         stroke="#800020"
                         strokeWidth={3}
-                        dot={{ r: 4, fill: '#800020', strokeWidth: 2, stroke: '#fff' }}
+                        dot={{ r: 4, fill: '#800020', strokeWidth: 2, stroke: 'hsl(var(--background))' }}
                         activeDot={{ r: 6, strokeWidth: 0 }}
                       />
                     </LineChart>
@@ -229,18 +231,18 @@ export default function AdminDashboard() {
                 <div className="h-[280px] w-full pt-4">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={performanceData}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" strokeOpacity={0.1} />
                       <XAxis
                         dataKey="subject"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fontSize: 12, fill: '#6B7280' }}
+                        tick={{ fontSize: 12, fill: 'currentColor', opacity: 0.6 }}
                         dy={10}
                       />
                       <YAxis
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fontSize: 12, fill: '#6B7280' }}
+                        tick={{ fontSize: 12, fill: 'currentColor', opacity: 0.6 }}
                         domain={[0, 100]}
                       />
                       <Tooltip
@@ -249,7 +251,9 @@ export default function AdminDashboard() {
                           borderRadius: '8px',
                           border: 'none',
                           boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                          fontSize: '12px'
+                          fontSize: '12px',
+                          backgroundColor: 'hsl(var(--card))',
+                          color: 'hsl(var(--foreground))'
                         }}
                       />
                       <Bar
@@ -329,7 +333,7 @@ export default function AdminDashboard() {
                             </div>
                           </TableCell>
                           <TableCell className="pr-6 text-right py-4">
-                            <Badge variant="outline" className="text-[10px] font-bold border-green-200 bg-green-50 text-green-700">
+                            <Badge variant="outline" className="text-[10px] font-bold border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                               {teacher.attendance}%
                             </Badge>
                           </TableCell>
