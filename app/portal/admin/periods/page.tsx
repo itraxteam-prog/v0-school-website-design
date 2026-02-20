@@ -67,19 +67,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 
-const sidebarItems = [
-    { href: "/portal/admin", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/portal/admin/students", label: "Students", icon: GraduationCap },
-    { href: "/portal/admin/teachers", label: "Teachers", icon: Users },
-    { href: "/portal/admin/classes", label: "Classes", icon: School },
-    { href: "/portal/admin/periods", label: "Periods", icon: Clock },
-    { href: "/portal/admin/analytics", label: "Analytics", icon: BarChart3 },
-    { href: "/portal/admin/reports", label: "Reports", icon: FileBarChart },
-    { href: "/portal/admin/users", label: "User Management", icon: Settings },
-    { href: "/portal/admin/roles", label: "Roles & Permissions", icon: ShieldCheck },
-    { href: "/portal/admin/school-settings", label: "School Settings", icon: Settings },
-    { href: "/portal/security", label: "Security", icon: ShieldCheck },
-]
+import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
 const periodSchema = z.object({
     name: z.string().min(2, { message: "Period name must be at least 2 characters." }),
@@ -130,29 +118,26 @@ export default function AdminPeriodsPage() {
         setLoading(true)
         setError(null)
         try {
-            const [periodsRes, classesRes] = await Promise.all([
-                fetch(`${API_BASE}/periods`, { credentials: "include" }),
-                fetch(`${API_BASE}/classes`, { credentials: "include" })
-            ])
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 800));
 
-            if (!periodsRes.ok) {
-                const errorText = await periodsRes.text();
-                console.error("API ERROR [fetchPeriods]:", periodsRes.status, errorText);
-                throw new Error(errorText || "Failed to fetch periods")
-            }
-            if (!classesRes.ok) {
-                const errorText = await classesRes.text();
-                console.error("API ERROR [fetchClasses]:", classesRes.status, errorText);
-                throw new Error(errorText || "Failed to fetch classes")
-            }
+            // Mock Data
+            const mockClasses: ClassRecord[] = [
+                { id: "cls-001", name: "Grade 10-A" },
+                { id: "cls-002", name: "Grade 9-B" },
+                { id: "cls-003", name: "Grade 8-C" },
+            ];
 
-            const [periodsResult, classesResult] = await Promise.all([
-                periodsRes.json(),
-                classesRes.json()
-            ])
+            const mockPeriods: Period[] = [
+                { id: "p-1", name: "Mathematics", classId: "cls-001", startTime: "08:30", endTime: "09:30" },
+                { id: "p-2", name: "Physics", classId: "cls-001", startTime: "09:30", endTime: "10:30" },
+                { id: "p-3", name: "Chemistry", classId: "cls-001", startTime: "11:00", endTime: "12:00" },
+                { id: "p-4", name: "English", classId: "cls-002", startTime: "08:30", endTime: "09:30" },
+                { id: "p-5", name: "Biology", classId: "cls-002", startTime: "09:30", endTime: "10:30" },
+            ];
 
-            setPeriods(periodsResult.data || [])
-            setClasses(classesResult.data || [])
+            setPeriods(mockPeriods)
+            setClasses(mockClasses)
         } catch (err: any) {
             setError(err.message || "An unexpected error occurred")
             toast({
@@ -190,36 +175,20 @@ export default function AdminPeriodsPage() {
     const onSubmit = async (data: PeriodFormValues) => {
         setIsSubmitting(true)
         try {
-            const periodId = editingPeriod?.id || editingPeriod?._id
-            const url = editingPeriod
-                ? `${API_BASE}/periods/${periodId}`
-                : `${API_BASE}/periods`
-            const method = editingPeriod ? "PUT" : "POST"
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 800));
 
-            const response = await fetch(url, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify(data),
-            })
-
-            console.log("Response Status:", response.status);
-            const result = await response.json()
-            console.log("Response JSON:", result);
-
-            if (!response.ok || (result.success === false)) {
-                // Map backend Zod errors back to form fields
-                if (result.error && typeof result.error === 'string') {
-                    const parts = result.error.split(': ')
-                    if (parts.length > 1) {
-                        const field = parts[0].toLowerCase() as any
-                        const message = parts[1]
-                        if (['name', 'classid', 'starttime', 'endtime'].includes(field)) {
-                            form.setError(field as any, { message })
-                        }
-                    }
-                }
-                throw new Error(result.error || `Failed to ${editingPeriod ? 'update' : 'create'} period`)
+            if (editingPeriod) {
+                const periodId = editingPeriod.id || editingPeriod._id;
+                setPeriods(prev => prev.map(p =>
+                    (p.id === periodId || p._id === periodId) ? { ...p, ...data } : p
+                ));
+            } else {
+                const newPeriod: Period = {
+                    id: `p-${Math.random().toString(36).substr(2, 4)}`,
+                    ...data
+                };
+                setPeriods(prev => [newPeriod, ...prev]);
             }
 
             toast({
@@ -229,7 +198,6 @@ export default function AdminPeriodsPage() {
 
             setIsModalOpen(false)
             setEditingPeriod(null)
-            fetchData()
         } catch (err: any) {
             console.error("Submit Error:", err);
             toast({
@@ -247,22 +215,15 @@ export default function AdminPeriodsPage() {
         if (!confirm(`Are you sure you want to delete this period: ${period.name}?`)) return
 
         try {
-            const response = await fetch(`${API_BASE}/periods/${id}`, {
-                method: "DELETE",
-                credentials: "include",
-            })
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 500));
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error("API ERROR [handleDelete]:", response.status, errorText);
-                throw new Error(errorText || "Failed to delete period");
-            }
+            setPeriods(prev => prev.filter(p => p.id !== id && p._id !== id));
 
             toast({
                 title: "Deleted",
                 description: "Period has been removed.",
             })
-            fetchData()
         } catch (err: any) {
             toast({
                 title: "Error",

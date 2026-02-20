@@ -120,29 +120,25 @@ export default function AdminClassesPage() {
     setLoading(true)
     setError(null)
     try {
-      const [classesRes, periodsRes] = await Promise.all([
-        fetch(`${API_BASE}/classes`, { credentials: "include" }),
-        fetch(`${API_BASE}/periods`, { credentials: "include" })
-      ])
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 800));
 
-      if (!classesRes.ok) {
-        const errorText = await classesRes.text();
-        console.error("API ERROR [fetchClasses]:", classesRes.status, errorText);
-        throw new Error(errorText || "Failed to fetch classes")
-      }
-      if (!periodsRes.ok) {
-        const errorText = await periodsRes.text();
-        console.error("API ERROR [fetchPeriods]:", periodsRes.status, errorText);
-        throw new Error(errorText || "Failed to fetch periods")
-      }
+      // Mock Class Data
+      const mockClasses: ClassRecord[] = [
+        { id: "cls-001", name: "Grade 10-A", teacher: "Sarah Jenkins", room: "Room 201", studentCount: 32, classTeacherId: "T-2024-001", roomNo: "201" },
+        { id: "cls-002", name: "Grade 9-B", teacher: "John Smith", room: "Room 105", studentCount: 28, classTeacherId: "T-2024-002", roomNo: "105" },
+        { id: "cls-003", name: "Grade 8-C", teacher: "Emma Watson", room: "Room 302", studentCount: 25, classTeacherId: "T-2024-003", roomNo: "302" },
+      ];
 
-      const [classesResult, periodsResult] = await Promise.all([
-        classesRes.json(),
-        periodsRes.json()
-      ])
+      // Mock Period Data
+      const mockPeriods: Period[] = [
+        { id: "p-1", classId: "cls-001", name: "Mathematics", startTime: "08:30", endTime: "09:30" },
+        { id: "p-2", classId: "cls-001", name: "Physics", startTime: "09:30", endTime: "10:30" },
+        { id: "p-3", classId: "cls-002", name: "English", startTime: "08:30", endTime: "09:30" },
+      ];
 
-      setClasses(classesResult.data || [])
-      setPeriods(periodsResult.data || [])
+      setClasses(mockClasses)
+      setPeriods(mockPeriods)
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred")
       toast({
@@ -178,36 +174,23 @@ export default function AdminClassesPage() {
   const onSubmit = async (data: ClassFormValues) => {
     setIsSubmitting(true)
     try {
-      const classId = editingClass?.id || editingClass?._id
-      const url = editingClass
-        ? `${API_BASE}/classes/${classId}`
-        : `${API_BASE}/classes`
-      const method = editingClass ? "PUT" : "POST"
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 800));
 
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(data),
-      })
-
-      console.log("Response Status:", response.status);
-      const result = await response.json()
-      console.log("Response JSON:", result);
-
-      if (!response.ok || (result.success === false)) {
-        // Map backend Zod errors back to form fields
-        if (result.error && typeof result.error === 'string') {
-          const parts = result.error.split(': ')
-          if (parts.length > 1) {
-            const field = parts[0].toLowerCase() as any
-            const message = parts[1]
-            if (['name', 'classteacherid', 'roomno'].includes(field)) {
-              form.setError(field as any, { message })
-            }
-          }
-        }
-        throw new Error(result.error || `Failed to ${editingClass ? 'update' : 'create'} class`)
+      if (editingClass) {
+        const classId = editingClass.id || editingClass._id;
+        setClasses(prev => prev.map(c =>
+          (c.id === classId || c._id === classId) ? { ...c, ...data, teacher: data.classTeacherId, room: data.roomNo } : c
+        ));
+      } else {
+        const newClass: ClassRecord = {
+          id: `cls-${Math.random().toString(36).substr(2, 4)}`,
+          ...data,
+          teacher: data.classTeacherId,
+          room: data.roomNo,
+          studentCount: 0
+        };
+        setClasses(prev => [newClass, ...prev]);
       }
 
       toast({
@@ -217,7 +200,6 @@ export default function AdminClassesPage() {
 
       setIsModalOpen(false)
       setEditingClass(null)
-      fetchData()
     } catch (err: any) {
       console.error("Submit Error:", err);
       toast({
@@ -235,22 +217,15 @@ export default function AdminClassesPage() {
     if (!confirm(`Are you sure you want to delete ${classRecord.name}?`)) return
 
     try {
-      const response = await fetch(`${API_BASE}/classes/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      })
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("API ERROR [handleDelete]:", response.status, errorText);
-        throw new Error(errorText || "Failed to delete class");
-      }
+      setClasses(prev => prev.filter(c => c.id !== id && c._id !== id));
 
       toast({
         title: "Deleted",
         description: "Class has been successfully removed.",
       })
-      fetchData()
     } catch (err: any) {
       toast({
         title: "Error",

@@ -60,19 +60,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 
-const sidebarItems = [
-    { href: "/portal/admin", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/portal/admin/students", label: "Students", icon: GraduationCap },
-    { href: "/portal/admin/teachers", label: "Teachers", icon: Users },
-    { href: "/portal/admin/classes", label: "Classes", icon: School },
-    { href: "/portal/admin/periods", label: "Periods", icon: Clock },
-    { href: "/portal/admin/analytics", label: "Analytics", icon: BarChart3 },
-    { href: "/portal/admin/reports", label: "Reports", icon: FileBarChart },
-    { href: "/portal/admin/users", label: "User Management", icon: Settings },
-    { href: "/portal/admin/roles", label: "Roles & Permissions", icon: ShieldCheck },
-    { href: "/portal/admin/school-settings", label: "School Settings", icon: Settings },
-    { href: "/portal/security", label: "Security", icon: ShieldCheck },
-]
+import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
 const roleSchema = z.object({
     name: z.string().min(2, { message: "Role name must be at least 2 characters." }),
@@ -127,31 +115,17 @@ export default function RolesPermissionsPage() {
         setLoading(true)
         setError(null)
         try {
-            const response = await fetch(`${API_BASE}/roles`, {
-                method: "GET",
-                credentials: "include",
-            })
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error("API ERROR [fetchRoles]:", response.status, errorText);
-                throw new Error(errorText || "Failed to fetch roles");
-            }
-            const result = await response.json()
-            const data = result.data || result;
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 800));
 
-            if (!Array.isArray(data)) {
-                console.error("Expected array for roles but got:", result);
-                throw new Error("Invalid data format received from server");
-            }
+            // Mock Role Data
+            const mockRoles: Role[] = [
+                { id: "r-1", name: "Administrator", description: "Full system access.", permissions: availablePermissions, userCount: 5 },
+                { id: "r-2", name: "Teacher", description: "Standard academic access.", permissions: ["viewStudents", "viewClasses", "viewPeriods", "editPeriods"], userCount: 45 },
+                { id: "r-3", name: "Librarian", description: "Media center management.", permissions: ["viewStudents", "viewTeachers"], userCount: 12 },
+            ];
 
-            // Mocking user counts for the table requirement
-            const enrichedData = data.map((role: Role) => ({
-                ...role,
-                description: role.description || `${role.name.charAt(0).toUpperCase() + role.name.slice(1)} access level.`,
-                userCount: Math.floor(Math.random() * 50) + 5
-            }))
-
-            setRoles(enrichedData)
+            setRoles(mockRoles)
         } catch (err: any) {
             setError(err.message || "An unexpected error occurred")
             toast({
@@ -186,23 +160,21 @@ export default function RolesPermissionsPage() {
     const onSubmit = async (data: RoleFormValues) => {
         setIsSubmitting(true)
         try {
-            const roleId = editingRole?.id || editingRole?._id
-            const url = editingRole
-                ? `${API_BASE}/roles/${roleId}`
-                : `${API_BASE}/roles`
-            const method = editingRole ? "PUT" : "POST"
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 800));
 
-            const response = await fetch(url, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify(data),
-            })
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error("API ERROR [onSubmit]:", response.status, errorText);
-                throw new Error(errorText || `Failed to ${editingRole ? 'update' : 'add'} role`)
+            if (editingRole) {
+                const roleId = editingRole.id || editingRole._id;
+                setRoles(prev => prev.map(r =>
+                    (r.id === roleId || r._id === roleId) ? { ...r, ...data } : r
+                ));
+            } else {
+                const newRole: Role = {
+                    id: `r-${Math.random().toString(36).substr(2, 4)}`,
+                    ...data,
+                    userCount: 0
+                };
+                setRoles(prev => [newRole, ...prev]);
             }
 
             toast({
@@ -212,7 +184,6 @@ export default function RolesPermissionsPage() {
 
             setIsModalOpen(false)
             setEditingRole(null)
-            fetchRoles()
             form.reset()
         } catch (err: any) {
             toast({
@@ -230,22 +201,15 @@ export default function RolesPermissionsPage() {
         if (!confirm(`Are you sure you want to delete the "${role.name}" role?`)) return
 
         try {
-            const response = await fetch(`${API_BASE}/roles/${id}`, {
-                method: "DELETE",
-                credentials: "include",
-            })
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 500));
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error("API ERROR [handleDelete]:", response.status, errorText);
-                throw new Error(errorText || "Failed to delete role");
-            }
+            setRoles(prev => prev.filter(r => r.id !== id && r._id !== id));
 
             toast({
                 title: "Deleted",
                 description: "Role has been removed successfully.",
             })
-            fetchRoles()
         } catch (err: any) {
             toast({
                 title: "Error",
