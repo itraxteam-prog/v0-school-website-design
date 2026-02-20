@@ -44,18 +44,18 @@ export function PerformanceTrendChart() {
                             <stop offset="95%" stopColor="#800020" stopOpacity={0} />
                         </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" strokeOpacity={0.1} />
                     <XAxis
                         dataKey="month"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fontSize: 12, fill: '#6B7280' }}
+                        tick={{ fontSize: 12, fill: 'currentColor', opacity: 0.6 }}
                         dy={10}
                     />
                     <YAxis
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fontSize: 12, fill: '#6B7280' }}
+                        tick={{ fontSize: 12, fill: 'currentColor', opacity: 0.6 }}
                         domain={[60, 100]}
                     />
                     <Tooltip
@@ -63,7 +63,9 @@ export function PerformanceTrendChart() {
                             borderRadius: '8px',
                             border: 'none',
                             boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                            fontSize: '12px'
+                            fontSize: '12px',
+                            backgroundColor: 'hsl(var(--card))',
+                            color: 'hsl(var(--foreground))'
                         }}
                     />
                     <Area
@@ -85,18 +87,18 @@ export function SubjectComparisonChart() {
         <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={subjectData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" strokeOpacity={0.1} />
                     <XAxis
                         dataKey="subject"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fontSize: 12, fill: '#6B7280' }}
+                        tick={{ fontSize: 12, fill: 'currentColor', opacity: 0.6 }}
                         dy={10}
                     />
                     <YAxis
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fontSize: 12, fill: '#6B7280' }}
+                        tick={{ fontSize: 12, fill: 'currentColor', opacity: 0.6 }}
                         domain={[0, 100]}
                         hide
                     />
@@ -106,7 +108,9 @@ export function SubjectComparisonChart() {
                             borderRadius: '8px',
                             border: 'none',
                             boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                            fontSize: '12px'
+                            fontSize: '12px',
+                            backgroundColor: 'hsl(var(--card))',
+                            color: 'hsl(var(--foreground))'
                         }}
                     />
                     <Bar

@@ -31,7 +31,7 @@ function AboutContent() {
   return (
     <div>
       {/* Hero */}
-      <section className="bg-foreground py-16 md:py-24 relative overflow-hidden">
+      <section className="bg-[#0a0a0a] py-16 md:py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-burgundy-gradient opacity-90" />
         <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8 relative z-10">
           <AnimatedWrapper direction="down" className="max-w-2xl">
@@ -86,7 +86,7 @@ function AboutContent() {
                   className={`relative flex flex-col gap-2 pl-10 md:flex-row md:items-start md:pl-0`}
                 >
                   {/* Dot */}
-                  <div className="absolute left-2.5 top-1 h-4 w-4 rounded-full border-4 border-white bg-primary shadow-lg md:left-1/2 md:-translate-x-1/2 md:top-6" />
+                  <div className="absolute left-2.5 top-1 h-4 w-4 rounded-full border-4 border-background bg-primary shadow-lg md:left-1/2 md:-translate-x-1/2 md:top-6" />
                   {/* Content */}
                   <div className={`md:w-1/2 ${i % 2 === 0 ? "md:pr-16 md:text-right" : "md:ml-auto md:pl-16"}`}>
                     <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold mb-2">{item.year}</span>
