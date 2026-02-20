@@ -15,6 +15,13 @@ declare module "next-auth" {
     }
 }
 
+// Extend AdapterUser so the session callback can read user.role
+declare module "next-auth/adapters" {
+    interface AdapterUser {
+        role: string;
+    }
+}
+
 // 2️⃣ Configure NextAuth
 const options: AuthOptions = {
     adapter: PrismaAdapter(prisma),
