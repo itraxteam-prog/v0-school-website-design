@@ -16,16 +16,19 @@ import { Suspense } from "react"
 
 function AdminSearchContent() {
     const searchParams = useSearchParams()
-    const initialQuery = searchParams.get("q") || ""
+    // Fix: null-check searchParams before .get()
+    const initialQuery = searchParams?.get("q") ?? ""
+
     const [loading, setLoading] = useState(true)
+    const [query, setQuery] = useState(initialQuery)
 
     useEffect(() => {
         setLoading(true)
         const timer = setTimeout(() => {
             setLoading(false)
-        }, 1000)
+        }, 500)
         return () => clearTimeout(timer)
-    }, [initialQuery])
+    }, [query])
 
     // Mock search results for admin
     const results = [
@@ -35,18 +38,32 @@ function AdminSearchContent() {
         { title: "School Configuration", category: "Settings", description: "Update school names, logos, and general system settings.", link: "/portal/admin/school-settings", icon: Settings },
         { title: "Recent Enrollments", category: "Dashboard", description: "Review latest student registrations and status approvals.", link: "/portal/admin", icon: UserCheck },
     ].filter(r =>
-        r.title.toLowerCase().includes(initialQuery.toLowerCase()) ||
-        r.category.toLowerCase().includes(initialQuery.toLowerCase()) ||
-        r.description.toLowerCase().includes(initialQuery.toLowerCase())
+        r.title.toLowerCase().includes(query.toLowerCase()) ||
+        r.category.toLowerCase().includes(query.toLowerCase()) ||
+        r.description.toLowerCase().includes(query.toLowerCase())
     )
 
     return (
         <AppLayout sidebarItems={sidebarItems} userName="Super Admin" userRole="Admin">
             <div className="flex flex-col gap-8 pb-8">
                 <AnimatedWrapper direction="down">
-                    <div className="flex flex-col gap-2">
-                        <h1 className="heading-1 text-burgundy-gradient">Admin Search Results</h1>
-                        <p className="text-sm text-muted-foreground"> Showing results for &quot;{initialQuery}&quot;</p>
+                    <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-2">
+                            <h1 className="heading-1 text-burgundy-gradient">Admin Search</h1>
+                            <p className="text-sm text-muted-foreground">
+                                {query ? `Showing results for "${query}"` : "Search across all admin modules"}
+                            </p>
+                        </div>
+                        <div className="max-w-md relative group">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                            <input
+                                type="text"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                placeholder="Search modules, users, settings..."
+                                className="w-full bg-background border border-border rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                            />
+                        </div>
                     </div>
                 </AnimatedWrapper>
 
@@ -89,7 +106,7 @@ function AdminSearchContent() {
                         ) : (
                             <div className="py-12 text-center text-muted-foreground bg-muted/20 rounded-xl border border-dashed border-border flex flex-col items-center gap-3">
                                 <Search className="h-10 w-10 opacity-20" />
-                                <p>No results found for &quot;{initialQuery}&quot;</p>
+                                <p>No results found for &quot;{query}&quot;</p>
                                 <p className="text-xs">Try searching for &quot;Student&quot;, &quot;Teacher&quot;, or &quot;Settings&quot;.</p>
                             </div>
                         )}
