@@ -16,7 +16,7 @@ import { Suspense } from "react"
 
 function TeacherSearchContent() {
     const searchParams = useSearchParams()
-    const initialQuery = searchParams.get("q") || ""
+    const initialQuery = searchParams?.get("q") ?? ""
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
