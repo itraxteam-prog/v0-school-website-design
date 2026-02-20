@@ -7,6 +7,7 @@ import {
     TEACHER_SIDEBAR,
     STUDENT_SIDEBAR
 } from "@/lib/navigation-config"
+import { Loader2, ShieldCheck } from "lucide-react"
 
 export default function SecurityPage() {
     const { user, loading } = useRequireAuth(['admin', 'teacher', 'student'])
