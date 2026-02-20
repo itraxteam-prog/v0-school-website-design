@@ -10,13 +10,7 @@ import { useAuth } from "@/context/AuthContext"
 
 import { ScrollProgress } from "@/components/ui/scroll-progress"
 
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/about", label: "About" },
-  { href: "/academics", label: "Academics" },
-  { href: "/admissions", label: "Admissions" },
-  { href: "/contact", label: "Contact" },
-]
+import { PUBLIC_NAV_LINKS as navLinks } from "@/lib/navigation-config"
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -24,7 +18,7 @@ export function Navbar() {
   const { user } = useAuth()
 
   const portalHref = user ? `/portal/${user.role}` : "/portal/login"
-  const portalLabel = user ? "Dashboard" : "Login Portal"
+  const portalLabel = "Login"
 
   return (
     <>
@@ -58,6 +52,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
+                prefetch={true}
                 className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${pathname === link.href
                   ? "text-primary"
                   : "text-foreground hover:text-primary"
@@ -73,14 +68,14 @@ export function Navbar() {
 
           {/* Desktop CTA */}
           <div className="hidden items-center gap-3 lg:flex">
-            <Link href={portalHref}>
-              <Button variant="outline" size="sm" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground flex items-center gap-2">
+            <Link href={portalHref} prefetch={true}>
+              <Button variant="outline" size="sm" className="min-w-[110px] border-primary text-primary hover:bg-primary hover:text-primary-foreground flex items-center justify-center gap-2">
                 {user && <LayoutDashboard className="h-4 w-4" />}
                 {portalLabel}
               </Button>
             </Link>
-            <Link href="/admissions">
-              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+            <Link href="/admissions" prefetch={true}>
+              <Button size="sm" className="min-w-[110px] bg-primary text-primary-foreground hover:bg-primary/90 text-center">
                 Apply Now
               </Button>
             </Link>
@@ -105,6 +100,7 @@ export function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
+                  prefetch={true}
                   onClick={() => setMobileOpen(false)}
                   className={`rounded-lg px-4 py-3 text-base font-medium transition-colors ${pathname === link.href
                     ? "bg-primary/5 text-primary"
@@ -115,13 +111,13 @@ export function Navbar() {
                 </Link>
               ))}
               <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4">
-                <Link href={portalHref} onClick={() => setMobileOpen(false)}>
+                <Link href={portalHref} prefetch={true} onClick={() => setMobileOpen(false)}>
                   <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground flex items-center justify-center gap-2">
                     {user && <LayoutDashboard className="h-4 w-4" />}
                     {portalLabel}
                   </Button>
                 </Link>
-                <Link href="/admissions" onClick={() => setMobileOpen(false)}>
+                <Link href="/admissions" prefetch={true} onClick={() => setMobileOpen(false)}>
                   <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
                     Apply Now
                   </Button>

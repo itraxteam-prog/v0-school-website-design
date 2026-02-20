@@ -25,84 +25,70 @@ export function useStudents() {
         setLoading(true);
         setError(null);
         try {
-            const res = await fetch('/api/students');
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error || 'Failed to fetch students');
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 500));
+            // In a pure frontend app, we use mock data
+            // We'll initialize with some mock students if empty
+            if (students.length === 0) {
+                setStudents([
+                    { id: "1", name: "Hamza Ali", rollNo: "2025-0001", classId: "10-A", email: "hamza@example.com" },
+                    { id: "2", name: "Zainab Fatima", rollNo: "2025-0002", classId: "10-A", email: "zainab@example.com" },
+                    { id: "3", name: "Omar Farooq", rollNo: "2025-0003", classId: "9-B", email: "omar@example.com" }
+                ]);
             }
-            const data = await res.json();
-            setStudents(data);
         } catch (err: any) {
             setError(err.message);
-            // Don't toast on initial load error to avoid spam, just set error state
             console.error(err);
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [students.length]);
 
     const addStudent = async (studentData: any) => {
+        setLoading(true);
         try {
-            const res = await fetch('/api/students', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(studentData),
-            });
-
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error || 'Failed to add student');
-            }
-
-            const newStudent = await res.json();
+            await new Promise(resolve => setTimeout(resolve, 800));
+            const newStudent = {
+                ...studentData,
+                id: Math.random().toString(36).substr(2, 9),
+            };
             setStudents(prev => [...prev, newStudent]);
             toast.success('Student added successfully');
             return newStudent;
         } catch (err: any) {
             toast.error(err.message);
             throw err;
+        } finally {
+            setLoading(false);
         }
     };
 
     const updateStudent = async (id: string, updates: Partial<Student>) => {
+        setLoading(true);
         try {
-            const res = await fetch(`/api/students/${id}`, { // Note: Backend implementation for PUT /[id] needs to be verified
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updates),
-            });
-
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error || 'Failed to update student');
-            }
-
-            const updated = await res.json();
-            setStudents(prev => prev.map(s => s.id === id ? updated : s));
+            await new Promise(resolve => setTimeout(resolve, 800));
+            setStudents(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
             toast.success('Student updated successfully');
-            return updated;
+            return updates;
         } catch (err: any) {
             toast.error(err.message);
             throw err;
+        } finally {
+            setLoading(false);
         }
     };
 
     const deleteStudent = async (id: string) => {
+        setLoading(true);
         try {
-            const res = await fetch(`/api/students/${id}`, { // Backend implementation for DELETE /[id] needs to be verified
-                method: 'DELETE',
-            });
-
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error || 'Failed to delete student');
-            }
-
+            await new Promise(resolve => setTimeout(resolve, 800));
             setStudents(prev => prev.filter(s => s.id !== id));
             toast.success('Student deleted successfully');
         } catch (err: any) {
             toast.error(err.message);
             throw err;
+        } finally {
+            setLoading(false);
         }
     };
 

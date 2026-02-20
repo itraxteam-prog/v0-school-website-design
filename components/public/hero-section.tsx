@@ -8,7 +8,7 @@ import { useAuth } from "@/context/AuthContext"
 export function HeroSection() {
   const { user } = useAuth()
   const portalHref = user ? `/portal/${user.role}` : "/portal/login"
-  const portalLabel = user ? "Dashboard" : "Login Portal"
+  const portalLabel = "Login"
 
   return (
     <section className="relative flex min-h-[70vh] items-center overflow-hidden bg-foreground lg:min-h-[80vh]">

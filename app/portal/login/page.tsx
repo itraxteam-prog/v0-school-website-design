@@ -276,6 +276,50 @@ export default function LoginPage() {
             </form>
           )}
 
+          {/* Quick Access for Demo */}
+          {!requires2FA && (
+            <div className="flex flex-col gap-3 pt-2 border-t border-border/50">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground text-center">
+                Quick Access (Demo)
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 px-2 text-[11px] font-semibold border-primary/20 hover:bg-primary/5 hover:text-primary"
+                  onClick={() => {
+                    setEmail("admin@school.com")
+                    setPassword("password")
+                  }}
+                >
+                  Admin
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 px-2 text-[11px] font-semibold border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300"
+                  onClick={() => {
+                    setEmail("teacher@school.com")
+                    setPassword("password")
+                  }}
+                >
+                  Teacher
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 px-2 text-[11px] font-semibold border-amber-200 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300"
+                  onClick={() => {
+                    setEmail("student@school.com")
+                    setPassword("password")
+                  }}
+                >
+                  Student
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Footer */}
           {!requires2FA && (
             <div className="text-center">

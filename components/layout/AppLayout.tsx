@@ -58,12 +58,12 @@ export function AppLayout({ children, sidebarItems, userName, userRole }: AppLay
         animate={{
           x: sidebarOpen ? 0 : "-100%",
         }}
-        transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+        transition={{ type: "spring", bounce: 0, duration: 0.3 }}
         className="fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-border bg-background lg:static lg:!translate-x-0"
       >
         {/* Sidebar Header */}
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" prefetch={true} className="flex items-center gap-2">
             <Image src="/images/logo.png" alt="Logo" width={60} height={60} className="h-[60px] w-[60px] object-contain" />
             <div className="hidden sm:block">
               <p className="text-xs font-bold leading-tight text-foreground">Pioneers High</p>
@@ -93,6 +93,7 @@ export function AppLayout({ children, sidebarItems, userName, userRole }: AppLay
                 <li key={item.href}>
                   <Link
                     href={item.href}
+                    prefetch={true}
                     onClick={() => setSidebarOpen(false)}
                     className="block relative"
                   >
@@ -101,7 +102,7 @@ export function AppLayout({ children, sidebarItems, userName, userRole }: AppLay
                         layoutId="active-pill"
                         className="absolute inset-0 rounded-lg bg-primary/5 border-l-2 border-primary"
                         initial={false}
-                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 40 }}
                       />
                     )}
                     <span
@@ -140,14 +141,28 @@ export function AppLayout({ children, sidebarItems, userName, userRole }: AppLay
             </button>
             {/* Breadcrumb */}
             <nav className="hidden items-center gap-1 text-sm md:flex" aria-label="Breadcrumb">
-              {breadcrumbs.map((crumb, i) => (
-                <span key={crumb} className="flex items-center gap-1">
-                  {i > 0 && <ChevronRight className="h-3 w-3 text-muted-foreground" />}
-                  <span className={i === breadcrumbs.length - 1 ? "font-semibold capitalize text-foreground" : "capitalize text-muted-foreground"}>
-                    {crumb.replace(/-/g, " ")}
+              {breadcrumbs.map((crumb, i) => {
+                const href = "/portal/" + breadcrumbs.slice(0, i + 1).join("/");
+                const isLast = i === breadcrumbs.length - 1;
+                return (
+                  <span key={crumb} className="flex items-center gap-1">
+                    {i > 0 && <ChevronRight className="h-3 w-3 text-muted-foreground" />}
+                    {isLast ? (
+                      <span className="font-semibold capitalize text-foreground">
+                        {crumb.replace(/-/g, " ")}
+                      </span>
+                    ) : (
+                      <Link
+                        href={href}
+                        prefetch={true}
+                        className="capitalize text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        {crumb.replace(/-/g, " ")}
+                      </Link>
+                    )}
                   </span>
-                </span>
-              ))}
+                );
+              })}
             </nav>
             {/* Mobile Back */}
             <span className="text-sm font-semibold capitalize text-foreground md:hidden truncate max-w-[120px]">
@@ -238,9 +253,9 @@ export function AppLayout({ children, sidebarItems, userName, userRole }: AppLay
         {/* Content Area */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-6 scroll-smooth" style={{ WebkitOverflowScrolling: "touch" }}>
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
           >
             {children}
           </motion.div>

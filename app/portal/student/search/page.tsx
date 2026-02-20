@@ -5,23 +5,17 @@ import { useState, useEffect } from "react"
 import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Search, LayoutDashboard, BookOpen, User, CalendarCheck, Clock, Megaphone, FileText, ChevronRight, ShieldCheck, Calendar } from "lucide-react"
+import { Search, LayoutDashboard, BookOpen, User, CalendarCheck, Clock, Megaphone, FileText, ChevronRight, ShieldCheck, Calendar, Loader2 } from "lucide-react"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 
-const sidebarItems = [
-    { href: "/portal/student", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/portal/student/grades", label: "My Grades", icon: BookOpen },
-    { href: "/portal/student/attendance", label: "Attendance", icon: CalendarCheck },
-    { href: "/portal/student/timetable", label: "Timetable", icon: Clock },
-    { href: "/portal/student/announcements", label: "Announcements", icon: Megaphone },
-    { href: "/portal/student/profile", label: "Profile", icon: User },
-    { href: "/portal/security", label: "Security", icon: ShieldCheck },
-]
+import { STUDENT_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
-export default function StudentSearchPage() {
+import { Suspense } from "react"
+
+function StudentSearchContent() {
     const searchParams = useSearchParams()
     const initialQuery = searchParams.get("q") || ""
     const [query, setQuery] = useState(initialQuery)
@@ -75,7 +69,7 @@ export default function StudentSearchPage() {
                         ) : results.length > 0 ? (
                             results.map((result, index) => (
                                 <AnimatedWrapper key={index} delay={index * 0.1}>
-                                    <Link href={result.link}>
+                                    <Link href={result.link} prefetch={true}>
                                         <Card className="glass-panel border-border/50 transition-all hover:border-primary/30 hover:shadow-md cursor-pointer group">
                                             <CardContent className="p-4 flex items-center gap-4">
                                                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/5 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
@@ -105,5 +99,17 @@ export default function StudentSearchPage() {
                 </div>
             </div>
         </AppLayout>
+    )
+}
+
+export default function StudentSearchPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex min-h-screen items-center justify-center bg-secondary">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            </div>
+        }>
+            <StudentSearchContent />
+        </Suspense>
     )
 }

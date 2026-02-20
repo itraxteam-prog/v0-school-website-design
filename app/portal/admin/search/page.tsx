@@ -4,27 +4,17 @@ import { useSearchParams } from "next/navigation"
 import { useState, useEffect } from "react"
 import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent } from "@/components/ui/card"
-import { Search, LayoutDashboard, GraduationCap, Users, School, Clock, BarChart3, FileBarChart, Settings, ShieldCheck, ChevronRight, UserCheck } from "lucide-react"
+import { Search, LayoutDashboard, GraduationCap, Users, School, Clock, BarChart3, FileBarChart, Settings, ShieldCheck, ChevronRight, UserCheck, Loader2 } from "lucide-react"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 
-const sidebarItems = [
-    { href: "/portal/admin", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/portal/admin/students", label: "Students", icon: GraduationCap },
-    { href: "/portal/admin/teachers", label: "Teachers", icon: Users },
-    { href: "/portal/admin/classes", label: "Classes", icon: School },
-    { href: "/portal/admin/periods", label: "Periods", icon: Clock },
-    { href: "/portal/admin/analytics", label: "Analytics", icon: BarChart3 },
-    { href: "/portal/admin/reports", label: "Reports", icon: FileBarChart },
-    { href: "/portal/admin/users", label: "User Management", icon: Settings },
-    { href: "/portal/admin/roles", label: "Roles & Permissions", icon: ShieldCheck },
-    { href: "/portal/admin/school-settings", label: "School Settings", icon: Settings },
-    { href: "/portal/security", label: "Security", icon: ShieldCheck },
-]
+import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
-export default function AdminSearchPage() {
+import { Suspense } from "react"
+
+function AdminSearchContent() {
     const searchParams = useSearchParams()
     const initialQuery = searchParams.get("q") || ""
     const [loading, setLoading] = useState(true)
@@ -77,7 +67,7 @@ export default function AdminSearchPage() {
                         ) : results.length > 0 ? (
                             results.map((result, index) => (
                                 <AnimatedWrapper key={index} delay={index * 0.1}>
-                                    <Link href={result.link}>
+                                    <Link href={result.link} prefetch={true}>
                                         <Card className="glass-panel border-border/50 transition-all hover:border-primary/30 hover:shadow-md cursor-pointer group">
                                             <CardContent className="p-4 flex items-center gap-4">
                                                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/5 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
@@ -107,5 +97,17 @@ export default function AdminSearchPage() {
                 </div>
             </div>
         </AppLayout>
+    )
+}
+
+export default function AdminSearchPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex min-h-screen items-center justify-center bg-secondary">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            </div>
+        }>
+            <AdminSearchContent />
+        </Suspense>
     )
 }
