@@ -3,21 +3,10 @@ import { useRequireAuth } from "@/hooks/useRequireAuth"
 import { AppLayout } from "@/components/layout/app-layout"
 import TwoFactorSetup from "@/components/portal/2fa-setup"
 import {
-    LayoutDashboard,
-    GraduationCap,
-    Users,
-    School,
-    Clock,
-    BarChart3,
-    FileBarChart,
-    Settings,
-    ShieldCheck,
-    BookOpen,
-    CalendarCheck,
-    Megaphone,
-    User,
-    Loader2
-} from "lucide-react"
+    ADMIN_SIDEBAR,
+    TEACHER_SIDEBAR,
+    STUDENT_SIDEBAR
+} from "@/lib/navigation-config"
 
 export default function SecurityPage() {
     const { user, loading } = useRequireAuth(['admin', 'teacher', 'student'])
@@ -34,38 +23,13 @@ export default function SecurityPage() {
     const getSidebarItems = () => {
         switch (user.role) {
             case 'admin':
-                return [
-                    { href: "/portal/admin", label: "Dashboard", icon: LayoutDashboard },
-                    { href: "/portal/admin/students", label: "Students", icon: GraduationCap },
-                    { href: "/portal/admin/teachers", label: "Teachers", icon: Users },
-                    { href: "/portal/admin/classes", label: "Classes", icon: School },
-                    { href: "/portal/admin/users", label: "User Management", icon: Settings },
-                    { href: "/portal/admin/school-settings", label: "School Settings", icon: Settings },
-                    { href: "/portal/security", label: "Security", icon: ShieldCheck },
-                ]
+                return ADMIN_SIDEBAR
             case 'teacher':
-                return [
-                    { href: "/portal/teacher", label: "Dashboard", icon: LayoutDashboard },
-                    { href: "/portal/teacher/classes", label: "My Classes", icon: School },
-                    { href: "/portal/teacher/students", label: "Students", icon: GraduationCap },
-                    { href: "/portal/teacher/attendance", label: "Attendance", icon: CalendarCheck },
-                    { href: "/portal/teacher/gradebook", label: "Gradebook", icon: BookOpen },
-                    { href: "/portal/security", label: "Security", icon: ShieldCheck },
-                ]
+                return TEACHER_SIDEBAR
             case 'student':
-                return [
-                    { href: "/portal/student", label: "Dashboard", icon: LayoutDashboard },
-                    { href: "/portal/student/grades", label: "My Grades", icon: BookOpen },
-                    { href: "/portal/student/attendance", label: "Attendance", icon: CalendarCheck },
-                    { href: "/portal/student/timetable", label: "Timetable", icon: Clock },
-                    { href: "/portal/student/announcements", label: "Announcements", icon: Megaphone },
-                    { href: "/portal/student/profile", label: "Profile", icon: User },
-                    { href: "/portal/security", label: "Security", icon: ShieldCheck },
-                ]
+                return STUDENT_SIDEBAR
             default:
-                return [
-                    { href: "/portal/security", label: "Security", icon: ShieldCheck },
-                ]
+                return [{ href: "/portal/security", label: "Security", icon: ShieldCheck }]
         }
     }
 

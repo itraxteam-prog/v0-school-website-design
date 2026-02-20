@@ -42,19 +42,12 @@ export default function ResetPasswordClient() {
         setLoading(true)
 
         try {
-            const res = await fetch('/api/auth/reset-password', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token, newPassword: password }),
-            })
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 1500));
 
-            const data = await res.json()
-            if (res.ok) {
-                setSuccess(true)
-                setTimeout(() => router.push("/portal/login"), 3000)
-            } else {
-                setError(data.message || "Reset failed")
-            }
+            // For mock purposes, always succeed
+            setSuccess(true)
+            setTimeout(() => router.push("/portal/login"), 3000)
         } catch (err) {
             setError("Failed to reset password")
         } finally {

@@ -12,15 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ClassPerformanceChart } from "@/components/portal/teacher-charts"
 
-const sidebarItems = [
-  { href: "/portal/teacher", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/portal/teacher/classes", label: "My Classes", icon: Users },
-  { href: "/portal/teacher/attendance", label: "Attendance", icon: CalendarCheck },
-  { href: "/portal/teacher/gradebook", label: "Gradebook", icon: BookMarked },
-  { href: "/portal/teacher/reports", label: "Reports", icon: FileBarChart },
-  { href: "/portal/teacher/profile", label: "Profile", icon: User },
-  { href: "/portal/security", label: "Security", icon: ShieldCheck },
-]
+import { TEACHER_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
 import { MOCK_TEACHER_DASHBOARD_DATA } from "@/utils/mocks"
 

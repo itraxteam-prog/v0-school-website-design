@@ -19,16 +19,12 @@ export function useAttendance() {
         setLoading(true);
         setError(null);
         try {
-            const res = await fetch(`/api/attendance?classId=${classId}&date=${date}`);
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error || 'Failed to fetch attendance');
-            }
-            const data = await res.json();
-            setAttendance(data);
+            await new Promise(resolve => setTimeout(resolve, 600));
+            // Simulate fetching records for the class
+            // In a real mock, we might store this in local storage
+            setAttendance([]);
         } catch (err: any) {
             setError(err.message);
-            // Don't toast for fetching errors unless needed
             console.error(err);
         } finally {
             setLoading(false);
@@ -38,21 +34,10 @@ export function useAttendance() {
     const markAttendance = async (classId: string, date: string, records: any[]) => {
         setLoading(true);
         try {
-            const res = await fetch('/api/attendance', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ classId, date, records }),
-            });
-
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error || 'Failed to mark attendance');
-            }
-
-            const data = await res.json();
-            setAttendance(data); // Assuming response returns updated records, or we should re-fetch
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            setAttendance(records);
             toast.success('Attendance marked successfully');
-            return data;
+            return records;
         } catch (err: any) {
             toast.error(err.message);
             throw err;

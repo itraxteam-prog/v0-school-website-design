@@ -35,8 +35,8 @@ export function AnimatedWrapper({
     children,
     delay = 0,
     direction = "up",
-    distance = 20,
-    duration = 0.5,
+    distance = 10,
+    duration = 0.4,
     staggerChildren,
     className,
     ...props

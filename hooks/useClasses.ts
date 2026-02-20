@@ -19,83 +19,67 @@ export function useClasses() {
         setLoading(true);
         setError(null);
         try {
-            const res = await fetch('/api/classes');
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error || 'Failed to fetch classes');
+            await new Promise(resolve => setTimeout(resolve, 500));
+            if (classes.length === 0) {
+                setClasses([
+                    { id: "1", name: "Grade 10-A", classTeacherId: "1", roomNo: "Room 204", capacity: 35 },
+                    { id: "2", name: "Grade 11-B", classTeacherId: "2", roomNo: "Room 305", capacity: 30 },
+                    { id: "3", name: "Grade 9-A", classTeacherId: "3", roomNo: "Room 102", capacity: 32 }
+                ]);
             }
-            const data = await res.json();
-            setClasses(data);
         } catch (err: any) {
             setError(err.message);
             console.error(err);
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [classes.length]);
 
     const addClass = async (classData: any) => {
+        setLoading(true);
         try {
-            const res = await fetch('/api/classes', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(classData),
-            });
-
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error || 'Failed to add class');
-            }
-
-            const newClass = await res.json();
+            await new Promise(resolve => setTimeout(resolve, 800));
+            const newClass = {
+                ...classData,
+                id: Math.random().toString(36).substr(2, 9),
+            };
             setClasses(prev => [...prev, newClass]);
             toast.success('Class added successfully');
             return newClass;
         } catch (err: any) {
             toast.error(err.message);
             throw err;
+        } finally {
+            setLoading(false);
         }
     };
 
     const updateClass = async (id: string, updates: Partial<Class>) => {
+        setLoading(true);
         try {
-            const res = await fetch(`/api/classes/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updates),
-            });
-
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error || 'Failed to update class');
-            }
-
-            const updated = await res.json();
-            setClasses(prev => prev.map(c => c.id === id ? updated : c));
+            await new Promise(resolve => setTimeout(resolve, 800));
+            setClasses(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
             toast.success('Class updated successfully');
-            return updated;
+            return updates;
         } catch (err: any) {
             toast.error(err.message);
             throw err;
+        } finally {
+            setLoading(false);
         }
     };
 
     const deleteClass = async (id: string) => {
+        setLoading(true);
         try {
-            const res = await fetch(`/api/classes/${id}`, {
-                method: 'DELETE',
-            });
-
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error || 'Failed to delete class');
-            }
-
+            await new Promise(resolve => setTimeout(resolve, 800));
             setClasses(prev => prev.filter(c => c.id !== id));
             toast.success('Class deleted successfully');
         } catch (err: any) {
             toast.error(err.message);
             throw err;
+        } finally {
+            setLoading(false);
         }
     };
 
