@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
@@ -8,25 +8,26 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Lock, Eye, EyeOff, CheckCircle2, AlertTriangle } from "lucide-react"
+import { Lock, Eye, EyeOff, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react"
 
 import { validatePassword } from "@/utils/validation"
 
-export default function ResetPasswordClient() {
+// ─── Inner component — safe to call useSearchParams() here ───
+function ResetPasswordInner() {
     const router = useRouter()
     const searchParams = useSearchParams()
-    const token = searchParams.get("token")
+    const token = searchParams?.get("token") ?? null
 
     const [showPassword, setShowPassword] = useState(false)
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
     const [loading, setLoading] = useState(false)
-    const [error, setError] = useState("")
+    const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState(false)
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        setError("")
+        setError(null)
 
         if (password !== confirmPassword) {
             setError("Passwords do not match")
@@ -42,14 +43,18 @@ export default function ResetPasswordClient() {
         setLoading(true)
 
         try {
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            const res = await fetch("/api/auth/reset-password", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ token, password }),
+            })
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.error ?? "Reset failed.")
 
-            // For mock purposes, always succeed
             setSuccess(true)
             setTimeout(() => router.push("/portal/login"), 3000)
-        } catch (err) {
-            setError("Failed to reset password")
+        } catch (err: any) {
+            setError(err.message || "Failed to reset password")
         } finally {
             setLoading(false)
         }
@@ -58,7 +63,7 @@ export default function ResetPasswordClient() {
     if (!token) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-secondary px-4">
-                <Card className="w-full max-w-md border-destructive/20 bg-destructive/5">
+                <Card className="w-full max-w-md border-destructive/20 bg-destructive/5 glass-panel">
                     <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
                         <AlertTriangle className="h-12 w-12 text-destructive" />
                         <h1 className="text-xl font-bold">Invalid Reset Link</h1>
@@ -66,7 +71,7 @@ export default function ResetPasswordClient() {
                             This password reset link is invalid or has expired. Please request a new one.
                         </p>
                         <Link href="/portal/forgot-password">
-                            <Button variant="default" className="mt-2">Request New Link</Button>
+                            <Button variant="default" className="mt-2 bg-burgundy hover:bg-burgundy/90">Request New Link</Button>
                         </Link>
                     </CardContent>
                 </Card>
@@ -76,7 +81,7 @@ export default function ResetPasswordClient() {
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-secondary px-4 py-12">
-            <Card className="w-full max-w-md border-border">
+            <Card className="w-full max-w-md border-border glass-panel">
                 <CardContent className="flex flex-col gap-6 p-6 sm:p-8">
                     <div className="flex flex-col items-center gap-3 text-center">
                         <Image
@@ -95,7 +100,7 @@ export default function ResetPasswordClient() {
                     {!success ? (
                         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                             {error && (
-                                <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                                <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive border border-destructive/20">
                                     {error}
                                 </div>
                             )}
@@ -108,7 +113,7 @@ export default function ResetPasswordClient() {
                                         id="password"
                                         type={showPassword ? "text" : "password"}
                                         placeholder="Min 8 characters"
-                                        className="h-11 pl-10 pr-10"
+                                        className="h-11 pl-10 pr-10 bg-background/50 border-border/50 focus:border-primary/50"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         required
@@ -131,7 +136,7 @@ export default function ResetPasswordClient() {
                                         id="confirmPassword"
                                         type={showPassword ? "text" : "password"}
                                         placeholder="Repeat new password"
-                                        className="h-11 pl-10 pr-10"
+                                        className="h-11 pl-10 pr-10 bg-background/50 border-border/50 focus:border-primary/50"
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                         required
@@ -139,7 +144,7 @@ export default function ResetPasswordClient() {
                                 </div>
                             </div>
 
-                            <div className="rounded-lg bg-muted/50 p-3 text-[11px] text-muted-foreground">
+                            <div className="rounded-lg bg-muted/50 p-3 text-[11px] text-muted-foreground border border-border/30">
                                 <p className="font-semibold mb-1 uppercase tracking-wider">Password Requirements:</p>
                                 <ul className="grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-2">
                                     <li className={`flex items-center gap-1.5 ${password.length >= 8 ? "text-green-600 font-medium" : ""}`}>
@@ -167,10 +172,15 @@ export default function ResetPasswordClient() {
 
                             <Button
                                 type="submit"
-                                className="h-11 bg-primary text-primary-foreground hover:bg-primary/90"
+                                className="h-11 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md transition-all active:scale-[0.98]"
                                 disabled={loading}
                             >
-                                {loading ? "Resetting..." : "Reset Password"}
+                                {loading ? (
+                                    <span className="flex items-center gap-2">
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        Resetting...
+                                    </span>
+                                ) : "Reset Password"}
                             </Button>
                         </form>
                     ) : (
@@ -185,12 +195,28 @@ export default function ResetPasswordClient() {
                                 </p>
                             </div>
                             <Link href="/portal/login" className="w-full">
-                                <Button className="w-full">Login Now</Button>
+                                <Button className="w-full bg-primary hover:bg-primary/90">Login Now</Button>
                             </Link>
                         </div>
                     )}
                 </CardContent>
             </Card>
         </div>
+    )
+}
+
+// ─── Outer export — Suspense is REQUIRED by Next.js 14 for useSearchParams() ───
+export default function ResetPasswordClient() {
+    return (
+        <Suspense fallback={
+            <div className="flex min-h-screen items-center justify-center bg-secondary">
+                <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                    <p className="text-sm font-medium text-muted-foreground">Loading password reset...</p>
+                </div>
+            </div>
+        }>
+            <ResetPasswordInner />
+        </Suspense>
     )
 }
