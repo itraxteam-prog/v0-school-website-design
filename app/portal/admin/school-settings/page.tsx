@@ -45,6 +45,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { motion } from "framer-motion"
+import { useTheme } from "next-themes"
 
 import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
@@ -99,6 +100,7 @@ export default function SchoolSettingsPage() {
     const [isSaving, setIsSaving] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [settings, setSettings] = useState<SettingsFormValues | null>(null)
+    const { setTheme, theme } = useTheme()
 
     const { toast } = useToast()
 
@@ -135,6 +137,13 @@ export default function SchoolSettingsPage() {
             }
         }
     })
+
+    // Update theme when setting is fetched
+    useEffect(() => {
+        if (settings) {
+            setTheme(settings.portalPreferences.darkMode ? "dark" : "light")
+        }
+    }, [settings, setTheme])
 
     const fetchSettings = useCallback(async () => {
         setLoading(true)
@@ -197,6 +206,7 @@ export default function SchoolSettingsPage() {
                 description: "Global configuration has been successfully synchronized.",
             })
             setSettings(data)
+            setTheme(data.portalPreferences.darkMode ? "dark" : "light")
         } catch (err: any) {
             toast({
                 title: "Update Failed",
