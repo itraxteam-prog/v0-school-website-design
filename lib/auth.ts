@@ -25,12 +25,19 @@ export const authOptions: AuthOptions = {
             },
         }),
     ],
-    session: { strategy: "database" },
+    session: { strategy: "jwt" },
     callbacks: {
-        async session({ session, user }: any) {
-            if (session.user && user) {
-                session.user.id = user.id;
-                session.user.role = user.role;
+        async jwt({ token, user }: any) {
+            if (user) {
+                token.role = user.role;
+                token.id = user.id;
+            }
+            return token;
+        },
+        async session({ session, token }: any) {
+            if (session.user) {
+                session.user.id = token.id as string;
+                session.user.role = token.role as string;
             }
             return session;
         },
