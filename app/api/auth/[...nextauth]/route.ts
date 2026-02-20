@@ -1,12 +1,13 @@
 // File: app/api/auth/[...nextauth]/route.ts
-import NextAuth from "next-auth";
+import NextAuth, { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/prisma/client";
 import bcrypt from "bcrypt";
+import { SessionStrategy } from "next-auth/core/types";
 
-// Define NextAuth options internally (do not export separately)
-const options = {
+// Define AuthOptions with proper typing
+const options: AuthOptions = {
     adapter: PrismaAdapter(prisma),
     providers: [
         CredentialsProvider({
@@ -21,20 +22,15 @@ const options = {
                     where: { email: credentials.email },
                 });
                 if (user && (await bcrypt.compare(credentials.password, user.password))) {
-                    return {
-                        id: user.id,
-                        name: user.name,
-                        email: user.email,
-                        role: user.role,
-                    };
+                    return { id: user.id, name: user.name, email: user.email, role: user.role };
                 }
                 return null;
             },
         }),
     ],
-    session: { strategy: "database" },
+    session: { strategy: "database" as SessionStrategy },
     callbacks: {
-        async session({ session, user }: any) {
+        async session({ session, user }) {
             session.user.id = user.id;
             session.user.role = user.role;
             return session;
