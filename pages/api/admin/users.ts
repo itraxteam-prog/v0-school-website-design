@@ -1,0 +1,20 @@
+import type { NextApiHandler } from "next";
+import { prisma } from "@/lib/prisma";
+import { requireRole } from "@/lib/requireRole";
+
+const handler: NextApiHandler = async (req, res) => {
+    const session = await requireRole(req, res, ["ADMIN"]);
+    if (!session) return;
+
+    if (req.method === "GET") {
+        const users = await prisma.user.findMany({
+            select: { id: true, email: true, role: true },
+        });
+        res.status(200).json(users);
+        return;
+    }
+
+    res.status(405).end("Method Not Allowed");
+};
+
+export default handler;
