@@ -1,18 +1,25 @@
 import { PrismaClient } from "@prisma/client";
-import { validateEnv } from "./env";
+import { logger } from "@/lib/logger";
 
-// Ensure environment variables are present before initializing Prisma
-validateEnv();
-
-const globalForPrisma = globalThis as unknown as {
-    prisma: PrismaClient | undefined;
-};
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
 export const prisma =
-    globalForPrisma.prisma ??
+    globalForPrisma.prisma ||
     new PrismaClient({
-        log: ["error"],
+        log: [
+            { level: "error", emit: "event" },
+            { level: "warn", emit: "event" },
+        ],
     });
 
-if (process.env.NODE_ENV !== "production")
-    globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+
+// @ts-ignore
+prisma.$on("error" as any, (e: any) => {
+    logger.error(e, "Prisma error");
+});
+
+// @ts-ignore
+prisma.$on("warn" as any, (e: any) => {
+    logger.warn(e, "Prisma warning");
+});
