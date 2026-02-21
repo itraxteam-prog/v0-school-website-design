@@ -35,7 +35,10 @@ export function AppLayout({ children, sidebarItems, userName, userRole }: AppLay
     await logout()
   }
 
-  const breadcrumbs = pathname.split("/").filter(Boolean).slice(1)
+  // ✅ Fix: handle possible null value safely
+  const safePathname = pathname ?? ""
+
+  const breadcrumbs = safePathname.split("/").filter(Boolean).slice(1)
 
   return (
     <div className="flex h-screen overflow-hidden bg-secondary">
@@ -88,7 +91,7 @@ export function AppLayout({ children, sidebarItems, userName, userRole }: AppLay
         <nav className="flex-1 overflow-y-auto px-3 py-4 scroll-smooth" style={{ WebkitOverflowScrolling: "touch" }}>
           <ul className="flex flex-col gap-1">
             {sidebarItems.map((item) => {
-              const isActive = pathname === item.href
+              const isActive = safePathname === item.href
               return (
                 <li key={item.href}>
                   <Link
@@ -179,8 +182,8 @@ export function AppLayout({ children, sidebarItems, userName, userRole }: AppLay
                   onSubmit={(e) => {
                     e.preventDefault();
                     if (searchQuery.trim()) {
-                      const portalBase = pathname.startsWith('/portal/admin') ? '/portal/admin' :
-                        pathname.startsWith('/portal/teacher') ? '/portal/teacher' :
+                      const portalBase = safePathname.startsWith('/portal/admin') ? '/portal/admin' :
+                        safePathname.startsWith('/portal/teacher') ? '/portal/teacher' :
                           '/portal/student';
                       window.location.href = `${portalBase}/search?q=${encodeURIComponent(searchQuery.trim())}`;
                     }
