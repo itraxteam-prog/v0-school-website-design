@@ -65,7 +65,7 @@ export const authOptions: AuthOptions = {
             return session;
         },
     },
-    pages: { signIn: "/auth/login" },
+    pages: { signIn: "/portal/login" },
     debug: process.env.NODE_ENV === "development",
 };
 
