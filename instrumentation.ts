@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/nextjs";
 
 export async function register() {
     if (process.env.NODE_ENV === "production" && !process.env.SENTRY_DSN) {
-        throw new Error("Missing SENTRY_DSN - error tracking required in production");
+        console.warn("SENTRY_DSN is missing. Error tracking will be disabled.");
     }
 
     if (process.env.NEXT_RUNTIME === "nodejs") {
