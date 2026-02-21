@@ -1,5 +1,5 @@
 import type { NextApiHandler } from "next";
-import { prisma } from "@/prisma/client";
+import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import { sendPasswordResetEmail } from "@/lib/email";
 

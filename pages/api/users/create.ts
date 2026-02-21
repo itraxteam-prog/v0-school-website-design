@@ -1,5 +1,5 @@
 import type { NextApiHandler } from "next";
-import { prisma } from "@/prisma/client";
+import { prisma } from "@/lib/prisma";
 import { validateRequest, userSchema } from "@/lib/validation";
 import bcrypt from "bcrypt";
 
