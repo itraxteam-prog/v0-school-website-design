@@ -10,7 +10,8 @@ import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ClassPerformanceChart } from "@/components/portal/teacher-charts"
+import dynamic from "next/dynamic"
+const ClassPerformanceChart = dynamic(() => import("@/components/portal/teacher-charts").then(mod => mod.ClassPerformanceChart), { ssr: false });
 
 import { TEACHER_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 

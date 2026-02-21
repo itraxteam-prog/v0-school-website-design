@@ -7,7 +7,9 @@ import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
-import { PerformanceTrendChart, SubjectComparisonChart } from "@/components/portal/dashboard-charts"
+import dynamic from "next/dynamic"
+const PerformanceTrendChart = dynamic(() => import("@/components/portal/dashboard-charts").then(mod => mod.PerformanceTrendChart), { ssr: false });
+const SubjectComparisonChart = dynamic(() => import("@/components/portal/dashboard-charts").then(mod => mod.SubjectComparisonChart), { ssr: false });
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 

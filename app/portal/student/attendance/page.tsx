@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { LayoutDashboard, BookOpen, CalendarCheck, Clock, Megaphone, User, CheckCircle2, XCircle, AlertCircle, ShieldCheck } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
-import { AttendanceDistributionChart } from "@/components/portal/attendance-charts"
+import dynamic from "next/dynamic"
+const AttendanceDistributionChart = dynamic(() => import("@/components/portal/attendance-charts").then(mod => mod.AttendanceDistributionChart), { ssr: false });
 import { Skeleton } from "@/components/ui/skeleton"
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay, parseISO } from "date-fns"
 
