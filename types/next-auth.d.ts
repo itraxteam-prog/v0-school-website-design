@@ -17,6 +17,13 @@ declare module "next-auth" {
     }
 }
 
+declare module "next-auth/jwt" {
+    interface JWT {
+        role?: string;
+        id?: string;
+    }
+}
+
 declare module "next-auth/adapters" {
     interface AdapterUser {
         role: string;
