@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
-import { PerformanceTrendChart } from "@/components/portal/dashboard-charts"
+import dynamic from "next/dynamic"
+const PerformanceTrendChart = dynamic(() => import("@/components/portal/dashboard-charts").then(mod => mod.PerformanceTrendChart), { ssr: false });
 import { Skeleton } from "@/components/ui/skeleton"
 
 const sidebarItems = [
