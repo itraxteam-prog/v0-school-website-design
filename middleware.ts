@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 
 export default withAuth(
     function middleware(req) {
-        // Debug logging for middleware path
         if (process.env.NODE_ENV === "development") {
             console.log("[Middleware] Invoked for path:", req.nextUrl.pathname);
         }
@@ -11,24 +10,29 @@ export default withAuth(
     },
     {
         callbacks: {
-            authorized: ({ token }) => {
-                try {
-                    // Safe handling of null/undefined tokens
-                    const isAuthorized = !!token;
-                    if (process.env.NODE_ENV === "development") {
-                        console.log("[Middleware] Authorized:", isAuthorized);
-                    }
-                    return isAuthorized;
-                } catch (error) {
-                    console.error("[Middleware] Authorization Callback Error:", error);
-                    return false;
+            authorized: ({ token, req }) => {
+                if (!token) return false;
+
+                const path = req.nextUrl.pathname;
+
+                if (path.startsWith("/portal/admin")) {
+                    return token.role === "ADMIN";
                 }
+
+                if (path.startsWith("/portal/teacher")) {
+                    return token.role === "TEACHER";
+                }
+
+                if (path.startsWith("/portal/student")) {
+                    return token.role === "STUDENT";
+                }
+
+                return true;
             },
         },
         pages: {
-            signIn: "/auth/login",
+            signIn: "/portal/login",
         },
-        // Explicitly passing secret to fix common MIDDLEWARE_INVOCATION_FAILED issues in Vercel
         secret: process.env.NEXTAUTH_SECRET,
     }
 );

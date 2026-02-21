@@ -4,6 +4,7 @@ import { Megaphone, ArrowRight } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { Card, CardContent } from "@/components/ui/card"
+import { sanitizeHtml } from "@/lib/xss"
 
 const notices = [
     { id: 1, title: "Annual Science Fair 2026 Registration Open", date: "Feb 20, 2026", type: "Urgent", content: "Students are invited to register their projects by the end of next week." },
@@ -51,7 +52,7 @@ export function NoticeBoard() {
                                         </div>
                                         <div className="p-6 flex-1 flex flex-col justify-center">
                                             <h3 className="heading-3 mb-2 line-clamp-1">{notice.title}</h3>
-                                            <p className="text-sm text-muted-foreground font-medium line-clamp-1 italic">&ldquo;{notice.content}&rdquo;</p>
+                                            <p className="text-sm text-muted-foreground font-medium line-clamp-1 italic">&ldquo;{sanitizeHtml(notice.content)}&rdquo;</p>
                                         </div>
                                         <div className="p-6 md:pr-8 flex items-center justify-end">
                                             <button className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center hover:bg-primary hover:text-white transition-all shadow-sm">

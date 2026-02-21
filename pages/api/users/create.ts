@@ -2,11 +2,14 @@ import type { NextApiHandler } from "next";
 import { prisma } from "@/lib/prisma";
 import { validateRequest, userSchema } from "@/lib/validation";
 import bcrypt from "bcrypt";
-
 import { rateLimit } from "@/lib/rateLimit";
-import { validateCSRF } from "@/lib/csrf";
+import { requireRole } from "@/lib/requireRole";
 
 const handler: NextApiHandler = async (req, res) => {
+    // 1. Authentication and Authorization check (Admin only)
+    const session = await requireRole(req, res, ["ADMIN"]);
+    if (!session) return;
+
     const ip =
         (req.headers["x-forwarded-for"] as string)?.split(",")[0] ||
         req.socket.remoteAddress ||
@@ -17,13 +20,7 @@ const handler: NextApiHandler = async (req, res) => {
         return res.status(429).json({ error: "Too many requests" });
     }
 
-    // CSRF check for mutating requests
-    if (req.method !== "GET" && !validateCSRF(req)) {
-        return res.status(403).json({ error: "Invalid CSRF token" });
-    }
-
     if (req.method !== "POST") return res.status(405).end("Method Not Allowed");
-
 
     // Validate request body
     const data = validateRequest(userSchema, req, res);

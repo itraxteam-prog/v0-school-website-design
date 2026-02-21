@@ -35,6 +35,8 @@ import { useToast } from "@/components/ui/use-toast"
 
 import { MOCK_ANNOUNCEMENTS, MOCK_UPCOMING_EVENTS } from "@/utils/mocks"
 
+import { sanitizeHtml } from "@/lib/xss"
+
 const sidebarItems = [
   { href: "/portal/student", label: "Dashboard", icon: LayoutDashboard },
   { href: "/portal/student/grades", label: "My Grades", icon: BookOpen },
@@ -204,7 +206,7 @@ export default function AnnouncementsPage() {
                               </Badge>
                             </div>
                             <p className="text-sm text-foreground/80 line-clamp-2 leading-relaxed">
-                              {a.message}
+                              {sanitizeHtml(a.message)}
                             </p>
                             <div className="flex items-center justify-between mt-1">
                               <span className="text-xs font-semibold text-primary/80 flex items-center gap-1">
@@ -224,7 +226,7 @@ export default function AnnouncementsPage() {
                               >
                                 <div className="px-5 pb-6 border-t border-border/30 pt-4 bg-muted/10">
                                   <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                                    {a.message}
+                                    {sanitizeHtml(a.message)}
                                   </p>
                                   <Button size="sm" className="mt-4 bg-primary text-white hover:bg-primary/90 text-[11px] h-8">
                                     Add to My Calendar
