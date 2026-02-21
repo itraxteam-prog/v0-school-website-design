@@ -1,4 +1,4 @@
-import { prisma } from "@/prisma/client";
+import { prisma } from "@/lib/prisma";
 
 export async function scopedUserQuery(session: any) {
     if (session.user.role === "ADMIN") {
