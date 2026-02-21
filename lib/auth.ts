@@ -4,6 +4,14 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import type { AuthOptions } from "next-auth";
 
+if (!process.env.NEXTAUTH_SECRET) {
+    throw new Error("Missing NEXTAUTH_SECRET - required for signing tokens");
+}
+
+if (!process.env.NEXTAUTH_URL && process.env.NODE_ENV === "production") {
+    throw new Error("Missing NEXTAUTH_URL - required in production");
+}
+
 export const authOptions: AuthOptions = {
     adapter: PrismaAdapter(prisma),
     providers: [
@@ -25,7 +33,9 @@ export const authOptions: AuthOptions = {
             },
         }),
     ],
-    session: { strategy: "jwt" },
+    session: {
+        strategy: "jwt",
+    },
     cookies: {
         sessionToken: {
             name: "__Secure-next-auth.session-token",
@@ -38,8 +48,7 @@ export const authOptions: AuthOptions = {
         },
     },
     useSecureCookies: true,
-
-
+    secret: process.env.NEXTAUTH_SECRET,
     callbacks: {
         async jwt({ token, user }) {
             if (user) {
@@ -57,5 +66,6 @@ export const authOptions: AuthOptions = {
         },
     },
     pages: { signIn: "/auth/login" },
-    debug: false,
+    debug: process.env.NODE_ENV === "development",
 };
+
