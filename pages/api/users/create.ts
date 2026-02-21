@@ -3,8 +3,27 @@ import { prisma } from "@/prisma/client";
 import { validateRequest, userSchema } from "@/lib/validation";
 import bcrypt from "bcrypt";
 
+import { rateLimit } from "@/lib/rateLimit";
+import { validateCSRF } from "@/lib/csrf";
+
 const handler: NextApiHandler = async (req, res) => {
+    const ip =
+        (req.headers["x-forwarded-for"] as string)?.split(",")[0] ||
+        req.socket.remoteAddress ||
+        "unknown";
+
+    // Rate limit check
+    if (!rateLimit(ip)) {
+        return res.status(429).json({ error: "Too many requests" });
+    }
+
+    // CSRF check for mutating requests
+    if (req.method !== "GET" && !validateCSRF(req)) {
+        return res.status(403).json({ error: "Invalid CSRF token" });
+    }
+
     if (req.method !== "POST") return res.status(405).end("Method Not Allowed");
+
 
     // Validate request body
     const data = validateRequest(userSchema, req, res);
