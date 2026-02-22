@@ -18,6 +18,7 @@ export default withAuth(
                     "/portal/login",
                     "/portal/forgot-password",
                     "/portal/reset-password",
+                    "/portal/health",
                 ];
 
                 if (publicRoutes.some((route) => path.startsWith(route))) {
