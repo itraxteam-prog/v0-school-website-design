@@ -6,19 +6,6 @@ __v0_jsx-dev-runtime.ts
 # Common ignores
 node_modules/
 .next/
-
-# ───────────────────────────────────────────────────────────────
-# SECRETS — Never commit any .env file containing real values.
-# All runtime secrets MUST live in Vercel Environment Variables.
-# ───────────────────────────────────────────────────────────────
-.env
-.env.*
-.env.local
-.env.development
-.env.test
-.env.production
 .env*.local
-!.env.example
-
 .DS_Store
 /lib/generated/prisma
