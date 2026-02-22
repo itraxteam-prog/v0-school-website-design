@@ -1,7 +1,7 @@
 import type { NextApiHandler } from "next";
 import { prisma } from "@/lib/prisma";
 import { validateRequest, userSchema } from "@/lib/validation";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { rateLimit } from "@/lib/rateLimit";
 import { requireRole } from "@/lib/requireRole";
 
