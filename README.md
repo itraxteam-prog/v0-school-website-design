@@ -26,7 +26,7 @@ A modern, high-performance School Management System built with Next.js 14, Supab
 
 ### Prerequisites
 
-- Node.js >= 22.14.0
+- Node.js >= 20.x
 - pnpm 10
 
 ### Installation
