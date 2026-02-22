@@ -1,7 +1,7 @@
 import type { NextApiHandler } from "next";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 const handler: NextApiHandler = async (req, res) => {
     try {

@@ -47,7 +47,7 @@
     "@radix-ui/react-tooltip": "1.1.6",
     "@sentry/nextjs": "^10.39.0",
     "autoprefixer": "^10.4.20",
-    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "1.1.1",
@@ -76,7 +76,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.13",
-    "@types/bcrypt": "^6.0.0",
+    "@types/bcryptjs": "2.4.6",
     "@types/node": "^22",
     "@types/nodemailer": "^7.0.11",
     "@types/react": "^18.3.28",
@@ -94,8 +94,7 @@
       "@types/react-dom": "^18.3.1"
     },
     "onlyBuiltDependencies": [
-      "esbuild",
-      "bcrypt"
+      "esbuild"
     ]
   }
 }
