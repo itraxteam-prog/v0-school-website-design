@@ -11,9 +11,20 @@ export default withAuth(
     {
         callbacks: {
             authorized: ({ token, req }) => {
-                if (!token) return false;
-
                 const path = req.nextUrl.pathname;
+
+                // Explicitly allow public portal routes to avoid redirect loops
+                const publicRoutes = [
+                    "/portal/login",
+                    "/portal/forgot-password",
+                    "/portal/reset-password",
+                ];
+
+                if (publicRoutes.some((route) => path.startsWith(route))) {
+                    return true;
+                }
+
+                if (!token) return false;
 
                 if (path.startsWith("/portal/admin")) {
                     return token.role === "ADMIN";
