@@ -2,11 +2,13 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/utils/auth-crypto";
 import { signupSchema } from "@/lib/validations/auth";
+import { requireRole, handleAuthError } from "@/lib/auth-guard";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
     try {
+        await requireRole("ADMIN");
         const body = await req.json();
         const validated = signupSchema.safeParse(body);
 
@@ -47,6 +49,9 @@ export async function POST(req: Request) {
             { status: 201 }
         );
     } catch (error) {
+        if (error instanceof Error && ["UNAUTHORIZED", "FORBIDDEN", "SUSPENDED"].includes(error.message)) {
+            return handleAuthError(error);
+        }
         console.error("Registration error:", error);
         return NextResponse.json(
             { error: "Internal server error" },

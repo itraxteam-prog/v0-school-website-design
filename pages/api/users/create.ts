@@ -3,30 +3,29 @@ import { prisma } from "@/lib/prisma";
 import { validateRequest, userSchema } from "@/lib/validation";
 import bcrypt from "bcryptjs";
 import { rateLimit } from "@/lib/rateLimit";
-import { requireRole } from "@/lib/requireRole";
+import { requireRole, handlePagesAuthError } from "@/lib/auth-guard";
 
 const handler: NextApiHandler = async (req, res) => {
-    // 1. Authentication and Authorization check (Admin only)
-    const session = await requireRole(req, res, ["ADMIN"]);
-    if (!session) return;
-
-    const ip =
-        (req.headers["x-forwarded-for"] as string)?.split(",")[0] ||
-        req.socket.remoteAddress ||
-        "unknown";
-
-    // Rate limit check
-    if (!rateLimit(ip)) {
-        return res.status(429).json({ error: "Too many requests" });
-    }
-
-    if (req.method !== "POST") return res.status(405).end("Method Not Allowed");
-
-    // Validate request body
-    const data = validateRequest(userSchema, req, res);
-    if (!data) return; // Error response handled in validateRequest
-
     try {
+        // 1. Authentication and Authorization check (Admin only)
+        const session = await requireRole("ADMIN", { req, res });
+
+        const ip =
+            (req.headers["x-forwarded-for"] as string)?.split(",")[0] ||
+            req.socket.remoteAddress ||
+            "unknown";
+
+        // Rate limit check
+        if (!rateLimit(ip)) {
+            return res.status(429).json({ error: "Too many requests" });
+        }
+
+        if (req.method !== "POST") return res.status(405).end("Method Not Allowed");
+
+        // Validate request body
+        const data = validateRequest(userSchema, req, res);
+        if (!data) return; // Error response handled in validateRequest
+
         // Destructure classId as it's not a field in the User model directly
         // and hash the password
         const { password, classId, ...userData } = data;
@@ -45,6 +44,9 @@ const handler: NextApiHandler = async (req, res) => {
         const { password: _, ...userWithoutPassword } = user;
         return res.status(201).json(userWithoutPassword);
     } catch (err) {
+        if (err instanceof Error && ["UNAUTHORIZED", "FORBIDDEN", "SUSPENDED"].includes(err.message)) {
+            return handlePagesAuthError(res, err);
+        }
         console.error("Create user error:", err);
         return res.status(500).json({ error: "Database error", details: err });
     }

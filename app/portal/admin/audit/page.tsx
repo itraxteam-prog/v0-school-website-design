@@ -2,9 +2,12 @@ import { prisma } from "@/lib/prisma";
 export const runtime = "nodejs";
 import { format } from "date-fns";
 
+import { requireRole } from "@/lib/auth-guard";
+
 export const dynamic = "force-dynamic";
 
 export default async function AuditPage() {
+    await requireRole("ADMIN");
     const logs = await prisma.auditLog.findMany({
         orderBy: { createdAt: "desc" },
         take: 50,
