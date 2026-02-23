@@ -2,13 +2,13 @@ import type { NextApiHandler } from "next";
 import { prisma } from "@/lib/prisma";
 import { validateRequest, userSchema } from "@/lib/validation";
 import bcrypt from "bcryptjs";
-import { rateLimit } from "@/lib/rateLimit";
+import { rateLimit } from "@/lib/rate-limit";
 import { requireRole, handlePagesAuthError } from "@/lib/auth-guard";
 
 const handler: NextApiHandler = async (req, res) => {
     try {
         // 1. Authentication and Authorization check (Admin only)
-        const session = await requireRole("ADMIN", { req, res });
+        await requireRole("ADMIN", { req, res });
 
         const ip =
             (req.headers["x-forwarded-for"] as string)?.split(",")[0] ||
@@ -16,7 +16,8 @@ const handler: NextApiHandler = async (req, res) => {
             "unknown";
 
         // Rate limit check
-        if (!rateLimit(ip)) {
+        const limitResult = rateLimit(ip, "admin-mutation");
+        if (!limitResult.success) {
             return res.status(429).json({ error: "Too many requests" });
         }
 

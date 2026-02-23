@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/utils/auth-crypto";
 import { loginSchema } from "@/lib/validations/auth";
 import { UserStatus, Role } from "@prisma/client";
-import { rateLimit } from "@/lib/rateLimit";
+
 
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma),
@@ -27,9 +27,7 @@ export const authOptions: NextAuthOptions = {
             },
             async authorize(credentials, req) {
                 const ip = (req as any)?.headers?.["x-forwarded-for"] || "127.0.0.1";
-                if (!rateLimit(ip)) {
-                    throw new Error("TOO_MANY_REQUESTS");
-                }
+
 
                 if (!credentials?.email || !credentials?.password) {
                     throw new Error("Missing email or password");
