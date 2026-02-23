@@ -14,7 +14,9 @@ A modern, high-performance School Management System built with Next.js 14, Supab
 ## 🛠 Tech Stack
 
 - **Framework:** [Next.js 14](https://nextjs.org/) (App Router)
-- **Database/Auth:** [Supabase](https://supabase.com/)
+- **Database:** [Neon](https://neon.tech/) (PostgreSQL, serverless)
+- **ORM:** [Prisma](https://www.prisma.io/) v6
+- **Auth:** [NextAuth.js](https://next-auth.js.org/) v4
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
 - **UI Components:** [Shadcn UI](https://ui.shadcn.com/)
 - **Forms:** [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/)
@@ -43,24 +45,52 @@ A modern, high-performance School Management System built with Next.js 14, Supab
    ```
 
 3. Set up environment variables:
-   Create a `.env.local` file with the following:
+   Copy `.env.example` to `.env` and fill in real values:
+   ```bash
+   cp .env.example .env
+   ```
+   Required variables:
    ```env
-   DATABASE_URL=your_postgres_connection_string
-   JWT_SECRET=your_jwt_secret
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-   NEXT_PUBLIC_API_URL=http://localhost:3000/api
+   # Neon pooled URL (runtime queries)
+   DATABASE_URL="postgresql://USER:PASS@HOST-pooler.region.aws.neon.tech/DBNAME?sslmode=require&channel_binding=require"
+   # Neon direct URL (schema engine / migrations)
+   DIRECT_URL="postgresql://USER:PASS@HOST.region.aws.neon.tech/DBNAME?sslmode=require&channel_binding=require"
+   NEXTAUTH_SECRET="<openssl rand -hex 32>"
+   NEXTAUTH_URL="http://localhost:3000"
+   CSRF_SECRET="<openssl rand -hex 32>"
    ```
 
-4. Set up the database:
-   Run `backend/model/create_users_table.sql` and `backend/model/seed_users.sql` against your database.
-   Default credentials: admin@school.com / NewAdmin@2025!, teacher@school.com / NewTeacher@2025!, student@school.com / NewStudent@2025!
+4. Apply migrations (first run):
+   ```bash
+   npx prisma migrate deploy
+   npx prisma generate
+   ```
 
 5. Run the development server:
    ```bash
-   pnpm run dev
+   pnpm dev
    ```
+
+## 🗄 Database Migrations
+
+### ⚠️ Production Rule — NEVER use `db push` in production
+
+| Command | When to use |
+|---|---|
+| `npx prisma migrate dev --name <name>` | Local development only — creates new migration files |
+| `npx prisma migrate deploy` | **Production & Vercel** — applies pending migrations safely |
+| `npx prisma migrate status` | Check for drift or unapplied migrations |
+| `npx prisma db pull` | Sync schema from DB during setup |
+| ~~`npx prisma db push`~~ | ❌ **NEVER in production** — bypasses migration history |
+
+### Vercel Deployment
+
+In Vercel → Project Settings → Build & Development Settings, the build command is:
+```bash
+npx prisma migrate deploy && next build
+```
+
+This ensures migrations run before each deployment.
 
 ## 🏗 Architecture
 
