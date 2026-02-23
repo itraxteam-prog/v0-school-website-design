@@ -20,6 +20,14 @@ export async function middleware(req: NextRequest) {
         secret: process.env.NEXTAUTH_SECRET
     });
 
+    // Handle suspended users
+    if (token?.status === "SUSPENDED") {
+        if (pathname === "/portal/login" && req.nextUrl.searchParams.get("error") === "suspended") {
+            return NextResponse.next();
+        }
+        return NextResponse.redirect(new URL("/portal/login?error=suspended", req.url));
+    }
+
     // 2. Prevent redirect loop scenario
     if (!token) {
         if (pathname === "/portal/login") {

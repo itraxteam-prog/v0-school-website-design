@@ -68,23 +68,28 @@ export const authOptions: NextAuthOptions = {
         }),
     ],
     callbacks: {
-        async jwt({ token, user, trigger, session }) {
+        async jwt({ token, user }) {
+            // On first login
             if (user) {
                 token.id = user.id;
-                token.role = (user as any).role;
-                token.status = (user as any).status;
+                token.role = user.role;
+                token.status = user.status;
+
+                if (user.status === "SUSPENDED") {
+                    token.suspended = true;
+                }
             }
-            if (trigger === "update" && session) {
-                return { ...token, ...session.user };
-            }
+
             return token;
         },
+
         async session({ session, token }) {
             if (token && session.user) {
-                (session.user as any).id = token.id;
-                (session.user as any).role = token.role;
-                (session.user as any).status = token.status;
+                session.user.id = token.id;
+                session.user.role = token.role;
+                session.user.status = token.status;
             }
+
             return session;
         },
     },
