@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/auth-options";
 import { NextApiRequest, NextApiResponse } from "next";
 
 export async function requireAdmin(
