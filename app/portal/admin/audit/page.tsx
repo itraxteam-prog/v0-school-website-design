@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+export const runtime = "nodejs";
 import { format } from "date-fns";
 
 export const dynamic = "force-dynamic";
@@ -69,10 +70,10 @@ export default async function AuditPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${log.action.includes("DELETE")
-                                                    ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"
-                                                    : log.action.includes("UPDATE")
-                                                        ? "bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400"
-                                                        : "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400"
+                                                ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"
+                                                : log.action.includes("UPDATE")
+                                                    ? "bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400"
+                                                    : "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400"
                                                 }`}>
                                                 {log.action}
                                             </span>

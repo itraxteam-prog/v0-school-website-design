@@ -1,4 +1,5 @@
 import { NextAuthOptions } from "next-auth";
+export const runtime = "nodejs";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
