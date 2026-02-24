@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/utils/auth-crypto";
 import { loginSchema } from "@/lib/validations/auth";
 import { UserStatus, Role } from "@prisma/client";
+import { logger } from "@/lib/logger";
 
 
 export const authOptions: NextAuthOptions = {
@@ -26,9 +27,14 @@ export const authOptions: NextAuthOptions = {
                 password: { label: "Password", type: "password" },
             },
             async authorize(credentials, req) {
-                const ip = (req as any)?.headers?.["x-forwarded-for"] || "127.0.0.1";
+                const ip = (req as any)?.headers?.["x-forwarded-for"]?.split(",")?.[0] || "127.0.0.1";
 
+                const { rateLimit } = await import("@/lib/rate-limit");
+                const limitResult = rateLimit(ip, "login");
 
+                if (!limitResult.success) {
+                    throw new Error("TOO_MANY_REQUESTS");
+                }
                 if (!credentials?.email || !credentials?.password) {
                     throw new Error("Missing email or password");
                 }
@@ -52,8 +58,11 @@ export const authOptions: NextAuthOptions = {
 
                 const isCorrect = await verifyPassword(validated.data.password, user.password);
                 if (!isCorrect) {
+                    logger.warn({ email: validated.data.email, ip }, "LOGIN_FAILED_INVALID_CREDENTIALS");
                     throw new Error("Invalid credentials");
                 }
+
+                logger.info({ email: user.email, role: user.role, ip }, "LOGIN_SUCCESS");
 
                 return {
                     id: user.id,

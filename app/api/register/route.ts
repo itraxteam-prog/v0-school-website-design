@@ -4,10 +4,12 @@ import { hashPassword } from "@/lib/utils/auth-crypto";
 import { signupSchema } from "@/lib/validations/auth";
 import { requireRole, handleAuthError } from "@/lib/auth-guard";
 import { rateLimit } from "@/lib/rate-limit";
+import { logRequest, logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
+    logRequest(req, "API_REGISTER");
     try {
         const rawBody = await req.text();
 
@@ -85,6 +87,7 @@ export async function POST(req: NextRequest) {
         if (error instanceof Error && ["UNAUTHORIZED", "FORBIDDEN", "SUSPENDED"].includes(error.message)) {
             return handleAuthError(error);
         }
+        logger.error(error, "API_REGISTER_ERROR");
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }

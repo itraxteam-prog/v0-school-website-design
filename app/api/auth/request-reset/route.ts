@@ -4,6 +4,7 @@ import { randomBytes } from "node:crypto";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { z } from "zod";
 import { rateLimit } from "@/lib/rate-limit";
+import { logRequest, logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -12,6 +13,7 @@ const requestResetSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+    logRequest(req, "API_REQUEST_RESET");
     try {
         const rawBody = await req.text();
 
@@ -78,6 +80,7 @@ export async function POST(req: NextRequest) {
         });
     } catch (error) {
         // 6. Standardized error format
+        logger.error(error, "API_REQUEST_RESET_ERROR");
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }

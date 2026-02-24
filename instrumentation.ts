@@ -1,6 +1,9 @@
 import * as Sentry from "@sentry/nextjs";
+import { validateEnv } from "@/lib/env";
 
 export async function register() {
+    // Validate environment variables at boot
+    validateEnv();
     if (process.env.NODE_ENV === "production" && !process.env.SENTRY_DSN) {
         console.warn("SENTRY_DSN is missing. Error tracking will be disabled.");
     }
