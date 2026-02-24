@@ -73,13 +73,49 @@ model PasswordResetToken {
 }
 
 model Class {
+  id          String       @id @default(uuid())
+  name        String
+  subject     String?
+  teacherId   String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  teacher     User         @relation("TeacherClasses", fields: [teacherId], references: [id])
+  students    User[]       @relation("UserClasses")
+  attendances Attendance[]
+  grades      Grade[]
+}
+
+model Period {
   id        String   @id @default(uuid())
   name      String
-  teacherId String
+  startTime String
+  endTime   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  teacher   User     @relation("TeacherClasses", fields: [teacherId], references: [id])
-  students  User[]   @relation("UserClasses")
+}
+
+model Attendance {
+  id        String   @id @default(uuid())
+  date      DateTime @default(now())
+  status    String
+  remarks   String?
+  studentId String
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id])
+
+  @@index([studentId, date])
+}
+
+model Grade {
+  id        String   @id @default(uuid())
+  marks     Float
+  term      String
+  subjectId String
+  studentId String
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id])
+
+  @@index([studentId, subjectId, term])
 }
 
 model AuditLog {

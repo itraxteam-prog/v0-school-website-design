@@ -1,5 +1,3 @@
-"use client"
-
 import { Navbar } from "@/components/public/navbar"
 import { Footer } from "@/components/public/footer"
 import { Card, CardContent } from "@/components/ui/card"
