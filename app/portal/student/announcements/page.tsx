@@ -35,7 +35,7 @@ import { useToast } from "@/components/ui/use-toast"
 
 import { MOCK_ANNOUNCEMENTS, MOCK_UPCOMING_EVENTS } from "@/utils/mocks"
 
-import { sanitizeHtml } from "@/lib/xss"
+import { sanitizeHtml } from "@/lib/sanitize"
 
 const sidebarItems = [
   { href: "/portal/student", label: "Dashboard", icon: LayoutDashboard },

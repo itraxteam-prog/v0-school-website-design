@@ -2,6 +2,7 @@ import type { NextApiHandler } from "next";
 import { prisma } from "@/lib/prisma";
 import { requireRole, handlePagesAuthError } from "@/lib/auth-guard";
 import { logAudit } from "@/lib/audit";
+import { z } from "zod";
 
 const handler: NextApiHandler = async (req, res) => {
     try {
@@ -23,10 +24,19 @@ const handler: NextApiHandler = async (req, res) => {
         }
 
         if (req.method === "DELETE") {
-            const { id } = req.query;
+            const schema = z.object({
+                id: z.string().uuid()
+            });
+
+            const parsed = schema.safeParse(req.query);
+            if (!parsed.success) {
+                return res.status(400).json({ error: "Invalid ID format" });
+            }
+
+            const { id } = parsed.data;
 
             await prisma.user.delete({
-                where: { id: String(id) },
+                where: { id },
             });
 
             await logAudit({

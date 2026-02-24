@@ -4,7 +4,7 @@ import { Megaphone, ArrowRight } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { Card, CardContent } from "@/components/ui/card"
-import { sanitizeHtml } from "@/lib/xss"
+import { sanitizeHtml } from "@/lib/sanitize"
 
 const notices = [
     { id: 1, title: "Annual Science Fair 2026 Registration Open", date: "Feb 20, 2026", type: "Urgent", content: "Students are invited to register their projects by the end of next week." },
