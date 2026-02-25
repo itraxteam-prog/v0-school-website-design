@@ -19,6 +19,10 @@ const envSchema = z.object({
     }, { message: "Invalid SMTP_FROM format. Use 'email@example.com' or 'Name <email@example.com>'" }),
     UPSTASH_REDIS_REST_URL: z.string().url(),
     UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
+    SENTRY_DSN: z.string().url().optional().refine((val) => {
+        if (process.env.NODE_ENV === "production" && !val) return false;
+        return true;
+    }, { message: "SENTRY_DSN is required in production" }),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 });
 

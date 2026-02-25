@@ -3,22 +3,23 @@ import { validateEnv } from "@/lib/env";
 
 export async function register() {
     // Validate environment variables at boot
-    validateEnv();
-    if (process.env.NODE_ENV === "production" && !process.env.SENTRY_DSN) {
-        console.warn("SENTRY_DSN is missing. Error tracking will be disabled.");
-    }
+    const validatedEnv = validateEnv();
 
     if (process.env.NEXT_RUNTIME === "nodejs") {
         Sentry.init({
-            dsn: process.env.SENTRY_DSN,
+            dsn: validatedEnv.SENTRY_DSN,
             tracesSampleRate: 1.0,
+            debug: false,
+            environment: validatedEnv.NODE_ENV,
         });
     }
 
     if (process.env.NEXT_RUNTIME === "edge") {
         Sentry.init({
-            dsn: process.env.NEXT_PUBLIC_SENTRY_DSN || process.env.SENTRY_DSN,
+            dsn: validatedEnv.SENTRY_DSN,
             tracesSampleRate: 1.0,
+            debug: false,
+            environment: validatedEnv.NODE_ENV,
         });
     }
 }
