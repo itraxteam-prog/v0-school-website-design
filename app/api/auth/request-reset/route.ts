@@ -36,9 +36,10 @@ export async function POST(req: NextRequest) {
         }
 
         // 2. Rate limit
-        const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
-        const limitResult = rateLimit(ip, "password-reset");
-        if (!limitResult.success) {
+        const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
+        const { success } = await rateLimit(ip, "reset");
+
+        if (!success) {
             return NextResponse.json(
                 { error: "Too many requests. Please try again later." },
                 { status: 429 }

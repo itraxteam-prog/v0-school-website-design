@@ -34,12 +34,13 @@ export async function POST(req: NextRequest) {
         // 2. Auth check
         await requireRole("ADMIN");
 
-        // 3. Rate limit (Admin mutation)
-        const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
-        const limitResult = rateLimit(ip, "admin-mutation");
-        if (!limitResult.success) {
+        // 3. Rate limit (Admin mutation protection)
+        const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
+        const { success } = await rateLimit(ip, "register");
+
+        if (!success) {
             return NextResponse.json(
-                { error: "Too many requests" },
+                { error: "Too many requests. Please try again later." },
                 { status: 429 }
             );
         }

@@ -30,7 +30,7 @@ export const authOptions: NextAuthOptions = {
                 const ip = (req as any)?.headers?.["x-forwarded-for"]?.split(",")?.[0] || "127.0.0.1";
 
                 const { rateLimit } = await import("@/lib/rate-limit");
-                const limitResult = rateLimit(ip, "login");
+                const limitResult = await rateLimit(ip, "login");
 
                 if (!limitResult.success) {
                     throw new Error("TOO_MANY_REQUESTS");

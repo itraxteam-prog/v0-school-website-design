@@ -12,7 +12,8 @@ const envSchema = z.object({
     SMTP_PORT: z.preprocess((v) => (v === "" ? undefined : v), z.string().transform((v) => (v ? parseInt(v, 10) : undefined)).optional()),
     SMTP_USER: z.preprocess((v) => (v === "" ? undefined : v), z.string().optional()),
     SMTP_PASS: z.preprocess((v) => (v === "" ? undefined : v), z.string().optional()),
-    NEXT_PUBLIC_APP_URL: z.string().url().optional(),
+    UPSTASH_REDIS_REST_URL: z.string().url(),
+    UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 });
 

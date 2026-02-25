@@ -16,9 +16,9 @@ const handler: NextApiHandler = async (req, res) => {
             "unknown";
 
         // Rate limit check
-        const limitResult = rateLimit(ip, "admin-mutation");
-        if (!limitResult.success) {
-            return res.status(429).json({ error: "Too many requests" });
+        const { success } = await rateLimit(ip, "register");
+        if (!success) {
+            return res.status(429).json({ error: "Too many requests. Please try again later." });
         }
 
         if (req.method !== "POST") return res.status(405).end("Method Not Allowed");

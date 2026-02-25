@@ -1,55 +1,58 @@
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+import { env } from "./env";
 
-type RateLimitEntry = {
-    count: number;
-    resetAt: number;
-};
+/**
+ * Upstash Redis instance initialized with verified environment variables.
+ */
+const redis = new Redis({
+    url: env.UPSTASH_REDIS_REST_URL,
+    token: env.UPSTASH_REDIS_REST_TOKEN,
+});
 
-const store = new Map<string, RateLimitEntry>();
+/**
+ * Distributed rate limiter using sliding window algorithm.
+ * Configured for 10 requests per 60 seconds.
+ */
+const limiter = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(10, "60 s"),
+    analytics: true,
+    prefix: "ratelimit",
+});
 
-export type RateLimitResult = {
+export type RateLimitResponse = {
     success: boolean;
+    limit: number;
     remaining: number;
 };
 
-export const RATE_LIMIT_CONFIGS = {
-    login: { limit: 5, windowMs: 5 * 60 * 1000 },
-    'password-reset': { limit: 3, windowMs: 10 * 60 * 1000 },
-    'admin-mutation': { limit: 20, windowMs: 60 * 1000 },
-} as const;
+/**
+ * Core rate limit function for production auth routes.
+ * 
+ * @param identifier - Unique string for the client (usually IP)
+ * @param bucket - The specific action being limited for prefixing
+ */
+export async function rateLimit(
+    identifier: string,
+    bucket: "login" | "register" | "reset"
+): Promise<RateLimitResponse> {
+    const { success, limit, remaining } = await limiter.limit(`${bucket}:${identifier}`);
+
+    return {
+        success,
+        limit,
+        remaining,
+    };
+}
 
 /**
- * Memory-based rate limiter for Node logic.
- * Not for use in Middleware or Edge runtime.
+ * Helper to extract IP from request headers for Next.js App Router
  */
-export function rateLimit(
-    ip: string,
-    route: keyof typeof RATE_LIMIT_CONFIGS
-): RateLimitResult {
-    const now = Date.now();
-    const config = RATE_LIMIT_CONFIGS[route];
-    const key = `${ip}:${route}`;
-
-    const entry = store.get(key);
-
-    // If entry doesn't exist or window expired, reset
-    if (!entry || now > entry.resetAt) {
-        const newEntry = {
-            count: 1,
-            resetAt: now + config.windowMs,
-        };
-        store.set(key, newEntry);
-        return { success: true, remaining: config.limit - 1 };
+export function getIP(req: Request): string {
+    const forwarded = req.headers.get("x-forwarded-for");
+    if (forwarded) {
+        return forwarded.split(",")[0].trim();
     }
-
-    // If limit reached
-    if (entry.count >= config.limit) {
-        return { success: false, remaining: 0 };
-    }
-
-    // Increment count
-    entry.count += 1;
-    return {
-        success: true,
-        remaining: config.limit - entry.count,
-    };
+    return "127.0.0.1";
 }

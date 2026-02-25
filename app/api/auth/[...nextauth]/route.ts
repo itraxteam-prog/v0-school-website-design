@@ -20,12 +20,12 @@ async function handler(req: NextRequest, context: any) {
             );
         }
 
-        const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
-        const limitResult = rateLimit(ip, "login");
+        const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
+        const { success } = await rateLimit(ip, "login");
 
-        if (!limitResult.success) {
+        if (!success) {
             return NextResponse.json(
-                { error: "Too many login attempts. Please try again later." },
+                { error: "Too many requests. Please try again later." },
                 { status: 429 }
             );
         }
