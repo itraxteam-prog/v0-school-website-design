@@ -8,10 +8,15 @@ const envSchema = z.object({
     NEXTAUTH_SECRET: z.string().min(1),
     NEXTAUTH_URL: z.string().url().optional(),
     CSRF_SECRET: z.string().min(1).optional(),
-    SMTP_HOST: z.preprocess((v) => (v === "" ? undefined : v), z.string().optional()),
-    SMTP_PORT: z.preprocess((v) => (v === "" ? undefined : v), z.string().transform((v) => (v ? parseInt(v, 10) : undefined)).optional()),
-    SMTP_USER: z.preprocess((v) => (v === "" ? undefined : v), z.string().optional()),
-    SMTP_PASS: z.preprocess((v) => (v === "" ? undefined : v), z.string().optional()),
+    SMTP_HOST: z.string().min(1),
+    SMTP_PORT: z.coerce.number().int().positive(),
+    SMTP_USER: z.string().email(),
+    SMTP_PASS: z.string().min(16),
+    SMTP_FROM: z.string().min(1).refine((val) => {
+        const match = val.match(/<([^>]+)>/);
+        const email = match ? match[1] : val;
+        return z.string().email().safeParse(email).success;
+    }, { message: "Invalid SMTP_FROM format. Use 'email@example.com' or 'Name <email@example.com>'" }),
     UPSTASH_REDIS_REST_URL: z.string().url(),
     UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
