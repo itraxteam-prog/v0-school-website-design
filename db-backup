@@ -1,0 +1,11 @@
+# Database Backup & Restore Documentation
+
+## PITR Restore Test
+
+- Timestamp tested: YYYY-MM-DD HH:MM
+- Target DB: Temporary (ephemeral) DB created by Neon
+- Verification Steps:
+  1. Checked that tables (users, classes, roles, audit_logs) exist
+  2. Ran sample queries to confirm data presence
+- Outcome: SUCCESS
+- Notes: Temporary DB is deleted automatically after restore session
