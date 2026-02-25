@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { randomBytes } from "node:crypto";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { z } from "zod";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, getIP } from "@/lib/rate-limit";
 import { logRequest, logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
         }
 
         // 2. Rate limit
-        const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
+        const ip = getIP(req);
         const { success } = await rateLimit(ip, "reset");
 
         if (!success) {

@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import { authOptions } from "@/lib/auth-options";
 import { NextRequest, NextResponse } from "next/server";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, getIP } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -20,7 +20,7 @@ async function handler(req: NextRequest, context: any) {
             );
         }
 
-        const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
+        const ip = getIP(req);
         const { success } = await rateLimit(ip, "login");
 
         if (!success) {

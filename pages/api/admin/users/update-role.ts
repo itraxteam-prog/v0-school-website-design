@@ -1,5 +1,6 @@
 import type { NextApiHandler } from "next";
 import { prisma } from "@/lib/prisma";
+import { rateLimit, getPagesIP } from "@/lib/rate-limit";
 import { requireRole, handlePagesAuthError } from "@/lib/auth-guard";
 import { z } from "zod";
 
@@ -14,6 +15,12 @@ const handler: NextApiHandler = async (req, res) => {
 
         if (req.method !== "POST") {
             return res.status(405).end("Method Not Allowed");
+        }
+
+        const ip = getPagesIP(req);
+        const { success } = await rateLimit(ip, "mutation");
+        if (!success) {
+            return res.status(429).json({ error: "Too many requests" });
         }
 
         const parsed = roleUpdateSchema.safeParse(req.body);

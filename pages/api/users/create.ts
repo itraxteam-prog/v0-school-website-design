@@ -2,7 +2,7 @@ import type { NextApiHandler } from "next";
 import { prisma } from "@/lib/prisma";
 import { validateRequest, userSchema } from "@/lib/validation";
 import bcrypt from "bcryptjs";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, getPagesIP } from "@/lib/rate-limit";
 import { requireRole, handlePagesAuthError } from "@/lib/auth-guard";
 
 const handler: NextApiHandler = async (req, res) => {
@@ -10,12 +10,7 @@ const handler: NextApiHandler = async (req, res) => {
         // 1. Authentication and Authorization check (Admin only)
         await requireRole("ADMIN", { req, res });
 
-        const ip =
-            (req.headers["x-forwarded-for"] as string)?.split(",")[0] ||
-            req.socket.remoteAddress ||
-            "unknown";
-
-        // Rate limit check
+        const ip = getPagesIP(req);
         const { success } = await rateLimit(ip, "register");
         if (!success) {
             return res.status(429).json({ error: "Too many requests. Please try again later." });

@@ -35,7 +35,7 @@ export type RateLimitResponse = {
  */
 export async function rateLimit(
     identifier: string,
-    bucket: "login" | "register" | "reset"
+    bucket: "login" | "register" | "reset" | "mutation"
 ): Promise<RateLimitResponse> {
     const { success, limit, remaining } = await limiter.limit(`${bucket}:${identifier}`);
 
@@ -55,4 +55,16 @@ export function getIP(req: Request): string {
         return forwarded.split(",")[0].trim();
     }
     return "127.0.0.1";
+}
+
+/**
+ * Helper to extract IP from NextApiRequest for Pages Router
+ */
+import { NextApiRequest } from "next";
+export function getPagesIP(req: NextApiRequest): string {
+    const forwarded = req.headers["x-forwarded-for"];
+    if (forwarded) {
+        return (Array.isArray(forwarded) ? forwarded[0] : forwarded).split(",")[0].trim();
+    }
+    return req.socket.remoteAddress || "127.0.0.1";
 }

@@ -5,12 +5,11 @@ import type { NextRequest } from "next/server";
 export async function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
 
-    // 1. Safeguards for API, assets, and Next.js internals
+    // 1. Assets and Next.js internals
     if (
-        pathname.startsWith("/api") ||
         pathname.startsWith("/_next") ||
         pathname.startsWith("/static") ||
-        pathname.includes(".") // matches files with extensions
+        pathname.includes(".")
     ) {
         return NextResponse.next();
     }
@@ -20,7 +19,49 @@ export async function middleware(req: NextRequest) {
         secret: process.env.NEXTAUTH_SECRET
     });
 
-    // Handle suspended users
+    // 2. Handle API routes
+    if (pathname.startsWith("/api")) {
+        // Public API routes
+        if (
+            pathname.startsWith("/api/auth") ||
+            pathname.startsWith("/api/health") ||
+            pathname.startsWith("/api/test-error")
+        ) {
+            return NextResponse.next();
+        }
+
+        // Authenticated API routes
+        if (!token) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        if (token.status === "SUSPENDED") {
+            return NextResponse.json({ error: "Account suspended" }, { status: 403 });
+        }
+
+        // Admin-only API routes
+        if (
+            (pathname.startsWith("/api/register") ||
+                pathname.startsWith("/api/admin") ||
+                pathname.startsWith("/api/users")) &&
+            token.role !== "ADMIN"
+        ) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+
+        // Staff-only API routes (Admin or Teacher)
+        if (
+            pathname.startsWith("/api/secure") &&
+            token.role !== "ADMIN" &&
+            token.role !== "TEACHER"
+        ) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+
+        return NextResponse.next();
+    }
+
+    // 3. Handle suspended users for UI
     if (token?.status === "SUSPENDED") {
         if (pathname === "/portal/login" && req.nextUrl.searchParams.get("error") === "suspended") {
             return NextResponse.next();
@@ -28,7 +69,7 @@ export async function middleware(req: NextRequest) {
         return NextResponse.redirect(new URL("/portal/login?error=suspended", req.url));
     }
 
-    // 2. Prevent redirect loop scenario
+    // 4. Prevent redirect loop scenario for UI
     if (!token) {
         if (pathname === "/portal/login") {
             return NextResponse.next();
@@ -36,14 +77,14 @@ export async function middleware(req: NextRequest) {
         return NextResponse.redirect(new URL("/portal/login", req.url));
     }
 
-    // 3. If token exists and user visits login, redirect to their specific dashboard
+    // 5. Redirect logged-in users from login page
     if (pathname === "/portal/login") {
         const role = (token.role as string)?.toUpperCase() || "STUDENT";
         const dashboard = role.toLowerCase();
         return NextResponse.redirect(new URL(`/portal/${dashboard}`, req.url));
     }
 
-    // 4. RBAC checks for /portal paths
+    // 6. RBAC checks for /portal paths
     if (pathname.startsWith("/portal/admin") && token.role !== "ADMIN") {
         return NextResponse.redirect(new URL("/portal/login?error=AccessDenied", req.url));
     }
@@ -60,5 +101,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/portal/:path*"]
+    matcher: ["/portal/:path*", "/api/:path*"]
 };

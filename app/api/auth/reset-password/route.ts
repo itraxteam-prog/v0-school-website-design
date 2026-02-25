@@ -1,15 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/utils/auth-crypto";
-import { signupSchema } from "@/lib/validations/auth";
-import { requireRole, handleAuthError } from "@/lib/auth-guard";
+import { z } from "zod";
 import { rateLimit, getIP } from "@/lib/rate-limit";
 import { logRequest, logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
+const resetPasswordSchema = z.object({
+    token: z.string().min(1),
+    password: z.string().min(8),
+});
+
 export async function POST(req: NextRequest) {
-    logRequest(req, "API_REGISTER");
+    logRequest(req, "API_RESET_PASSWORD");
     try {
         const rawBody = await req.text();
 
@@ -31,12 +35,9 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // 2. Auth check
-        await requireRole("ADMIN");
-
-        // 3. Rate limit (Admin mutation protection)
+        // 2. Rate limit (use "reset" bucket)
         const ip = getIP(req);
-        const { success } = await rateLimit(ip, "register");
+        const { success } = await rateLimit(ip, "reset");
 
         if (!success) {
             return NextResponse.json(
@@ -45,50 +46,49 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // 4. Zod validation
-        const validated = signupSchema.safeParse(body);
+        // 3. Zod validation
+        const validated = resetPasswordSchema.safeParse(body);
         if (!validated.success) {
             return NextResponse.json(
-                { error: "Invalid input" },
+                { error: "Invalid input format" },
                 { status: 400 }
             );
         }
 
-        const { email, password, name, role } = validated.data;
+        const { token, password } = validated.data;
 
-        // 5. Prisma query
-        const existingUser = await prisma.user.findUnique({
-            where: { email },
+        // 4. Find token
+        const resetToken = await prisma.passwordResetToken.findUnique({
+            where: { tokenHash: token },
+            include: { user: true },
         });
 
-        if (existingUser) {
+        if (!resetToken || resetToken.expiresAt < new Date()) {
             return NextResponse.json(
-                { error: "User already exists" },
-                { status: 409 }
+                { error: "Invalid or expired reset token" },
+                { status: 400 }
             );
         }
 
-        const passwordHash = await hashPassword(password);
-
-        const user = await prisma.user.create({
-            data: {
-                email,
-                password: passwordHash,
-                name,
-                role,
-                status: "ACTIVE",
-            },
+        // 5. Update password
+        const hashedPassword = await hashPassword(password);
+        await prisma.user.update({
+            where: { id: resetToken.userId },
+            data: { password: hashedPassword },
         });
 
-        return NextResponse.json(
-            { message: "User registered successfully", userId: user.id },
-            { status: 201 }
-        );
+        // 6. Delete token
+        await prisma.passwordResetToken.delete({
+            where: { id: resetToken.id },
+        });
+
+        logger.info({ userId: resetToken.userId }, "PASSWORD_RESET_SUCCESS");
+
+        return NextResponse.json({
+            message: "Password has been reset successfully.",
+        });
     } catch (error) {
-        if (error instanceof Error && ["UNAUTHORIZED", "FORBIDDEN", "SUSPENDED"].includes(error.message)) {
-            return handleAuthError(error);
-        }
-        logger.error(error, "API_REGISTER_ERROR");
+        logger.error(error, "API_RESET_PASSWORD_ERROR");
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }
