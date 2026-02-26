@@ -1,5 +1,3 @@
-import { Navbar } from "@/components/public/navbar"
-import { Footer } from "@/components/public/footer"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ClipboardCheck, FileText, UserCheck, CalendarDays } from "lucide-react"
@@ -143,11 +141,5 @@ function AdmissionsContent() {
 }
 
 export default function AdmissionsPage() {
-  return (
-    <>
-      <Navbar />
-      <main><AdmissionsContent /></main>
-      <Footer />
-    </>
-  )
+  return <AdmissionsContent />
 }

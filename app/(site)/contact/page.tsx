@@ -1,7 +1,5 @@
 "use client"
 
-import { Navbar } from "@/components/public/navbar"
-import { Footer } from "@/components/public/footer"
 import { useScrollAnimation } from "@/hooks/use-scroll-animation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -164,11 +162,5 @@ function ContactContent() {
 }
 
 export default function ContactPage() {
-  return (
-    <>
-      <Navbar />
-      <main><ContactContent /></main>
-      <Footer />
-    </>
-  )
+  return <ContactContent />
 }

@@ -1,5 +1,3 @@
-import { Navbar } from "@/components/public/navbar"
-import { Footer } from "@/components/public/footer"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { FacultySection } from "@/components/public/faculty-section"
 import { Card, CardContent } from "@/components/ui/card"
@@ -160,11 +158,5 @@ function AcademicsContent() {
 }
 
 export default function AcademicsPage() {
-  return (
-    <>
-      <Navbar />
-      <main><AcademicsContent /></main>
-      <Footer />
-    </>
-  )
+  return <AcademicsContent />
 }

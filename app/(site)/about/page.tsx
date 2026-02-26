@@ -1,5 +1,3 @@
-import { Navbar } from "@/components/public/navbar"
-import { Footer } from "@/components/public/footer"
 import { Card, CardContent } from "@/components/ui/card"
 import { Target, Eye, Heart } from "lucide-react"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
@@ -130,11 +128,5 @@ function AboutContent() {
 }
 
 export default function AboutPage() {
-  return (
-    <>
-      <Navbar />
-      <main><AboutContent /></main>
-      <Footer />
-    </>
-  )
+  return <AboutContent />
 }
