@@ -28,7 +28,7 @@ export const ADMIN_SIDEBAR = [
     { href: "/portal/admin/users", label: "User Management", icon: Settings },
     { href: "/portal/admin/roles", label: "Roles & Permissions", icon: ShieldCheck },
     { href: "/portal/admin/school-settings", label: "School Settings", icon: Settings },
-    { href: "/portal/security", label: "Security", icon: ShieldCheck },
+    { href: "/portal/admin/security", label: "Security", icon: ShieldCheck },
 ]
 
 export const TEACHER_SIDEBAR = [
@@ -40,7 +40,7 @@ export const TEACHER_SIDEBAR = [
     { href: "/portal/teacher/exams", label: "Exams & Grading", icon: FileBarChart },
     { href: "/portal/teacher/timetable", label: "Timetable", icon: Clock },
     { href: "/portal/teacher/profile", label: "My Profile", icon: User },
-    { href: "/portal/security", label: "Security", icon: ShieldCheck },
+    { href: "/portal/teacher/security", label: "Security", icon: ShieldCheck },
 ]
 
 export const STUDENT_SIDEBAR = [
@@ -51,7 +51,7 @@ export const STUDENT_SIDEBAR = [
     { href: "/portal/student/exams", label: "Exams & Results", icon: FileBarChart },
     { href: "/portal/student/announcements", label: "Announcements", icon: Megaphone },
     { href: "/portal/student/profile", label: "My Profile", icon: User },
-    { href: "/portal/security", label: "Security", icon: ShieldCheck },
+    { href: "/portal/student/security", label: "Security", icon: ShieldCheck },
 ]
 
 export const PUBLIC_NAV_LINKS = [

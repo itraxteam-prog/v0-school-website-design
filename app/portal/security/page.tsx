@@ -1,8 +1,9 @@
 import { requireAuth } from "@/lib/auth-guard";
-import { SecurityDashboardClient } from "@/components/portal/security-dashboard-client";
+import { redirect } from "next/navigation";
 
-export default async function SecurityPage() {
+export default async function LegacySecurityPage() {
     const session = await requireAuth();
-
-    return <SecurityDashboardClient user={session.user} />;
+    const role = session.user.role.toLowerCase();
+    // Permanently redirect to the role-specific security page
+    redirect(`/portal/${role}/security`);
 }

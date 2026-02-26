@@ -20,7 +20,7 @@ export function SecurityDashboardClient({ user }: { user: any }) {
             case 'STUDENT':
                 return STUDENT_SIDEBAR
             default:
-                return [{ href: "/portal/security", label: "Security", icon: ShieldCheck }]
+                return STUDENT_SIDEBAR
         }
     }
 

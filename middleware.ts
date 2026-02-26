@@ -85,16 +85,29 @@ export async function middleware(req: NextRequest) {
     }
 
     // 6. RBAC checks for /portal paths
+
+    // Admin portal: admin only
     if (pathname.startsWith("/portal/admin") && token.role !== "ADMIN") {
-        return NextResponse.redirect(new URL("/portal/login?error=AccessDenied", req.url));
+        const role = (token.role as string)?.toLowerCase() || "student";
+        return NextResponse.redirect(new URL(`/portal/${role}?error=AccessDenied`, req.url));
     }
 
-    if (pathname.startsWith("/portal/teacher") && (token.role !== "TEACHER" && token.role !== "ADMIN")) {
-        return NextResponse.redirect(new URL("/portal/login?error=AccessDenied", req.url));
+    // Teacher portal: teacher only (admins use /portal/admin)
+    if (pathname.startsWith("/portal/teacher") && token.role !== "TEACHER") {
+        const role = (token.role as string)?.toLowerCase() || "student";
+        return NextResponse.redirect(new URL(`/portal/${role}?error=AccessDenied`, req.url));
     }
 
-    if (pathname.startsWith("/portal/student") && (token.role !== "STUDENT" && token.role !== "TEACHER" && token.role !== "ADMIN")) {
-        return NextResponse.redirect(new URL("/portal/login?error=AccessDenied", req.url));
+    // Student portal: student only
+    if (pathname.startsWith("/portal/student") && token.role !== "STUDENT") {
+        const role = (token.role as string)?.toLowerCase() || "admin";
+        return NextResponse.redirect(new URL(`/portal/${role}?error=AccessDenied`, req.url));
+    }
+
+    // 7. Legacy shared security route: redirect to role-correct path
+    if (pathname === "/portal/security") {
+        const role = (token.role as string)?.toLowerCase() || "student";
+        return NextResponse.redirect(new URL(`/portal/${role}/security`, req.url));
     }
 
     return NextResponse.next();
