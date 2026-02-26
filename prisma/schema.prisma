@@ -61,6 +61,42 @@ model User {
   classes             Class[]              @relation("UserClasses")
   timetableEntries    Timetable[]          @relation("TeacherTimetable")
   announcements       Announcement[]       @relation("AnnouncementAuthor")
+  profile             Profile?
+  grades              Grade[]
+
+}
+
+model Profile {
+  id                  String    @id @default(uuid())
+  userId              String    @unique
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Student specific
+  rollNumber          String?   @unique
+  dateOfBirth         DateTime?
+  gender              String?
+  bloodGroup          String?
+  nationality         String?
+  admissionDate       DateTime?
+  address             String?
+  city                String?
+  postalCode          String?
+  phone               String?
+  
+  // Guardian info
+  guardianName        String?
+  guardianPhone       String?
+  guardianEmail       String?
+  guardianRelation    String?
+  guardianOccupation  String?
+  
+  // Academic
+  academicHistory     Json?     // [{ school: string, year: string, grade: string }]
+  
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([userId])
 }
 
 model PasswordResetToken {
@@ -86,6 +122,23 @@ model Class {
   attendances Attendance[]
   grades      Grade[]
   timetable   Timetable[]
+  assignments Assignment[]
+}
+
+model Assignment {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  @db.Text
+  dueDate     DateTime
+  maxMarks    Float    @default(100)
+  
+  classId     String
+  class       Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([classId])
 }
 
 model Timetable {
@@ -139,7 +192,6 @@ model Period {
 }
 
 model Attendance {
-  id        String   @id @default(uuid())
   date      DateTime @default(now())
   status    String
   remarks   String?
@@ -147,6 +199,7 @@ model Attendance {
   classId   String
   class     Class    @relation(fields: [classId], references: [id])
 
+  @@id([studentId, classId, date])
   @@index([studentId, date])
 }
 
@@ -156,10 +209,23 @@ model Grade {
   term      String
   subjectId String
   studentId String
+  student   User     @relation(fields: [studentId], references: [id])
   classId   String
   class     Class    @relation(fields: [classId], references: [id])
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([studentId, subjectId, term])
+
+}
+
+model Setting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model AuditLog {
@@ -204,3 +270,4 @@ enum TargetRole {
   STUDENT
   ALL
 }
+

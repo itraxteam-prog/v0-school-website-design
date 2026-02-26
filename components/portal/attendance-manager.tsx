@@ -73,30 +73,17 @@ export function AttendanceManager({ initialClasses }: AttendanceManagerProps) {
                 if (res.ok) {
                     const result = await res.json();
                     const fetchedStudents: Student[] = result.data || [];
-                    if (fetchedStudents.length > 0) {
-                        setStudents(fetchedStudents);
-                        const initialAttendance: Record<string, AttendanceRecord> = {};
-                        fetchedStudents.forEach(s => {
-                            initialAttendance[s.id] = { status: 'present', remarks: '' };
-                        });
-                        setAttendance(initialAttendance);
-                    } else {
-                        // No students enrolled yet — use mock baseline
-                        const mockStudents: Student[] = [
-                            { id: "s1", name: "Ahmed Ali", rollNo: "101", classId: selectedClassId },
-                            { id: "s2", name: "Sara Khan", rollNo: "102", classId: selectedClassId },
-                            { id: "s3", name: "Zainab Noor", rollNo: "103", classId: selectedClassId },
-                        ];
-                        setStudents(mockStudents);
-                        const initialAttendance: Record<string, AttendanceRecord> = {};
-                        mockStudents.forEach(s => {
-                            initialAttendance[s.id] = { status: 'present', remarks: '' };
-                        });
-                        setAttendance(initialAttendance);
-                    }
+                    setStudents(fetchedStudents);
+                    const initialAttendance: Record<string, AttendanceRecord> = {};
+                    fetchedStudents.forEach(s => {
+                        initialAttendance[s.id] = { status: 'present', remarks: '' };
+                    });
+                    setAttendance(initialAttendance);
                 } else {
                     toast.error("Failed to load student data");
                 }
+
+
             } catch (error) {
                 toast.error("Failed to load student data");
             } finally {

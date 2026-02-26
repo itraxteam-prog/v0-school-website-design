@@ -14,7 +14,6 @@ import { Badge } from "@/components/ui/badge"
 
 import { STUDENT_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
-import { MOCK_STUDENT_DASHBOARD_DATA } from "@/utils/mocks"
 
 interface StudentDashboardClientProps {
     user: {
@@ -33,58 +32,20 @@ export function StudentDashboardClient({ user }: StudentDashboardClientProps) {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [gradesRes, attendanceRes] = await Promise.all([
-                    fetch("/api/student/grades", { credentials: "include" }),
-                    fetch("/api/student/attendance", { credentials: "include" })
-                ]);
-
-                let gradesData = [];
-                let attendanceData = [];
-
-                if (gradesRes.ok) {
-                    const res = await gradesRes.json();
-                    gradesData = res.data || [];
-                }
-                if (attendanceRes.ok) {
-                    const res = await attendanceRes.json();
-                    attendanceData = res.data || [];
-                }
-
-                if (gradesData.length > 0 || attendanceData.length > 0) {
-                    // Calculate stats from real data
-                    const totalGrades = gradesData.length;
-                    const avgMarks = totalGrades > 0
-                        ? (gradesData.reduce((acc: number, curr: any) => acc + parseInt(curr.marks), 0) / totalGrades).toFixed(1)
-                        : "N/A";
-
-                    const totalAttendance = attendanceData.length;
-                    const presentCount = attendanceData.filter((r: any) => r.status === "present").length;
-                    const attendancePercent = totalAttendance > 0
-                        ? Math.round((presentCount / totalAttendance) * 100) + "%"
-                        : "N/A";
-
-                    setData({
-                        ...MOCK_STUDENT_DASHBOARD_DATA,
-                        stats: {
-                            performance: avgMarks === "N/A" ? "N/A" : `${avgMarks}%`,
-                            attendance: attendancePercent,
-                            totalSubjects: [...new Set(gradesData.map((g: any) => g.subject))].length || MOCK_STUDENT_DASHBOARD_DATA.stats.totalSubjects,
-                            assignments: MOCK_STUDENT_DASHBOARD_DATA.stats.assignments,
-                        },
-                        recentGrades: gradesData.slice(0, 5).map((g: any) => ({
-                            sub: g.subject,
-                            type: g.term,
-                            date: "Recent", // Date not in grades schema yet
-                            marks: g.marks,
-                            grade: g.grade,
-                        })),
-                    });
-                } else {
-                    setData(MOCK_STUDENT_DASHBOARD_DATA);
-                }
+                const res = await fetch("/api/student/stats", { credentials: "include" });
+                if (!res.ok) throw new Error("Failed to fetch dashboard stats");
+                
+                const result = await res.json();
+                setData(result);
             } catch (error: any) {
                 console.error("Failed to fetch dashboard data", error);
-                setData(MOCK_STUDENT_DASHBOARD_DATA);
+                setData({
+                    stats: { performance: "N/A", attendance: "N/A", totalSubjects: 0, assignments: 0 },
+                    recentGrades: [],
+                    upcomingEvents: [],
+                    performanceTrend: [],
+                    subjectComparison: []
+                });
             } finally {
                 setLoading(false);
             }
@@ -92,6 +53,7 @@ export function StudentDashboardClient({ user }: StudentDashboardClientProps) {
 
         fetchData();
     }, [])
+
 
     return (
         <AppLayout sidebarItems={sidebarItems} userName={user?.name || "Student"} userRole="Student">
@@ -161,7 +123,7 @@ export function StudentDashboardClient({ user }: StudentDashboardClientProps) {
                                     {loading ? (
                                         <Skeleton className="h-[300px] w-full rounded-xl" />
                                     ) : (
-                                        <PerformanceTrendChart />
+                                        <PerformanceTrendChart data={data?.performanceTrend || []} />
                                     )}
                                 </CardContent>
                             </Card>
@@ -180,7 +142,7 @@ export function StudentDashboardClient({ user }: StudentDashboardClientProps) {
                                     {loading ? (
                                         <Skeleton className="h-[300px] w-full rounded-xl" />
                                     ) : (
-                                        <SubjectComparisonChart />
+                                        <SubjectComparisonChart data={data?.subjectComparison || []} />
                                     )}
                                 </CardContent>
                             </Card>

@@ -14,16 +14,14 @@ export function SearchManager() {
     const searchParams = useSearchParams()
     const initialQuery = searchParams?.get("q") ?? ""
 
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(false)
     const [query, setQuery] = useState(initialQuery)
 
+    // No actual backend search needed for this navigational component
     useEffect(() => {
-        setLoading(true)
-        const timer = setTimeout(() => {
-            setLoading(false)
-        }, 500)
-        return () => clearTimeout(timer)
+        setLoading(false)
     }, [query])
+
 
     const results = [
         { title: "Student Management", category: "Admin", description: "Add, edit or remove students from the system.", link: "/portal/admin/students", icon: GraduationCap },

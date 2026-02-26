@@ -10,7 +10,7 @@ const studentSchema = z.object({
     classId: z.string().optional(),
 })
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions)
 
@@ -18,29 +18,65 @@ export async function GET() {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 })
         }
 
-        const students = await prisma.user.findMany({
-            where: { role: "STUDENT" },
-            include: {
-                classes: { select: { id: true, name: true } }
-            },
-            orderBy: { name: "asc" },
-        })
+        const { searchParams } = new URL(req.url)
+        const page = parseInt(searchParams.get("page") || "1")
+        const limit = parseInt(searchParams.get("limit") || "10")
+        const skip = (page - 1) * limit
+        const search = searchParams.get("search") || ""
+
+        const where = {
+            role: "STUDENT" as const,
+            ...(search ? {
+                OR: [
+                    { name: { contains: search, mode: "insensitive" as const } },
+                    { email: { contains: search, mode: "insensitive" as const } },
+                    { profile: { rollNumber: { contains: search, mode: "insensitive" as const } } }
+                ]
+            } : {})
+        }
+
+        const [students, total] = await Promise.all([
+            prisma.user.findMany({
+                where,
+                include: {
+                    classes: { select: { id: true, name: true } },
+                    profile: true
+                },
+                orderBy: { name: "asc" },
+                skip,
+                take: limit,
+            }),
+            prisma.user.count({ where })
+        ])
 
         const formatted = students.map(s => ({
             id: s.id,
             name: s.name,
             email: s.email,
+            rollNo: s.profile?.rollNumber || "Unassigned",
             classId: s.classes[0]?.id || "Unassigned",
             className: s.classes[0]?.name || "Unassigned",
+            dob: s.profile?.dateOfBirth ? s.profile.dateOfBirth.toISOString().split('T')[0] : "Unassigned",
+            guardianPhone: s.profile?.guardianPhone || "Unassigned",
+            address: s.profile?.address || "Unassigned",
             status: s.status,
         }))
 
-        return NextResponse.json({ data: formatted })
+        return NextResponse.json({ 
+            data: formatted,
+            pagination: {
+                total,
+                page,
+                limit,
+                pages: Math.ceil(total / limit)
+            }
+        })
     } catch (error: any) {
         console.error("[GET /api/admin/students]", error)
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
     }
 }
+
 
 export async function POST(req: NextRequest) {
     try {

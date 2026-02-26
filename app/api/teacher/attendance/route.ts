@@ -91,14 +91,17 @@ export async function POST(req: NextRequest) {
         const upsertPromises = records.map((rec) =>
             prisma.attendance.upsert({
                 where: {
-                    // Composite: we need a unique key — use studentId+classId+date approximation
-                    // Since Prisma doesn't have a composite unique on those fields yet, use createMany with delete first
-                    id: `placeholder-${rec.studentId}-${classId}-${attendanceDate.toISOString().split("T")[0]}`,
+                    studentId_classId_date: {
+                        studentId: rec.studentId,
+                        classId: classId,
+                        date: attendanceDate,
+                    }
                 },
                 update: {
                     status: rec.status.toUpperCase(),
                     remarks: rec.remarks,
                 },
+
                 create: {
                     studentId: rec.studentId,
                     classId,

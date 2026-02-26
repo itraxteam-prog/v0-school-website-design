@@ -9,7 +9,7 @@ const teacherSchema = z.object({
     email: z.string().email(),
 })
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions)
 
@@ -17,24 +17,54 @@ export async function GET() {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 })
         }
 
-        const teachers = await prisma.user.findMany({
-            where: { role: "TEACHER" },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                status: true,
-                createdAt: true,
-            },
-            orderBy: { name: "asc" },
-        })
+        const { searchParams } = new URL(req.url)
+        const page = parseInt(searchParams.get("page") || "1")
+        const limit = parseInt(searchParams.get("limit") || "10")
+        const skip = (page - 1) * limit
+        const search = searchParams.get("search") || ""
 
-        return NextResponse.json({ data: teachers })
+        const where = {
+            role: "TEACHER" as const,
+            ...(search ? {
+                OR: [
+                    { name: { contains: search, mode: "insensitive" as const } },
+                    { email: { contains: search, mode: "insensitive" as const } }
+                ]
+            } : {})
+        }
+
+        const [teachers, total] = await Promise.all([
+            prisma.user.findMany({
+                where,
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    status: true,
+                    createdAt: true,
+                },
+                orderBy: { name: "asc" },
+                skip,
+                take: limit,
+            }),
+            prisma.user.count({ where })
+        ])
+
+        return NextResponse.json({
+            data: teachers,
+            pagination: {
+                total,
+                page,
+                limit,
+                pages: Math.ceil(total / limit)
+            }
+        })
     } catch (error: any) {
         console.error("[GET /api/admin/teachers]", error)
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
     }
 }
+
 
 export async function POST(req: NextRequest) {
     try {

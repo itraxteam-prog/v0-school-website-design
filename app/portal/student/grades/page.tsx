@@ -112,7 +112,8 @@ export default function GradesPage() {
               {loading ? (
                 <Skeleton className="h-[300px] w-full rounded-xl" />
               ) : (
-                <PerformanceTrendChart />
+                <PerformanceTrendChart data={[]} />
+
               )}
             </CardContent>
           </Card>

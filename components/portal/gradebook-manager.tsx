@@ -73,14 +73,6 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
                     studentList = result.data || [];
                 }
 
-                // If no students from API, use mock baseline
-                if (studentList.length === 0) {
-                    studentList = [
-                        { id: "s1", name: "Ahmed Ali", rollNo: "101" },
-                        { id: "s2", name: "Sara Khan", rollNo: "102" },
-                        { id: "s3", name: "Zainab Noor", rollNo: "103" },
-                    ];
-                }
                 setStudents(studentList);
 
                 // Fetch grades
@@ -94,13 +86,9 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
                     (gradesResult.data || []).forEach((g: any) => {
                         gradeMap[g.studentId] = g.marks;
                     });
-                } else {
-                    // Default grades from mock
-                    studentList.forEach((s, i) => {
-                        gradeMap[s.id] = [85, 92, 78][i] ?? 70;
-                    });
                 }
                 setGrades(gradeMap);
+
             } catch (error) {
                 toast.error("Failed to fetch grades");
             } finally {

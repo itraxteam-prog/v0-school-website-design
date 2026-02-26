@@ -33,7 +33,6 @@ import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 
-import { MOCK_UPCOMING_EVENTS } from "@/utils/mocks"
 import { sanitizeHtml } from "@/lib/sanitize"
 import { STUDENT_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 import { useSession } from "next-auth/react"
@@ -54,16 +53,21 @@ export default function AnnouncementsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const { toast } = useToast()
   const { data: session } = useSession()
+  const [events, setEvents] = useState<any[]>([])
 
   const fetchAnnouncements = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch("/api/student/announcements")
-      if (!response.ok) throw new Error("Failed to fetch announcements")
-      const data = await response.json()
+      const [annRes, statsRes] = await Promise.all([
+        fetch("/api/student/announcements"),
+        fetch("/api/student/stats")
+      ])
 
-      const transformed = data.map((a: any) => ({
+      if (!annRes.ok) throw new Error("Failed to fetch announcements")
+      const annData = await annRes.json()
+      
+      const transformed = annData.map((a: any) => ({
         id: a.id,
         title: a.title,
         message: a.content,
@@ -73,6 +77,15 @@ export default function AnnouncementsPage() {
       }))
 
       setAnnouncements(transformed)
+
+      if (statsRes.ok) {
+        const statsData = await statsRes.json()
+        setEvents(statsData.upcomingEvents?.map((e: any) => ({
+          ...e,
+          time: "All Day",
+          location: "On Campus"
+        })) || [])
+      }
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred")
       toast({
@@ -88,6 +101,7 @@ export default function AnnouncementsPage() {
   useEffect(() => {
     fetchAnnouncements()
   }, [fetchAnnouncements])
+
 
   const filteredAnnouncements = announcements.filter(a =>
     a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -263,7 +277,7 @@ export default function AnnouncementsPage() {
               <CardHeader className="bg-muted/30 border-b border-border/50 pb-3">
                 <CardTitle className="text-sm font-semibold flex items-center justify-between">
                   This Month
-                  <Badge variant="secondary" className="text-[10px] font-bold uppercase">{`${MOCK_UPCOMING_EVENTS.length} Events`}</Badge>
+                  <Badge variant="secondary" className="text-[10px] font-bold uppercase">{`${events.length} Events`}</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
@@ -276,7 +290,7 @@ export default function AnnouncementsPage() {
                       </div>
                     ))
                   ) : (
-                    MOCK_UPCOMING_EVENTS.map((event, i) => (
+                    events.length > 0 ? events.map((event, i) => (
                       <div key={i} className="group p-4 border-b border-border/50 last:border-0 hover:bg-primary/5 transition-colors cursor-pointer">
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">{event.title}</h4>
@@ -293,7 +307,9 @@ export default function AnnouncementsPage() {
                           </div>
                         </div>
                       </div>
-                    ))
+                    )) : (
+                      <div className="p-8 text-center text-xs text-muted-foreground italic">No upcoming events.</div>
+                    )
                   )}
                 </div>
                 <div className="p-4 bg-primary/5">

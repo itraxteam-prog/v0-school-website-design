@@ -22,7 +22,7 @@ export async function GET() {
         })
 
         const formatted = records.map((r) => ({
-            id: r.id,
+            id: `${r.studentId}-${r.classId}-${r.date.getTime()}`,
             date: r.date.toISOString().split("T")[0], // YYYY-MM-DD
             status: r.status.toLowerCase() as "present" | "absent" | "late",
             className: r.class?.name,

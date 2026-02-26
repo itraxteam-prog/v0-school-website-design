@@ -28,73 +28,48 @@ import {
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { STUDENT_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+import { useToast } from "@/components/ui/use-toast"
 
-// Dummy student data
-const studentData = {
-  // Basic Info
-  fullName: "Ahmed Khan",
-  dateOfBirth: "March 15, 2010",
-  gender: "Male",
-  bloodGroup: "B+",
-  nationality: "Pakistani",
-
-  // Academic Info
-  class: "Grade 10",
-  section: "Section A",
-  rollNumber: "2025-0142",
-  admissionDate: "August 1, 2020",
-  subjects: [
-    "Mathematics",
-    "Physics",
-    "Chemistry",
-    "English",
-    "Computer Science",
-    "Urdu",
-    "Islamiat",
-    "Biology"
-  ],
-
-  // Contact Info
-  email: "ahmed.khan@pioneershigh.edu",
-  phone: "+92 300 1234567",
-  address: "45-B, Model Town, Lahore, Punjab",
-  city: "Lahore",
-  postalCode: "54000",
-
-  // Guardian Info
-  guardianName: "Mr. Imran Khan",
-  guardianRelation: "Father",
-  guardianPhone: "+92 321 9876543",
-  guardianEmail: "imran.khan@email.com",
-  guardianOccupation: "Business Owner",
-
-  // Profile
-  avatarUrl: "", // Empty for fallback
-  initials: "AK",
-}
 
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
-  const { data: session } = useSession()
+  const [profileData, setProfileData] = useState<any>(null)
+  const [error, setError] = useState<string | null>(null)
+   const { data: session } = useSession()
+   const { toast } = useToast()
 
-  // Merge session user data with static profile data
-  const displayData = {
-    ...studentData,
-    fullName: session?.user?.name || studentData.fullName,
-    email: session?.user?.email || studentData.email,
-  }
 
   useEffect(() => {
-    // Simulate data fetching
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 1500)
-    return () => clearTimeout(timer)
+    const fetchProfile = async () => {
+      setLoading(true)
+      try {
+        const res = await fetch("/api/student/profile")
+        if (!res.ok) throw new Error("Failed to load profile")
+        const data = await res.json()
+        setProfileData(data)
+      } catch (err: any) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchProfile()
   }, [])
 
+  const displayData = profileData || {
+    fullName: session?.user?.name || "Loading...",
+    email: session?.user?.email || "Loading...",
+    initials: session?.user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || "S",
+    subjects: [],
+    class: "Loading...",
+    section: "...",
+    rollNumber: "..."
+  }
+
+
   return (
-    <AppLayout sidebarItems={sidebarItems} userName={session?.user?.name || studentData.fullName} userRole="student">
+    <AppLayout sidebarItems={sidebarItems} userName={displayData.fullName} userRole="student">
       <div className="flex flex-col gap-8 pb-8">
 
         {/* Header Section */}
@@ -150,14 +125,44 @@ export default function ProfilePage() {
                         Roll No: {displayData.rollNumber}
                       </p>
                     </div>
+                    <input
+                      type="file"
+                      id="photo-upload"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+
+                        const formData = new FormData();
+                        formData.append("file", file);
+
+                        try {
+                          toast({ title: "Uploading...", description: "Please wait while we process your photo." });
+                          const res = await fetch("/api/user/photo", {
+                            method: "POST",
+                            body: formData,
+                          });
+
+                          if (!res.ok) throw new Error("Upload failed");
+                          const result = await res.json();
+                          
+                          setProfileData((prev: any) => ({ ...prev, avatarUrl: result.url }));
+                          toast({ title: "Success", description: "Profile photo updated successfully." });
+                        } catch (err) {
+                          toast({ title: "Error", description: "Failed to upload photo.", variant: "destructive" });
+                        }
+                      }}
+                    />
                     <Button
                       variant="outline"
                       className="w-full gap-2 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
-                      onClick={() => alert("Photo upload will be available in the next release.")}
+                      onClick={() => document.getElementById('photo-upload')?.click()}
                     >
                       <UserCircle className="h-4 w-4" />
                       Change Photo
                     </Button>
+
                   </>
                 )}
               </CardContent>
@@ -192,40 +197,40 @@ export default function ProfilePage() {
                         <label className="text-sm font-medium text-muted-foreground">Full Name</label>
                         <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
                           <User className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{studentData.fullName}</span>
+                          <span className="text-sm">{displayData.fullName || "N/A"}</span>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Date of Birth</label>
                         <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
                           <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{studentData.dateOfBirth}</span>
+                          <span className="text-sm">{displayData.dateOfBirth ? new Date(displayData.dateOfBirth).toLocaleDateString() : "N/A"}</span>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Gender</label>
                         <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
                           <Users className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{studentData.gender}</span>
+                          <span className="text-sm">{displayData.gender || "N/A"}</span>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Blood Group</label>
                         <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                          <span className="text-sm">{studentData.bloodGroup}</span>
+                          <span className="text-sm">{displayData.bloodGroup || "N/A"}</span>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Nationality</label>
                         <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                          <span className="text-sm">{studentData.nationality}</span>
+                          <span className="text-sm">{displayData.nationality || "N/A"}</span>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Admission Date</label>
                         <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
                           <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{studentData.admissionDate}</span>
+                          <span className="text-sm">{displayData.admissionDate ? new Date(displayData.admissionDate).toLocaleDateString() : "N/A"}</span>
                         </div>
                       </div>
                     </div>
@@ -263,31 +268,31 @@ export default function ProfilePage() {
                           <label className="text-sm font-medium text-muted-foreground">Class</label>
                           <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
                             <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm font-medium">{studentData.class}</span>
+                            <span className="text-sm font-medium">{displayData.class || "Unassigned"}</span>
                           </div>
                         </div>
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-muted-foreground">Section</label>
                           <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                            <span className="text-sm font-medium">{studentData.section}</span>
+                            <span className="text-sm font-medium">{displayData.section || "N/A"}</span>
                           </div>
                         </div>
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-muted-foreground">Roll Number</label>
                           <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
                             <Hash className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm font-medium">{studentData.rollNumber}</span>
+                            <span className="text-sm font-medium">{displayData.rollNumber || "N/A"}</span>
                           </div>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Enrolled Subjects</label>
-                        <div className="flex flex-wrap gap-2 rounded-lg border border-border bg-muted/30 p-3">
-                          {studentData.subjects.map((subject) => (
+                         <div className="flex flex-wrap gap-2 rounded-lg border border-border bg-muted/30 p-3">
+                          {displayData.subjects && displayData.subjects.length > 0 ? displayData.subjects.map((subject: string) => (
                             <Badge key={subject} variant="secondary" className="font-normal">
                               {subject}
                             </Badge>
-                          ))}
+                          )) : <span className="text-xs text-muted-foreground italic">No subjects enrolled</span>}
                         </div>
                       </div>
                     </div>
@@ -316,38 +321,38 @@ export default function ProfilePage() {
                       ))}
                     </div>
                   ) : (
-                    <div className="grid gap-4 sm:grid-cols-2">
+                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Email Address</label>
                         <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
                           <Mail className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{studentData.email}</span>
+                          <span className="text-sm">{displayData.email}</span>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Phone Number</label>
                         <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
                           <Phone className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{studentData.phone}</span>
+                          <span className="text-sm">{displayData.phone || "N/A"}</span>
                         </div>
                       </div>
                       <div className="space-y-2 sm:col-span-2">
                         <label className="text-sm font-medium text-muted-foreground">Address</label>
                         <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
                           <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{studentData.address}</span>
+                          <span className="text-sm">{displayData.address || "N/A"}</span>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">City</label>
                         <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                          <span className="text-sm">{studentData.city}</span>
+                          <span className="text-sm">{displayData.city || "N/A"}</span>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Postal Code</label>
                         <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                          <span className="text-sm">{studentData.postalCode}</span>
+                          <span className="text-sm">{displayData.postalCode || "N/A"}</span>
                         </div>
                       </div>
                     </div>
@@ -381,33 +386,33 @@ export default function ProfilePage() {
                         <label className="text-sm font-medium text-muted-foreground">Guardian Name</label>
                         <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
                           <User className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{studentData.guardianName}</span>
+                          <span className="text-sm">{displayData.guardianName || "N/A"}</span>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Relation</label>
                         <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                          <span className="text-sm">{studentData.guardianRelation}</span>
+                          <span className="text-sm">{displayData.guardianRelation || "N/A"}</span>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Guardian Phone</label>
                         <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
                           <Phone className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{studentData.guardianPhone}</span>
+                          <span className="text-sm">{displayData.guardianPhone || "N/A"}</span>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Guardian Email</label>
                         <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
                           <Mail className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{studentData.guardianEmail}</span>
+                          <span className="text-sm">{displayData.guardianEmail || "N/A"}</span>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Occupation</label>
                         <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                          <span className="text-sm">{studentData.guardianOccupation}</span>
+                          <span className="text-sm">{displayData.guardianOccupation || "N/A"}</span>
                         </div>
                       </div>
                     </div>

@@ -37,6 +37,7 @@ export const TEACHER_SIDEBAR = [
     { href: "/portal/teacher/attendance", label: "Attendance", icon: CalendarCheck },
     { href: "/portal/teacher/classes", label: "My Classes", icon: School },
     { href: "/portal/teacher/gradebook", label: "Gradebook", icon: BookMarked },
+    { href: "/portal/teacher/assignments", label: "Assignments", icon: FileText },
     { href: "/portal/teacher/reports", label: "Reports", icon: FileBarChart },
     { href: "/portal/teacher/profile", label: "My Profile", icon: User },
     { href: "/portal/teacher/security", label: "Security", icon: ShieldCheck },

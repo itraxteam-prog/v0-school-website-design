@@ -15,7 +15,6 @@ import dynamic from "next/dynamic"
 const ClassPerformanceChart = dynamic(() => import("@/components/portal/teacher-charts").then(mod => mod.ClassPerformanceChart), { ssr: false });
 
 import { TEACHER_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
-import { MOCK_TEACHER_DASHBOARD_DATA } from "@/utils/mocks"
 
 interface TeacherDashboardClientProps {
     user: {
@@ -36,16 +35,23 @@ export function TeacherDashboardClient({ user }: TeacherDashboardClientProps) {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch classes, timetable and announcements in parallel
-                const [classesRes, timetableRes, announcementsRes] = await Promise.all([
+                // Fetch stats, classes, timetable and announcements in parallel
+                const [statsRes, classesRes, timetableRes, announcementsRes] = await Promise.all([
+                    fetch("/api/teacher/stats", { credentials: "include" }),
                     fetch("/api/teacher/classes", { credentials: "include" }),
                     fetch("/api/teacher/timetable", { credentials: "include" }),
                     fetch("/api/teacher/announcements", { credentials: "include" })
                 ]);
 
+                let stats = { totalClasses: 0, totalStudents: 0, attendanceToday: "0%", pendingGrades: 0 };
                 let classes = [];
                 let schedule = [];
                 let announcements = [];
+
+                if (statsRes.ok) {
+                    const result = await statsRes.json();
+                    stats = result.stats || stats;
+                }
 
                 if (classesRes.ok) {
                     const result = await classesRes.json();
@@ -74,26 +80,29 @@ export function TeacherDashboardClient({ user }: TeacherDashboardClientProps) {
                 const todaySchedule = schedule.filter((s: any) => s.dayOfWeek === todayEnum);
 
                 setData({
-                    ...MOCK_TEACHER_DASHBOARD_DATA,
-                    stats: {
-                        ...MOCK_TEACHER_DASHBOARD_DATA.stats,
-                        totalClasses: classes.length,
-                        totalStudents: classes.reduce((acc: number, c: any) => acc + (c.studentCount || 0), 0),
-                    },
+                    stats,
                     classes: classes.map((c: any) => ({
                         name: c.name,
                         subject: c.subject || "General",
                         students: c.studentCount,
                     })),
-                    schedule: todaySchedule.length > 0 ? todaySchedule : schedule.slice(0, 4), // Fallback to first 4 if nothing today
+                    schedule: todaySchedule.length > 0 ? todaySchedule : schedule.slice(0, 4),
                     announcements: announcements.slice(0, 3)
                 });
+
             } catch (error: any) {
                 console.error("Failed to fetch dashboard data", error);
-                setData(MOCK_TEACHER_DASHBOARD_DATA);
+                // Set empty but real state on error
+                setData({
+                    stats: { totalClasses: 0, totalStudents: 0, attendanceToday: "0%", pendingGrades: 0 },
+                    classes: [],
+                    schedule: [],
+                    announcements: []
+                });
             } finally {
                 setLoading(false);
             }
+
         };
 
         fetchData();
@@ -174,11 +183,12 @@ export function TeacherDashboardClient({ user }: TeacherDashboardClientProps) {
                                 <Button
                                     variant="outline"
                                     className="border-border hover:bg-muted flex items-center gap-2"
-                                    onClick={() => toast({ title: "Coming Soon", description: "Assignment creation module is under development." })}
+                                    onClick={() => router.push('/portal/teacher/assignments')}
                                 >
                                     <PlusCircle className="h-4 w-4" />
                                     Create Assignment
                                 </Button>
+
                             </div>
                         </CardContent>
                     </Card>

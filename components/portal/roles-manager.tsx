@@ -104,13 +104,14 @@ export function RolesManager({ initialRoles }: RolesManagerProps) {
         setLoading(true)
         setError(null)
         try {
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Already initialized via props, but this could be an API call
         } catch (err: any) {
             setError(err.message || "An unexpected error occurred")
         } finally {
             setLoading(false)
         }
     }, [])
+
 
     const handleSort = (key: string) => {
         let direction: "asc" | "desc" = "asc"
@@ -130,7 +131,7 @@ export function RolesManager({ initialRoles }: RolesManagerProps) {
     const onSubmit = async (data: RoleFormValues) => {
         setIsSubmitting(true)
         try {
-            await new Promise(resolve => setTimeout(resolve, 800));
+            // Static local update for demo/prototype but with real database context
 
             if (editingRole) {
                 setRoles(prev => prev.map(r =>
@@ -170,8 +171,8 @@ export function RolesManager({ initialRoles }: RolesManagerProps) {
         if (!confirm(`Are you sure you want to delete the "${role.name}" role?`)) return
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 500));
             setRoles(prev => prev.filter(r => r.id !== role.id));
+
             toast({
                 title: "Deleted",
                 description: "Role has been removed successfully.",

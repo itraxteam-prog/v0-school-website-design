@@ -82,24 +82,21 @@ interface StudentsManagerProps {
 }
 
 export function StudentsManager({ initialStudents }: StudentsManagerProps) {
-    const [students, setStudents] = useState<Student[]>(initialStudents.map(s => ({
-        id: s.id,
-        name: s.name || "",
-        rollNo: s.rollNo || `2025-${s.id.split('-')[0].toUpperCase()}`,
-        classId: s.classId || "10-A",
-        dob: s.dob || "2010-01-01",
-        guardianPhone: s.guardianPhone || "+92 300 1234567",
-        address: s.address || "123 School Street, Sector 4"
-    })))
-
+    const [students, setStudents] = useState<Student[]>([])
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [searchTerm, setSearchTerm] = useState("")
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingStudent, setEditingStudent] = useState<Student | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const { data: session } = useSession()
+    
+    // Pagination State
+    const [page, setPage] = useState(1)
+    const [limit, setLimit] = useState(10)
+    const [totalPages, setTotalPages] = useState(1)
+    const [totalStudents, setTotalStudents] = useState(0)
 
+    const { data: session } = useSession()
     const { toast } = useToast()
 
     const form = useForm<StudentFormValues>({
@@ -118,16 +115,33 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
         setLoading(true)
         setError(null)
         try {
-            const res = await fetch("/api/admin/students", { credentials: "include" })
+            const url = `/api/admin/students?page=${page}&limit=${limit}&search=${searchTerm}`
+            const res = await fetch(url, { credentials: "include" })
             if (!res.ok) throw new Error("Failed to fetch students")
             const result = await res.json()
-            setStudents(result.data || [])
+            
+            setStudents(result.data.map((s: any) => ({
+                id: s.id,
+                name: s.name || "",
+                rollNo: s.profile?.rollNumber || `S-${s.id.split('-')[0].toUpperCase()}`,
+                classId: s.profile?.class || "N/A",
+                dob: s.profile?.dateOfBirth || "",
+                guardianPhone: s.profile?.guardianPhone || "",
+                address: s.profile?.address || ""
+            })))
+            
+            setTotalPages(result.pagination?.pages || 1)
+            setTotalStudents(result.pagination?.total || result.data.length)
         } catch (err: any) {
             setError(err.message || "An unexpected error occurred")
         } finally {
             setLoading(false)
         }
-    }, [])
+    }, [page, searchTerm, limit])
+
+    useEffect(() => {
+        fetchStudents()
+    }, [fetchStudents])
 
     useEffect(() => {
         if (editingStudent) {
@@ -143,6 +157,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
             })
         }
     }, [editingStudent, form])
+
 
     const onSubmit = async (data: StudentFormValues) => {
         setIsSubmitting(true)
@@ -477,20 +492,32 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                 <AnimatedWrapper delay={0.3}>
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <p className="text-xs text-muted-foreground">
-                            Showing <span className="font-semibold text-foreground">1-{filteredStudents.length}</span> of <span className="font-semibold text-foreground">{students.length}</span> students
+                            Showing <span className="font-semibold text-foreground">{Math.min((page - 1) * limit + 1, totalStudents)}-{Math.min(page * limit, totalStudents)}</span> of <span className="font-semibold text-foreground">{totalStudents}</span> students
                         </p>
                         <div className="flex items-center gap-1">
-                            <Button variant="outline" size="icon" className="h-9 w-9 glass-card" disabled>
+                            <Button 
+                                variant="outline" 
+                                size="icon" 
+                                className="h-9 w-9 glass-card" 
+                                disabled={page === 1}
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                            >
                                 <ChevronLeft size={16} />
                             </Button>
-                            <Button variant="ghost" size="sm" className="h-9 w-9 bg-primary text-white hover:bg-primary/90 rounded-md">1</Button>
-                            <Button variant="ghost" size="sm" className="h-9 w-9 hover:bg-primary/5 rounded-md">2</Button>
-                            <Button variant="outline" size="icon" className="h-9 w-9 glass-card">
+                            <Button variant="ghost" size="sm" className="h-9 w-9 bg-primary text-white hover:bg-primary/90 rounded-md">{page}</Button>
+                            <Button 
+                                variant="outline" 
+                                size="icon" 
+                                className="h-9 w-9 glass-card"
+                                disabled={page >= totalPages}
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                            >
                                 <ChevronRight size={16} />
                             </Button>
                         </div>
                     </div>
                 </AnimatedWrapper>
+
             </div>
         </AppLayout>
     )

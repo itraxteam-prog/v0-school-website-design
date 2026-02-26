@@ -31,42 +31,6 @@ const SubjectPerformanceChart = dynamic(() => import("@/components/portal/analyt
 
 import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
-// Mock Data
-const attendanceData = [
-    { month: 'Sep', attendance: 92 },
-    { month: 'Oct', attendance: 94 },
-    { month: 'Nov', attendance: 91 },
-    { month: 'Dec', attendance: 88 },
-    { month: 'Jan', attendance: 95 },
-    { month: 'Feb', attendance: 93 },
-]
-
-const gradeDistribution = [
-    { grade: 'A', count: 45 },
-    { grade: 'B', count: 32 },
-    { grade: 'C', count: 18 },
-    { grade: 'D', count: 5 },
-    { grade: 'F', count: 2 },
-]
-
-const enrollmentData = [
-    { year: '2020', students: 450 },
-    { year: '2021', students: 520 },
-    { year: '2022', students: 580 },
-    { year: '2023', students: 640 },
-    { year: '2024', students: 710 },
-    { year: '2025', students: 785 },
-]
-
-const subjectPerformance = [
-    { subject: 'Math', avg: 78 },
-    { subject: 'Science', avg: 82 },
-    { subject: 'English', avg: 85 },
-    { subject: 'Comp Sci', avg: 88 },
-    { subject: 'History', avg: 75 },
-    { subject: 'Arts', avg: 90 },
-]
-
 const chartConfig = {
     gridStroke: "#E5E7EB",
     tickColor: "#6B7280",
@@ -82,11 +46,31 @@ const chartConfig = {
 
 export function AnalyticsDashboardClient({ user }: { user: any }) {
     const [loading, setLoading] = useState(true)
+    const [data, setData] = useState<any>({
+        attendanceData: [],
+        gradeDistribution: [],
+        enrollmentData: [],
+        subjectPerformance: []
+    })
 
     useEffect(() => {
-        const timer = setTimeout(() => setLoading(false), 1200)
-        return () => clearTimeout(timer)
+        const fetchData = async () => {
+            try {
+                const res = await fetch("/api/admin/analytics", { credentials: "include" })
+                if (!res.ok) throw new Error("Failed to fetch analytics")
+                const result = await res.json()
+                setData(result)
+            } catch (error) {
+                console.error("Analytics fetch error:", error)
+            } finally {
+                setLoading(false)
+            }
+        }
+        fetchData()
     }, [])
+
+    const { attendanceData, gradeDistribution, enrollmentData, subjectPerformance } = data
+
 
     return (
         <AppLayout sidebarItems={sidebarItems} userName={user?.name || "Admin"} userRole="admin">

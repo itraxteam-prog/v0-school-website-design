@@ -22,20 +22,11 @@ export default async function TeacherAttendancePage() {
         id: c.id,
         name: `${c.name} (${c.subject || 'General'})`
       }))
-    } else {
-      // Baseline Mock Data for Prototype
-      classes = [
-        { id: "c1", name: "10-A (Mathematics)" },
-        { id: "c2", name: "10-B (Algebra)" },
-        { id: "c3", name: "9-A (General Science)" },
-      ];
     }
   } catch (error) {
     console.error("Failed to fetch teacher classes for attendance", error)
-    classes = [
-      { id: "c1", name: "10-A (Mathematics)" },
-    ];
   }
+
 
   return <AttendanceManager initialClasses={classes} />
 }

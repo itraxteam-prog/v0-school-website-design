@@ -14,30 +14,15 @@ import {
     AreaChart,
 } from 'recharts'
 
-// Mock Data
-const performanceData = [
-    { month: 'Sep', score: 85 },
-    { month: 'Oct', score: 88 },
-    { month: 'Nov', score: 82 },
-    { month: 'Dec', score: 90 },
-    { month: 'Jan', score: 94 },
-    { month: 'Feb', score: 92 },
-]
+interface ChartProps {
+    data: any[];
+}
 
-const subjectData = [
-    { subject: 'Math', score: 92 },
-    { subject: 'Phys', score: 87 },
-    { subject: 'Eng', score: 90 },
-    { subject: 'Chem', score: 84 },
-    { subject: 'Comp', score: 96 },
-    { subject: 'Urdu', score: 88 },
-]
-
-export function PerformanceTrendChart() {
+export function PerformanceTrendChart({ data }: ChartProps) {
     return (
         <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={performanceData}>
+                <AreaChart data={data || []}>
                     <defs>
                         <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="#800020" stopOpacity={0.3} />
@@ -56,7 +41,7 @@ export function PerformanceTrendChart() {
                         axisLine={false}
                         tickLine={false}
                         tick={{ fontSize: 12, fill: 'currentColor', opacity: 0.6 }}
-                        domain={[60, 100]}
+                        domain={[0, 100]}
                     />
                     <Tooltip
                         contentStyle={{
@@ -82,11 +67,11 @@ export function PerformanceTrendChart() {
     )
 }
 
-export function SubjectComparisonChart() {
+export function SubjectComparisonChart({ data }: ChartProps) {
     return (
         <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={subjectData}>
+                <BarChart data={data || []}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" strokeOpacity={0.1} />
                     <XAxis
                         dataKey="subject"
@@ -124,3 +109,4 @@ export function SubjectComparisonChart() {
         </div>
     )
 }
+

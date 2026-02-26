@@ -135,35 +135,47 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
         setLoading(true)
         setError(null)
         try {
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 800));
-
-            // Mock Settings Data
-            const mockSettings: SettingsFormValues = {
-                schoolName: "The Pioneers High School",
-                schoolCode: "PHS-2026",
-                address: "Plot 123, Academic Block, Sector 4, Islamabad, Pakistan",
-                contactNumber: "+92 51 1234567",
-                email: "info@thepioneers.edu.pk",
-                termStructure: "2",
-                gradingSystem: "percentage",
-                promotionThreshold: 40,
-                schoolHours: {
-                    startTime: "08:00 AM",
-                    endTime: "02:00 PM"
-                },
-                maxClassesPerDay: 8,
-                portalPreferences: {
-                    darkMode: false,
-                    language: "en",
-                    timezone: "pk",
-                    smsNotifications: true,
-                    emailNotifications: true,
+            const res = await fetch("/api/admin/settings", { credentials: "include" });
+            if (!res.ok) throw new Error("Failed to fetch settings");
+            const data = await res.json();
+            
+            // Map array of key/value pairs to the form structure
+            const mappedSettings: any = {
+                schoolHours: { startTime: "08:00 AM", endTime: "02:00 PM" },
+                portalPreferences: { 
+                    darkMode: false, 
+                    language: "en", 
+                    timezone: "pk", 
+                    smsNotifications: true, 
+                    emailNotifications: true 
                 }
             };
+            
+            data.forEach((s: any) => {
+                if (s.key.includes('.')) {
+                    const [parent, child] = s.key.split('.');
+                    if (!mappedSettings[parent]) mappedSettings[parent] = {};
+                    // Handle booleans
+                    if (s.value === 'true' || s.value === 'false') {
+                        mappedSettings[parent][child] = s.value === 'true';
+                    } else if (!isNaN(s.value) && s.key !== 'contactNumber') {
+                        mappedSettings[parent][child] = Number(s.value);
+                    } else {
+                        mappedSettings[parent][child] = s.value;
+                    }
+                } else {
+                    if (s.value === 'true' || s.value === 'false') {
+                        mappedSettings[s.key] = s.value === 'true';
+                    } else if (!isNaN(s.value) && s.key !== 'schoolCode' && s.key !== 'contactNumber') {
+                        mappedSettings[s.key] = Number(s.value);
+                    } else {
+                        mappedSettings[s.key] = s.value;
+                    }
+                }
+            });
 
-            setSettings(mockSettings)
-            form.reset(mockSettings)
+            setSettings(mappedSettings)
+            form.reset(mappedSettings)
         } catch (err: any) {
             console.error("Fetch error:", err)
             setError(err.message)
@@ -184,8 +196,28 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
     const onSubmit = async (data: SettingsFormValues) => {
         setIsSaving(true)
         try {
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 800));
+            // Flatten the settings for the API
+            const flattened: any = {};
+            const flatten = (obj: any, prefix = '') => {
+                Object.keys(obj).forEach(key => {
+                    const value = obj[key];
+                    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                        flatten(value, `${prefix}${key}.`);
+                    } else {
+                        flattened[`${prefix}${key}`] = String(value);
+                    }
+                });
+            };
+            flatten(data);
+
+            const res = await fetch("/api/admin/settings", {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ settings: flattened })
+            });
+
+            if (!res.ok) throw new Error("Failed to save settings");
 
             toast({
                 title: "Settings Updated",
@@ -203,6 +235,7 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
             setIsSaving(false)
         }
     }
+
 
     if (loading) {
         return (

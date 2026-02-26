@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma"
 import { StudentsManager } from "@/components/portal/students-manager"
-import { MOCK_USERS } from "@/utils/mocks"
 import { logger } from "@/lib/logger"
 
 export default async function AdminStudentsPage() {
@@ -15,17 +14,11 @@ export default async function AdminStudentsPage() {
         email: true,
       }
     })
-  } catch (error) {
-    logger.error({ error }, "DB Fetch failed, falling back to mocks")
-    // Fallback if DB is empty/unreachable for this specific prototype
-    students = MOCK_USERS
-      .filter(u => u.role === "student")
-      .map(u => ({
-        id: u.id,
-        name: u.name,
-        email: u.email
-      }))
-  }
+    } catch (error) {
+        logger.error({ error }, "Failed to fetch students from database");
+        students = [];
+    }
+
 
   return <StudentsManager initialStudents={students} />
 }

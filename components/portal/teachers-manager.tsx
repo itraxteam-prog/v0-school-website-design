@@ -96,8 +96,14 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const { data: session } = useSession()
+    
+    // Pagination State
+    const [page, setPage] = useState(1)
+    const [totalPages, setTotalPages] = useState(1)
+    const [totalTeachers, setTotalTeachers] = useState(0)
+    const limit = 10
 
+    const { data: session } = useSession()
     const { toast } = useToast()
 
     const form = useForm<TeacherFormValues>({
@@ -114,22 +120,32 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
         setLoading(true)
         setError(null)
         try {
-            const res = await fetch("/api/admin/teachers", { credentials: "include" })
+            const url = `/api/admin/teachers?page=${page}&limit=${limit}&search=${searchTerm}`
+            const res = await fetch(url, { credentials: "include" })
             if (!res.ok) throw new Error("Failed to fetch teachers")
             const result = await res.json()
+            
             setTeachers(result.data.map((t: any) => ({
                 id: t.id,
                 name: t.name || "",
-                employeeId: t.employeeId || `T-${t.id.split('-')[0].toUpperCase()}`,
+                employeeId: t.profile?.rollNumber || `T-${t.id.split('-')[0].toUpperCase()}`,
                 department: t.department || "Faculty",
                 classIds: "N/A"
             })))
+            
+            setTotalPages(result.pagination?.pages || 1)
+            setTotalTeachers(result.pagination?.total || result.data.length)
         } catch (err: any) {
             setError(err.message || "An unexpected error occurred")
         } finally {
             setLoading(false)
         }
-    }, [])
+    }, [page, searchTerm])
+
+    useEffect(() => {
+        fetchTeachers()
+    }, [fetchTeachers])
+
 
     useEffect(() => {
         if (editingTeacher) {
@@ -148,10 +164,10 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
             })
         }
     }, [editingTeacher, form])
-
     const onSubmit = async (data: TeacherFormValues) => {
         setIsSubmitting(true)
         try {
+
             const url = editingTeacher ? `/api/admin/teachers/${editingTeacher.id}` : "/api/admin/teachers"
             const method = editingTeacher ? "PATCH" : "POST"
 
@@ -452,15 +468,26 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
                 <AnimatedWrapper delay={0.3}>
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <p className="text-xs text-muted-foreground">
-                            Showing <span className="font-semibold text-foreground">1-{filteredTeachers.length}</span> of <span className="font-semibold text-foreground">{teachers.length}</span> faculty members
+                            Showing <span className="font-semibold text-foreground">{Math.min((page - 1) * limit + 1, totalTeachers)}-{Math.min(page * limit, totalTeachers)}</span> of <span className="font-semibold text-foreground">{totalTeachers}</span> faculty members
                         </p>
                         <div className="flex items-center gap-1">
-                            <Button variant="outline" size="icon" className="h-9 w-9 glass-card" disabled>
+                            <Button 
+                                variant="outline" 
+                                size="icon" 
+                                className="h-9 w-9 glass-card" 
+                                disabled={page === 1}
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                            >
                                 <ChevronLeft size={16} />
                             </Button>
-                            <Button variant="ghost" size="sm" className="h-9 w-9 bg-primary text-white hover:bg-primary/90 rounded-md">1</Button>
-                            <Button variant="ghost" size="sm" className="h-9 w-9 hover:bg-primary/5 rounded-md">2</Button>
-                            <Button variant="outline" size="icon" className="h-9 w-9 glass-card">
+                            <Button variant="ghost" size="sm" className="h-9 w-9 bg-primary text-white hover:bg-primary/90 rounded-md">{page}</Button>
+                            <Button 
+                                variant="outline" 
+                                size="icon" 
+                                className="h-9 w-9 glass-card"
+                                disabled={page >= totalPages}
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                            >
                                 <ChevronRight size={16} />
                             </Button>
                         </div>

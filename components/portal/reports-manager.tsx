@@ -53,11 +53,11 @@ export function ReportsManager({ initialData }: ReportsManagerProps) {
     const handleGenerateReport = () => {
         setLoading(true)
         setShowPreview(false)
-        setTimeout(() => {
-            setLoading(false)
-            setShowPreview(true)
-        }, 1000)
+        // Immediate preview since data is pre-fetched
+        setLoading(false)
+        setShowPreview(true)
     }
+
 
     return (
         <AppLayout sidebarItems={sidebarItems} userName="Dr. Ahmad Raza" userRole="admin">
