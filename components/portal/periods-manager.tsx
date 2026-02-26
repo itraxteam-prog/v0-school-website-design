@@ -59,14 +59,19 @@ import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 const periodSchema = z.object({
     name: z.string().min(2, { message: "Period name must be at least 2 characters." }),
     classId: z.string().min(1, { message: "Please select a class." }),
+    teacherId: z.string().min(1, { message: "Please select a teacher." }),
+    dayOfWeek: z.enum(["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]),
     startTime: z.string().min(1, { message: "Please enter start time." }),
     endTime: z.string().min(1, { message: "Please enter end time." }),
+    room: z.string().optional(),
 })
 
 type PeriodFormValues = z.infer<typeof periodSchema>
 
 interface Period extends PeriodFormValues {
     id: string;
+    class?: { name: string };
+    teacher?: { name: string };
 }
 
 interface ClassRecord {
@@ -74,20 +79,32 @@ interface ClassRecord {
     name: string;
 }
 
+interface TeacherRecord {
+    id: string;
+    name: string;
+}
+
 interface PeriodsManagerProps {
     initialPeriods: any[];
     initialClasses: ClassRecord[];
+    initialTeachers: TeacherRecord[];
 }
 
-export function PeriodsManager({ initialPeriods, initialClasses }: PeriodsManagerProps) {
+export function PeriodsManager({ initialPeriods, initialClasses, initialTeachers }: PeriodsManagerProps) {
     const [periods, setPeriods] = useState<Period[]>(initialPeriods.map(p => ({
         id: p.id,
-        name: p.name || "",
+        name: p.subjectName || "",
         classId: p.classId || "",
+        teacherId: p.teacherId || "",
+        dayOfWeek: p.dayOfWeek || "MONDAY",
         startTime: p.startTime || "08:30",
-        endTime: p.endTime || "09:30"
+        endTime: p.endTime || "09:30",
+        room: p.room || "",
+        class: p.class,
+        teacher: p.teacher,
     })))
     const [classes] = useState<ClassRecord[]>(initialClasses)
+    const [teachers] = useState<TeacherRecord[]>(initialTeachers)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [searchTerm, setSearchTerm] = useState("")
@@ -102,8 +119,11 @@ export function PeriodsManager({ initialPeriods, initialClasses }: PeriodsManage
         defaultValues: {
             name: "",
             classId: "",
+            teacherId: "",
+            dayOfWeek: "MONDAY",
             startTime: "",
             endTime: "",
+            room: "",
         },
     })
 
@@ -111,7 +131,21 @@ export function PeriodsManager({ initialPeriods, initialClasses }: PeriodsManage
         setLoading(true)
         setError(null)
         try {
-            await new Promise(resolve => setTimeout(resolve, 500));
+            const response = await fetch("/api/admin/timetable")
+            if (!response.ok) throw new Error("Failed to fetch timetable")
+            const data = await response.json()
+            setPeriods(data.map((p: any) => ({
+                id: p.id,
+                name: p.subjectName || "",
+                classId: p.classId || "",
+                teacherId: p.teacherId || "",
+                dayOfWeek: p.dayOfWeek || "MONDAY",
+                startTime: p.startTime || "08:30",
+                endTime: p.endTime || "09:30",
+                room: p.room || "",
+                class: p.class,
+                teacher: p.teacher,
+            })))
         } catch (err: any) {
             setError(err.message || "An unexpected error occurred")
         } finally {
@@ -121,13 +155,24 @@ export function PeriodsManager({ initialPeriods, initialClasses }: PeriodsManage
 
     useEffect(() => {
         if (editingPeriod) {
-            form.reset(editingPeriod)
+            form.reset({
+                name: editingPeriod.name,
+                classId: editingPeriod.classId,
+                teacherId: editingPeriod.teacherId,
+                dayOfWeek: editingPeriod.dayOfWeek,
+                startTime: editingPeriod.startTime,
+                endTime: editingPeriod.endTime,
+                room: editingPeriod.room || "",
+            })
         } else {
             form.reset({
                 name: "",
                 classId: "",
+                teacherId: "",
+                dayOfWeek: "MONDAY",
                 startTime: "",
                 endTime: "",
+                room: "",
             })
         }
     }, [editingPeriod, form])
@@ -135,19 +180,20 @@ export function PeriodsManager({ initialPeriods, initialClasses }: PeriodsManage
     const onSubmit = async (data: PeriodFormValues) => {
         setIsSubmitting(true)
         try {
-            await new Promise(resolve => setTimeout(resolve, 800));
+            const url = editingPeriod
+                ? `/api/admin/timetable/${editingPeriod.id}`
+                : "/api/admin/timetable"
 
-            if (editingPeriod) {
-                setPeriods(prev => prev.map(p =>
-                    (p.id === editingPeriod.id) ? { ...p, ...data } : p
-                ));
-            } else {
-                const newPeriod: Period = {
-                    id: `p-${Math.random().toString(36).substr(2, 4)}`,
-                    ...data
-                };
-                setPeriods(prev => [newPeriod, ...prev]);
-            }
+            const response = await fetch(url, {
+                method: editingPeriod ? "PATCH" : "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    ...data,
+                    subjectName: data.name, // Map UI 'name' to DB 'subjectName'
+                }),
+            })
+
+            if (!response.ok) throw new Error("Failed to save period")
 
             toast({
                 title: "Success",
@@ -156,6 +202,7 @@ export function PeriodsManager({ initialPeriods, initialClasses }: PeriodsManage
 
             setIsModalOpen(false)
             setEditingPeriod(null)
+            fetchData() // Refresh list
         } catch (err: any) {
             toast({
                 title: "Error",
@@ -171,12 +218,17 @@ export function PeriodsManager({ initialPeriods, initialClasses }: PeriodsManage
         if (!confirm(`Are you sure you want to delete this period: ${period.name}?`)) return
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            setPeriods(prev => prev.filter(p => p.id !== period.id));
+            const response = await fetch(`/api/admin/timetable/${period.id}`, {
+                method: "DELETE",
+            })
+
+            if (!response.ok) throw new Error("Failed to delete period")
+
             toast({
                 title: "Deleted",
                 description: "Period has been removed.",
             })
+            fetchData() // Refresh list
         } catch (err: any) {
             toast({
                 title: "Error",
@@ -186,14 +238,21 @@ export function PeriodsManager({ initialPeriods, initialClasses }: PeriodsManage
         }
     }
 
-    const getClassName = (classId: string) => {
+    const getClassName = (classId: string, period?: Period) => {
+        if (period?.class?.name) return period.class.name
         const classRecord = classes.find(c => c.id === classId)
         return classRecord ? classRecord.name : "Unknown Class"
     }
 
+    const getTeacherName = (teacherId: string, period?: Period) => {
+        if (period?.teacher?.name) return period.teacher.name
+        const teacherRecord = teachers.find(t => t.id === teacherId)
+        return teacherRecord ? teacherRecord.name : "Unknown Teacher"
+    }
+
     const filteredPeriods = (periods || []).filter(period =>
         period.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        getClassName(period.classId).toLowerCase().includes(searchTerm.toLowerCase())
+        getClassName(period.classId, period).toLowerCase().includes(searchTerm.toLowerCase())
     )
 
     return (
@@ -258,6 +317,69 @@ export function PeriodsManager({ initialPeriods, initialClasses }: PeriodsManage
                                                             ))}
                                                         </SelectContent>
                                                     </Select>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="teacherId"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Teacher</FormLabel>
+                                                    <Select onValueChange={field.onChange} value={field.value}>
+                                                        <FormControl>
+                                                            <SelectTrigger className="glass-card">
+                                                                <SelectValue placeholder="Select teacher" />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            {teachers.map((t) => (
+                                                                <SelectItem key={t.id} value={t.id}>
+                                                                    {t.name}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="dayOfWeek"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Day of Week</FormLabel>
+                                                    <Select onValueChange={field.onChange} value={field.value}>
+                                                        <FormControl>
+                                                            <SelectTrigger className="glass-card">
+                                                                <SelectValue placeholder="Select day" />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            <SelectItem value="MONDAY">Monday</SelectItem>
+                                                            <SelectItem value="TUESDAY">Tuesday</SelectItem>
+                                                            <SelectItem value="WEDNESDAY">Wednesday</SelectItem>
+                                                            <SelectItem value="THURSDAY">Thursday</SelectItem>
+                                                            <SelectItem value="FRIDAY">Friday</SelectItem>
+                                                            <SelectItem value="SATURDAY">Saturday</SelectItem>
+                                                            <SelectItem value="SUNDAY">Sunday</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="room"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Room (Optional)</FormLabel>
+                                                    <FormControl>
+                                                        <Input placeholder="Room 101" {...field} className="glass-card" />
+                                                    </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
                                             )}
@@ -346,8 +468,10 @@ export function PeriodsManager({ initialPeriods, initialClasses }: PeriodsManage
                                     <Table>
                                         <TableHeader className="bg-muted/30">
                                             <TableRow className="border-border/50 hover:bg-transparent">
-                                                <TableHead className="pl-6 font-semibold h-12 uppercase text-[10px] tracking-wider">Period Name</TableHead>
+                                                <TableHead className="pl-6 font-semibold h-12 uppercase text-[10px] tracking-wider">Subject</TableHead>
                                                 <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Class</TableHead>
+                                                <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Teacher</TableHead>
+                                                <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Day</TableHead>
                                                 <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Time Slot</TableHead>
                                                 <TableHead className="pr-6 text-right font-semibold h-12 uppercase text-[10px] tracking-wider">Actions</TableHead>
                                             </TableRow>
@@ -358,7 +482,13 @@ export function PeriodsManager({ initialPeriods, initialClasses }: PeriodsManage
                                                     <TableRow key={period.id} className="border-border/50 transition-colors hover:bg-primary/5 group">
                                                         <TableCell className="pl-6 font-semibold py-4">{period.name}</TableCell>
                                                         <TableCell className="py-4 font-medium text-primary">
-                                                            {getClassName(period.classId)}
+                                                            {getClassName(period.classId, period)}
+                                                        </TableCell>
+                                                        <TableCell className="py-4 font-medium">
+                                                            {getTeacherName(period.teacherId, period)}
+                                                        </TableCell>
+                                                        <TableCell className="py-4 font-medium text-muted-foreground">
+                                                            {period.dayOfWeek}
                                                         </TableCell>
                                                         <TableCell className="py-4">
                                                             <div className="flex items-center gap-2 text-muted-foreground font-medium">

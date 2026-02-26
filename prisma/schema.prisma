@@ -59,6 +59,8 @@ model User {
   passwordResetTokens PasswordResetToken[]
   sessions            Session[]
   classes             Class[]              @relation("UserClasses")
+  timetableEntries    Timetable[]          @relation("TeacherTimetable")
+  announcements       Announcement[]       @relation("AnnouncementAuthor")
 }
 
 model PasswordResetToken {
@@ -83,6 +85,48 @@ model Class {
   students    User[]       @relation("UserClasses")
   attendances Attendance[]
   grades      Grade[]
+  timetable   Timetable[]
+}
+
+model Timetable {
+  id           String    @id @default(uuid())
+  dayOfWeek    DayOfWeek
+  startTime    String    // Format "HH:mm"
+  endTime      String    // Format "HH:mm"
+  subjectName  String
+  room         String?
+  
+  classId      String
+  class        Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  
+  teacherId    String
+  teacher      User      @relation("TeacherTimetable", fields: [teacherId], references: [id])
+
+  term         String?
+  academicYear String?
+  
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([classId])
+  @@index([teacherId])
+}
+
+model Announcement {
+  id          String     @id @default(uuid())
+  title       String
+  content     String     @db.Text
+  targetRole  TargetRole @default(ALL)
+  expiresAt   DateTime?
+  
+  createdBy   String
+  author      User       @relation("AnnouncementAuthor", fields: [createdBy], references: [id])
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([createdBy])
+  @@index([targetRole])
 }
 
 model Period {
@@ -142,4 +186,21 @@ enum Role {
 enum UserStatus {
   ACTIVE
   SUSPENDED
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum TargetRole {
+  ADMIN
+  TEACHER
+  STUDENT
+  ALL
 }

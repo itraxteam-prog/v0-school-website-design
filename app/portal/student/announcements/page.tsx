@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 
-import { MOCK_ANNOUNCEMENTS, MOCK_UPCOMING_EVENTS } from "@/utils/mocks"
+import { MOCK_UPCOMING_EVENTS } from "@/utils/mocks"
 import { sanitizeHtml } from "@/lib/sanitize"
 import { STUDENT_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 import { useSession } from "next-auth/react"
@@ -59,16 +59,20 @@ export default function AnnouncementsPage() {
     setLoading(true)
     setError(null)
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const response = await fetch("/api/student/announcements")
+      if (!response.ok) throw new Error("Failed to fetch announcements")
+      const data = await response.json()
 
-      const data = MOCK_ANNOUNCEMENTS;
+      const transformed = data.map((a: any) => ({
+        id: a.id,
+        title: a.title,
+        message: a.content,
+        createdAt: a.createdAt,
+        audience: [a.targetRole.toLowerCase()],
+        author: a.author?.name || "Admin"
+      }))
 
-      // Filter for student-relevant announcements
-      const studentData = data.filter((a: any) =>
-        a.audience && (a.audience.includes("student") || a.audience.includes("all"))
-      )
-      setAnnouncements(studentData as Announcement[])
+      setAnnouncements(transformed)
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred")
       toast({

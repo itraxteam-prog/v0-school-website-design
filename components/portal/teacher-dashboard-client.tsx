@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { LayoutDashboard, Users, CalendarCheck, BookMarked, FileBarChart, User, ClipboardList, PlusCircle, TrendingUp, UserCheck, FileText, ShieldCheck, Loader2 } from "lucide-react"
+import { LayoutDashboard, Users, CalendarCheck, BookMarked, FileBarChart, User, ClipboardList, PlusCircle, TrendingUp, UserCheck, FileText, ShieldCheck, Loader2, Megaphone, Calendar } from "lucide-react"
 import AppLayout from "@/components/layout/AppLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -36,28 +36,58 @@ export function TeacherDashboardClient({ user }: TeacherDashboardClientProps) {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const res = await fetch("/api/teacher/classes", { credentials: "include" });
-                if (res.ok) {
-                    const result = await res.json();
-                    const classes = result.data || [];
-                    // Build dashboard data from real classes
-                    setData({
-                        ...MOCK_TEACHER_DASHBOARD_DATA,
-                        stats: {
-                            ...MOCK_TEACHER_DASHBOARD_DATA.stats,
-                            totalClasses: classes.length,
-                            totalStudents: classes.reduce((acc: number, c: any) => acc + (c.studentCount || 0), 0),
-                        },
-                        classes: classes.map((c: any) => ({
-                            name: c.name,
-                            subject: c.subject || "General",
-                            students: c.studentCount,
-                        })),
-                    });
-                } else {
-                    // Fallback to mock data
-                    setData(MOCK_TEACHER_DASHBOARD_DATA);
+                // Fetch classes, timetable and announcements in parallel
+                const [classesRes, timetableRes, announcementsRes] = await Promise.all([
+                    fetch("/api/teacher/classes", { credentials: "include" }),
+                    fetch("/api/teacher/timetable", { credentials: "include" }),
+                    fetch("/api/teacher/announcements", { credentials: "include" })
+                ]);
+
+                let classes = [];
+                let schedule = [];
+                let announcements = [];
+
+                if (classesRes.ok) {
+                    const result = await classesRes.json();
+                    classes = result.data || [];
                 }
+
+                if (timetableRes.ok) {
+                    const result = await timetableRes.json();
+                    schedule = result.map((entry: any) => ({
+                        time: `${entry.startTime} - ${entry.endTime}`,
+                        class: entry.class?.name || "N/A",
+                        subject: entry.subjectName,
+                        room: entry.room || "N/A",
+                        dayOfWeek: entry.dayOfWeek
+                    }));
+                }
+
+                if (announcementsRes.ok) {
+                    announcements = await announcementsRes.json();
+                }
+
+                // Map current day to enum
+                const todayEnum = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
+
+                // Filter schedule for today
+                const todaySchedule = schedule.filter((s: any) => s.dayOfWeek === todayEnum);
+
+                setData({
+                    ...MOCK_TEACHER_DASHBOARD_DATA,
+                    stats: {
+                        ...MOCK_TEACHER_DASHBOARD_DATA.stats,
+                        totalClasses: classes.length,
+                        totalStudents: classes.reduce((acc: number, c: any) => acc + (c.studentCount || 0), 0),
+                    },
+                    classes: classes.map((c: any) => ({
+                        name: c.name,
+                        subject: c.subject || "General",
+                        students: c.studentCount,
+                    })),
+                    schedule: todaySchedule.length > 0 ? todaySchedule : schedule.slice(0, 4), // Fallback to first 4 if nothing today
+                    announcements: announcements.slice(0, 3)
+                });
             } catch (error: any) {
                 console.error("Failed to fetch dashboard data", error);
                 setData(MOCK_TEACHER_DASHBOARD_DATA);
@@ -276,6 +306,45 @@ export function TeacherDashboardClient({ user }: TeacherDashboardClientProps) {
                                                 </div>
                                             </div>
                                         ))
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </AnimatedWrapper>
+
+                        {/* Announcements Section */}
+                        <AnimatedWrapper delay={0.45}>
+                            <Card className="glass-panel border-border/50">
+                                <CardHeader className="pb-3">
+                                    <div className="flex items-center justify-between">
+                                        <CardTitle className="heading-3 flex items-center gap-2">
+                                            <Megaphone className="h-4 w-4 text-primary" />
+                                            Latest Announcements
+                                        </CardTitle>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="flex flex-col gap-3">
+                                    {loading ? (
+                                        Array.from({ length: 2 }).map((_, i) => (
+                                            <div key={i} className="space-y-2">
+                                                <Skeleton className="h-4 w-3/4" />
+                                                <Skeleton className="h-3 w-full" />
+                                            </div>
+                                        ))
+                                    ) : data?.announcements && data.announcements.length > 0 ? (
+                                        data.announcements.map((a: any) => (
+                                            <div key={a.id} className="group p-3 rounded-lg border border-border/50 bg-background/50 hover:bg-primary/5 transition-colors">
+                                                <h4 className="text-sm font-semibold text-foreground line-clamp-1">{a.title}</h4>
+                                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{a.content}</p>
+                                                <div className="flex items-center gap-2 mt-2 text-[10px] text-muted-foreground">
+                                                    <Calendar className="h-3 w-3" />
+                                                    {new Date(a.createdAt).toLocaleDateString()}
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-6 text-sm text-muted-foreground italic">
+                                            No recent announcements.
+                                        </div>
                                     )}
                                 </CardContent>
                             </Card>

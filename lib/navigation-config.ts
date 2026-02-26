@@ -25,6 +25,7 @@ export const ADMIN_SIDEBAR = [
     { href: "/portal/admin/periods", label: "Periods", icon: Clock },
     { href: "/portal/admin/analytics", label: "Analytics", icon: BarChart3 },
     { href: "/portal/admin/reports", label: "Reports", icon: FileBarChart },
+    { href: "/portal/admin/announcements", label: "Announcements", icon: Megaphone },
     { href: "/portal/admin/users", label: "User Management", icon: Settings },
     { href: "/portal/admin/roles", label: "Roles & Permissions", icon: ShieldCheck },
     { href: "/portal/admin/school-settings", label: "School Settings", icon: Settings },
