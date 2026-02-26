@@ -34,18 +34,9 @@ import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 
 import { MOCK_ANNOUNCEMENTS, MOCK_UPCOMING_EVENTS } from "@/utils/mocks"
-
 import { sanitizeHtml } from "@/lib/sanitize"
-
-const sidebarItems = [
-  { href: "/portal/student", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/portal/student/grades", label: "My Grades", icon: BookOpen },
-  { href: "/portal/student/attendance", label: "Attendance", icon: CalendarCheck },
-  { href: "/portal/student/timetable", label: "Timetable", icon: Clock },
-  { href: "/portal/student/announcements", label: "Announcements", icon: Megaphone },
-  { href: "/portal/student/profile", label: "Profile", icon: User },
-  { href: "/portal/security", label: "Security", icon: ShieldCheck },
-]
+import { STUDENT_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+import { useSession } from "next-auth/react"
 
 interface Announcement {
   id: string;
@@ -62,6 +53,7 @@ export default function AnnouncementsPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const { toast } = useToast()
+  const { data: session } = useSession()
 
   const fetchAnnouncements = useCallback(async () => {
     setLoading(true)
@@ -116,7 +108,7 @@ export default function AnnouncementsPage() {
   }
 
   return (
-    <AppLayout sidebarItems={sidebarItems} userName="Ahmed Khan" userRole="student">
+    <AppLayout sidebarItems={sidebarItems} userName={session?.user?.name || "Student"} userRole="student">
       <div className="flex flex-col gap-8 pb-8">
         {/* Header */}
         <AnimatedWrapper direction="down">
@@ -228,7 +220,14 @@ export default function AnnouncementsPage() {
                                   <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
                                     {sanitizeHtml(a.message)}
                                   </p>
-                                  <Button size="sm" className="mt-4 bg-primary text-white hover:bg-primary/90 text-[11px] h-8">
+                                  <Button
+                                    size="sm"
+                                    className="mt-4 bg-primary text-white hover:bg-primary/90 text-[11px] h-8"
+                                    onClick={() => {
+                                      const calUrl = `https://calendar.google.com/calendar/r/eventedit?text=${encodeURIComponent(a.title)}&details=${encodeURIComponent(a.message)}`;
+                                      window.open(calUrl, '_blank', 'noopener,noreferrer');
+                                    }}
+                                  >
                                     Add to My Calendar
                                   </Button>
                                 </div>
@@ -294,7 +293,11 @@ export default function AnnouncementsPage() {
                   )}
                 </div>
                 <div className="p-4 bg-primary/5">
-                  <Button variant="ghost" className="w-full text-xs text-primary hover:bg-primary/10 hover:text-primary font-bold">
+                  <Button
+                    variant="ghost"
+                    className="w-full text-xs text-primary hover:bg-primary/10 hover:text-primary font-bold"
+                    onClick={() => window.location.href = '/portal/student/announcements'}
+                  >
                     View All Events
                   </Button>
                 </div>

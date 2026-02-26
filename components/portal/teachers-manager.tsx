@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useSession } from "next-auth/react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -95,6 +96,7 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const { data: session } = useSession()
 
     const { toast } = useToast()
 
@@ -112,9 +114,16 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
         setLoading(true)
         setError(null)
         try {
-            // In a real app, this would be a server action or API call
-            await new Promise(resolve => setTimeout(resolve, 500));
-            // Keep current state as it's a client-side mock for now
+            const res = await fetch("/api/admin/teachers", { credentials: "include" })
+            if (!res.ok) throw new Error("Failed to fetch teachers")
+            const result = await res.json()
+            setTeachers(result.data.map((t: any) => ({
+                id: t.id,
+                name: t.name || "",
+                employeeId: t.employeeId || `T-${t.id.split('-')[0].toUpperCase()}`,
+                department: t.department || "Faculty",
+                classIds: "N/A"
+            })))
         } catch (err: any) {
             setError(err.message || "An unexpected error occurred")
         } finally {
@@ -143,18 +152,19 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
     const onSubmit = async (data: TeacherFormValues) => {
         setIsSubmitting(true)
         try {
-            await new Promise(resolve => setTimeout(resolve, 800));
+            const url = editingTeacher ? `/api/admin/teachers/${editingTeacher.id}` : "/api/admin/teachers"
+            const method = editingTeacher ? "PATCH" : "POST"
 
-            if (editingTeacher) {
-                setTeachers(prev => prev.map(t =>
-                    (t.id === editingTeacher.id) ? { ...t, ...data } : t
-                ));
-            } else {
-                const newTeacher: Teacher = {
-                    id: Math.random().toString(36).substr(2, 9),
-                    ...data
-                }
-                setTeachers(prev => [newTeacher, ...prev]);
+            const res = await fetch(url, {
+                method,
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ...data, email: `${data.name.split(' ')[0].toLowerCase()}@school.edu` })
+            })
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}))
+                throw new Error(err.error || "Operation failed")
             }
 
             toast({
@@ -162,6 +172,7 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
                 description: `Teacher ${editingTeacher ? 'updated' : 'added'} successfully.`,
             })
 
+            fetchTeachers()
             setIsModalOpen(false)
             setEditingTeacher(null)
         } catch (err: any) {
@@ -179,7 +190,14 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
         if (!confirm(`Are you sure you want to delete ${teacher.name}?`)) return
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 500));
+            const res = await fetch(`/api/admin/teachers/${teacher.id}`, {
+                method: "DELETE",
+                credentials: "include"
+            })
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}))
+                throw new Error(err.error || "Failed to delete")
+            }
             setTeachers(prev => prev.filter(t => t.id !== teacher.id));
             toast({
                 title: "Deleted",
@@ -201,7 +219,7 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
     )
 
     return (
-        <AppLayout sidebarItems={sidebarItems} userName="Dr. Ahmad Raza" userRole="admin">
+        <AppLayout sidebarItems={sidebarItems} userName={session?.user?.name || "Admin"} userRole="admin">
             <div className="flex flex-col gap-8 pb-8">
                 <AnimatedWrapper direction="down">
                     <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">

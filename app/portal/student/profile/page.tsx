@@ -26,16 +26,8 @@ import {
   UserCircle,
   ShieldCheck,
 } from "lucide-react"
-
-const sidebarItems = [
-  { href: "/portal/student", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/portal/student/grades", label: "My Grades", icon: BookOpen },
-  { href: "/portal/student/attendance", label: "Attendance", icon: CalendarCheck },
-  { href: "/portal/student/timetable", label: "Timetable", icon: Clock },
-  { href: "/portal/student/announcements", label: "Announcements", icon: Megaphone },
-  { href: "/portal/student/profile", label: "Profile", icon: User },
-  { href: "/portal/security", label: "Security", icon: ShieldCheck },
-]
+import { useSession } from "next-auth/react"
+import { STUDENT_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
 // Dummy student data
 const studentData = {
@@ -84,6 +76,14 @@ const studentData = {
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
+  const { data: session } = useSession()
+
+  // Merge session user data with static profile data
+  const displayData = {
+    ...studentData,
+    fullName: session?.user?.name || studentData.fullName,
+    email: session?.user?.email || studentData.email,
+  }
 
   useEffect(() => {
     // Simulate data fetching
@@ -94,7 +94,7 @@ export default function ProfilePage() {
   }, [])
 
   return (
-    <AppLayout sidebarItems={sidebarItems} userName="Ahmed Khan" userRole="student">
+    <AppLayout sidebarItems={sidebarItems} userName={session?.user?.name || studentData.fullName} userRole="student">
       <div className="flex flex-col gap-8 pb-8">
 
         {/* Header Section */}
@@ -135,25 +135,25 @@ export default function ProfilePage() {
                 ) : (
                   <>
                     <Avatar className="h-32 w-32 border-4 border-primary/20">
-                      <AvatarImage src={studentData.avatarUrl} alt={studentData.fullName} />
+                      <AvatarImage src={displayData.avatarUrl} alt={displayData.fullName} />
                       <AvatarFallback className="bg-primary text-3xl font-bold text-primary-foreground">
-                        {studentData.initials}
+                        {displayData.initials}
                       </AvatarFallback>
                     </Avatar>
                     <div className="text-center space-y-2">
-                      <h2 className="heading-3">{studentData.fullName}</h2>
+                      <h2 className="heading-3">{displayData.fullName}</h2>
                       <Badge variant="default" className="font-medium">
-                        {studentData.class} - {studentData.section}
+                        {displayData.class} - {displayData.section}
                       </Badge>
                       <p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
                         <Hash className="h-3 w-3" />
-                        Roll No: {studentData.rollNumber}
+                        Roll No: {displayData.rollNumber}
                       </p>
                     </div>
                     <Button
                       variant="outline"
                       className="w-full gap-2 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
-                      disabled
+                      onClick={() => alert("Photo upload will be available in the next release.")}
                     >
                       <UserCircle className="h-4 w-4" />
                       Change Photo

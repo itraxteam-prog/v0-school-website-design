@@ -53,6 +53,7 @@ import * as z from "zod"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { AppLayout } from "@/components/layout/app-layout"
 import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+import { useRouter } from "next/navigation"
 
 const classSchema = z.object({
     name: z.string().min(2, { message: "Class name must be at least 2 characters." }),
@@ -98,7 +99,7 @@ export function ClassesManager({ initialClasses, initialPeriods }: ClassesManage
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingClass, setEditingClass] = useState<ClassRecord | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
-
+    const router = useRouter()
     const { toast } = useToast()
 
     const form = useForm<ClassFormValues>({
@@ -114,7 +115,17 @@ export function ClassesManager({ initialClasses, initialPeriods }: ClassesManage
         setLoading(true)
         setError(null)
         try {
-            await new Promise(resolve => setTimeout(resolve, 500));
+            const res = await fetch("/api/admin/classes", { credentials: "include" });
+            if (!res.ok) throw new Error("Failed to fetch classes");
+            const result = await res.json();
+            const fetched = (result.data || []).map((c: any) => ({
+                id: c.id,
+                name: c.name,
+                teacher: c.teacher || "Unassigned",
+                room: c.room || "",
+                studentCount: c.studentCount ?? 0,
+            }));
+            setClasses(fetched);
         } catch (err: any) {
             setError(err.message || "An unexpected error occurred")
         } finally {
@@ -141,21 +152,43 @@ export function ClassesManager({ initialClasses, initialPeriods }: ClassesManage
     const onSubmit = async (data: ClassFormValues) => {
         setIsSubmitting(true)
         try {
-            await new Promise(resolve => setTimeout(resolve, 800));
+            let response: Response;
+            if (editingClass) {
+                response = await fetch(`/api/admin/classes/${editingClass.id}`, {
+                    method: "PATCH",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: data.name, teacherId: data.classTeacherId, subject: data.roomNo }),
+                });
+            } else {
+                response = await fetch("/api/admin/classes", {
+                    method: "POST",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: data.name, teacherId: data.classTeacherId, subject: data.roomNo }),
+                });
+            }
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error || "Operation failed");
+            }
+
+            const result = await response.json();
+            const saved = result.data;
 
             if (editingClass) {
                 setClasses(prev => prev.map(c =>
-                    (c.id === editingClass.id) ? { ...c, name: data.name, teacher: data.classTeacherId, room: data.roomNo } : c
+                    c.id === editingClass.id ? { ...c, name: saved.name, teacher: saved.teacher, room: data.roomNo } : c
                 ));
             } else {
-                const newClass: ClassRecord = {
-                    id: `cls-${Math.random().toString(36).substr(2, 4)}`,
-                    name: data.name,
-                    teacher: data.classTeacherId,
+                setClasses(prev => [{
+                    id: saved.id,
+                    name: saved.name,
+                    teacher: saved.teacher || "Unassigned",
                     room: data.roomNo,
                     studentCount: 0
-                };
-                setClasses(prev => [newClass, ...prev]);
+                }, ...prev]);
             }
 
             toast({
@@ -165,6 +198,7 @@ export function ClassesManager({ initialClasses, initialPeriods }: ClassesManage
 
             setIsModalOpen(false)
             setEditingClass(null)
+            router.refresh()
         } catch (err: any) {
             toast({
                 title: "Error",
@@ -177,15 +211,23 @@ export function ClassesManager({ initialClasses, initialPeriods }: ClassesManage
     }
 
     const handleDelete = async (classRecord: ClassRecord) => {
-        if (!confirm(`Are you sure you want to delete ${classRecord.name}?`)) return
+        if (!confirm(`Are you sure you want to delete ${classRecord.name}? This will also delete all associated grades and attendance records.`)) return
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 500));
+            const res = await fetch(`/api/admin/classes/${classRecord.id}`, {
+                method: "DELETE",
+                credentials: "include",
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error || "Failed to delete class");
+            }
             setClasses(prev => prev.filter(c => c.id !== classRecord.id));
             toast({
                 title: "Deleted",
                 description: "Class has been successfully removed.",
             })
+            router.refresh()
         } catch (err: any) {
             toast({
                 title: "Error",

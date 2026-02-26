@@ -30,15 +30,8 @@ import dynamic from "next/dynamic"
 const TeacherAttendanceTrendChart = dynamic(() => import("@/components/portal/teacher-reports-charts").then(mod => mod.TeacherAttendanceTrendChart), { ssr: false });
 const TeacherPerformanceOverviewChart = dynamic(() => import("@/components/portal/teacher-reports-charts").then(mod => mod.TeacherPerformanceOverviewChart), { ssr: false });
 
-const sidebarItems = [
-    { href: "/portal/teacher", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/portal/teacher/classes", label: "My Classes", icon: Users },
-    { href: "/portal/teacher/attendance", label: "Attendance", icon: CalendarCheck },
-    { href: "/portal/teacher/gradebook", label: "Gradebook", icon: BookMarked },
-    { href: "/portal/teacher/reports", label: "Reports", icon: FileBarChart },
-    { href: "/portal/teacher/profile", label: "Profile", icon: User },
-    { href: "/portal/security", label: "Security", icon: ShieldCheck },
-]
+import { useSession } from "next-auth/react"
+import { TEACHER_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
 interface TeacherReportsManagerProps {
     initialPerformanceData: any[];
@@ -55,13 +48,14 @@ export function TeacherReportsManager({
     const [selectedTerm, setSelectedTerm] = useState("term2")
     const [selectedClass, setSelectedClass] = useState("10a")
     const [searchQuery, setSearchQuery] = useState("")
+    const { data: session } = useSession()
 
     const filteredStudents = initialStudentReports.filter((s) =>
         s.name.toLowerCase().includes(searchQuery.toLowerCase())
     )
 
     return (
-        <AppLayout sidebarItems={sidebarItems} userName="Mr. Usman Sheikh" userRole="teacher">
+        <AppLayout sidebarItems={sidebarItems} userName={session?.user?.name || "Teacher"} userRole="teacher">
             <div className="flex flex-col gap-8 pb-8">
                 <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                     <div>

@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 
 import { TEACHER_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+import { useSession } from "next-auth/react"
 
 import { Suspense } from "react"
 
@@ -18,6 +19,7 @@ function TeacherSearchContent() {
     const searchParams = useSearchParams()
     const initialQuery = searchParams?.get("q") ?? ""
     const [loading, setLoading] = useState(true)
+    const { data: session } = useSession()
 
     useEffect(() => {
         setLoading(true)
@@ -40,7 +42,7 @@ function TeacherSearchContent() {
     )
 
     return (
-        <AppLayout sidebarItems={sidebarItems} userName="Mr. Usman Sheikh" userRole="Teacher">
+        <AppLayout sidebarItems={sidebarItems} userName={session?.user?.name || "Teacher"} userRole="teacher">
             <div className="flex flex-col gap-8 pb-8">
                 <AnimatedWrapper direction="down">
                     <div className="flex flex-col gap-2">

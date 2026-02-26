@@ -10,15 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 
-const sidebarItems = [
-  { href: "/portal/student", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/portal/student/grades", label: "My Grades", icon: BookOpen },
-  { href: "/portal/student/attendance", label: "Attendance", icon: CalendarCheck },
-  { href: "/portal/student/timetable", label: "Timetable", icon: Clock },
-  { href: "/portal/student/announcements", label: "Announcements", icon: Megaphone },
-  { href: "/portal/student/profile", label: "Profile", icon: User },
-  { href: "/portal/security", label: "Security", icon: ShieldCheck },
-]
+import { useSession } from "next-auth/react"
+import { STUDENT_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
@@ -200,6 +193,7 @@ export default function TimetablePage() {
   const [activeWeek, setActiveWeek] = useState("week1")
   const [loading, setLoading] = useState(true)
   const [currentDay, setCurrentDay] = useState<string>("")
+  const { data: session } = useSession()
 
   useEffect(() => {
     // Set current day on client side to avoid hydration mismatch
@@ -218,7 +212,7 @@ export default function TimetablePage() {
   const currentSchedule = activeWeek === "week1" ? week1Schedule : week2Schedule
 
   return (
-    <AppLayout sidebarItems={sidebarItems} userName="Ahmed Khan" userRole="student">
+    <AppLayout sidebarItems={sidebarItems} userName={session?.user?.name || "Student"} userRole="student">
       <div className="flex flex-col gap-8 pb-8">
 
         {/* Header Section */}

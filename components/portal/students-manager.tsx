@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useSession } from "next-auth/react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -97,6 +98,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingStudent, setEditingStudent] = useState<Student | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const { data: session } = useSession()
 
     const { toast } = useToast()
 
@@ -116,7 +118,10 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
         setLoading(true)
         setError(null)
         try {
-            await new Promise(resolve => setTimeout(resolve, 500));
+            const res = await fetch("/api/admin/students", { credentials: "include" })
+            if (!res.ok) throw new Error("Failed to fetch students")
+            const result = await res.json()
+            setStudents(result.data || [])
         } catch (err: any) {
             setError(err.message || "An unexpected error occurred")
         } finally {
@@ -142,18 +147,19 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
     const onSubmit = async (data: StudentFormValues) => {
         setIsSubmitting(true)
         try {
-            await new Promise(resolve => setTimeout(resolve, 800));
+            const url = editingStudent ? `/api/admin/students/${editingStudent.id}` : "/api/admin/students"
+            const method = editingStudent ? "PATCH" : "POST"
 
-            if (editingStudent) {
-                setStudents(prev => prev.map(s =>
-                    (s.id === editingStudent.id) ? { ...s, ...data } : s
-                ));
-            } else {
-                const newStudent: Student = {
-                    id: Math.random().toString(36).substr(2, 9),
-                    ...data
-                }
-                setStudents(prev => [newStudent, ...prev]);
+            const res = await fetch(url, {
+                method,
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ...data, email: `${data.rollNo.toLowerCase()}@school.edu` }) // Simulated email logic
+            })
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}))
+                throw new Error(err.error || "Operation failed")
             }
 
             toast({
@@ -161,6 +167,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                 description: `Student ${editingStudent ? 'updated' : 'added'} successfully.`,
             })
 
+            fetchStudents() // Refresh list
             setIsModalOpen(false)
             setEditingStudent(null)
         } catch (err: any) {
@@ -178,7 +185,14 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
         if (!confirm(`Are you sure you want to delete ${student.name}?`)) return
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 500));
+            const res = await fetch(`/api/admin/students/${student.id}`, {
+                method: "DELETE",
+                credentials: "include"
+            })
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}))
+                throw new Error(err.error || "Failed to delete")
+            }
             setStudents(prev => prev.filter(s => s.id !== student.id));
             toast({
                 title: "Deleted",
@@ -199,7 +213,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
     )
 
     return (
-        <AppLayout sidebarItems={sidebarItems} userName="Dr. Ahmad Raza" userRole="admin">
+        <AppLayout sidebarItems={sidebarItems} userName={session?.user?.name || "Admin"} userRole="admin">
             <div className="flex flex-col gap-8 pb-8">
                 <AnimatedWrapper direction="down">
                     <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">

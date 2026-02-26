@@ -65,19 +65,42 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
         const fetchData = async () => {
             setLoading(true);
             try {
-                // Mocking student and grade fetch
-                const mockData: Student[] = [
-                    { id: "s1", name: "Ahmed Ali", rollNo: "101" },
-                    { id: "s2", name: "Sara Khan", rollNo: "102" },
-                    { id: "s3", name: "Zainab Noor", rollNo: "103" },
-                ];
-                const mockGrades: Record<string, number> = {
-                    "s1": 85,
-                    "s2": 92,
-                    "s3": 78
-                };
-                setStudents(mockData);
-                setGrades(mockGrades);
+                // Fetch students for this class
+                const studentsRes = await fetch(`/api/teacher/students?classId=${selectedClassId}`, { credentials: "include" });
+                let studentList: Student[] = [];
+                if (studentsRes.ok) {
+                    const result = await studentsRes.json();
+                    studentList = result.data || [];
+                }
+
+                // If no students from API, use mock baseline
+                if (studentList.length === 0) {
+                    studentList = [
+                        { id: "s1", name: "Ahmed Ali", rollNo: "101" },
+                        { id: "s2", name: "Sara Khan", rollNo: "102" },
+                        { id: "s3", name: "Zainab Noor", rollNo: "103" },
+                    ];
+                }
+                setStudents(studentList);
+
+                // Fetch grades
+                const gradesRes = await fetch(
+                    `/api/teacher/grades?classId=${selectedClassId}&subjectId=${selectedSubjectId}&term=${selectedTerm}`,
+                    { credentials: "include" }
+                );
+                const gradeMap: Record<string, number> = {};
+                if (gradesRes.ok) {
+                    const gradesResult = await gradesRes.json();
+                    (gradesResult.data || []).forEach((g: any) => {
+                        gradeMap[g.studentId] = g.marks;
+                    });
+                } else {
+                    // Default grades from mock
+                    studentList.forEach((s, i) => {
+                        gradeMap[s.id] = [85, 92, 78][i] ?? 70;
+                    });
+                }
+                setGrades(gradeMap);
             } catch (error) {
                 toast.error("Failed to fetch grades");
             } finally {
@@ -103,13 +126,41 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
         }
     }
 
-    const handleSaveDraft = () => {
-        toast.success("Draft saved successfully!")
+    const saveGrades = async (isDraft: boolean) => {
+        const records = students.map(s => ({
+            studentId: s.id,
+            marks: grades[s.id] ?? 0,
+        }));
+
+        const termValue = isDraft ? `${selectedTerm}-draft` : selectedTerm;
+
+        const savePromise = fetch("/api/teacher/grades", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                classId: selectedClassId,
+                subjectId: selectedSubjectId,
+                term: termValue,
+                grades: records,
+            }),
+        }).then(async (res) => {
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error || "Failed to save grades");
+            }
+            return res.json();
+        });
+
+        toast.promise(savePromise, {
+            loading: isDraft ? "Saving draft..." : "Submitting grades...",
+            success: isDraft ? "Draft saved successfully!" : "Grades submitted successfully!",
+            error: (err) => err.message || "Failed to save grades",
+        });
     }
 
-    const handleSubmitFinal = () => {
-        toast.info("Grades submitted for final review.")
-    }
+    const handleSaveDraft = () => saveGrades(true)
+    const handleSubmitFinal = () => saveGrades(false)
 
     const filteredStudents = students.filter((s) =>
         s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

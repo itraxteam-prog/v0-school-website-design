@@ -12,16 +12,9 @@ import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import dynamic from "next/dynamic"
 const PerformanceTrendChart = dynamic(() => import("@/components/portal/dashboard-charts").then(mod => mod.PerformanceTrendChart), { ssr: false });
 import { Skeleton } from "@/components/ui/skeleton"
+import { useSession } from "next-auth/react"
 
-const sidebarItems = [
-  { href: "/portal/student", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/portal/student/grades", label: "My Grades", icon: BookOpen },
-  { href: "/portal/student/attendance", label: "Attendance", icon: CalendarCheck },
-  { href: "/portal/student/timetable", label: "Timetable", icon: Clock },
-  { href: "/portal/student/announcements", label: "Announcements", icon: Megaphone },
-  { href: "/portal/student/profile", label: "Profile", icon: User },
-  { href: "/portal/security", label: "Security", icon: ShieldCheck },
-]
+import { STUDENT_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
 // Internal API base path
 const API_BASE = "/api";
@@ -37,6 +30,7 @@ export default function GradesPage() {
   const [activeSubject, setActiveSubject] = useState("All Subjects")
   const [loading, setLoading] = useState(true)
   const [grades, setGrades] = useState<any[]>([])
+  const { data: session } = useSession()
 
   useEffect(() => {
     const fetchGrades = async () => {
@@ -67,7 +61,7 @@ export default function GradesPage() {
   )
 
   return (
-    <AppLayout sidebarItems={sidebarItems} userName="Ahmed Khan" userRole="Student">
+    <AppLayout sidebarItems={sidebarItems} userName={session?.user?.name || "Student"} userRole="Student">
       <div className="flex flex-col gap-8 pb-8">
 
         {/* Header Section */}
@@ -97,7 +91,7 @@ export default function GradesPage() {
                 </SelectContent>
               </Select>
 
-              <Button variant="outline" className="gap-2">
+              <Button variant="outline" className="gap-2" onClick={() => window.print()}>
                 <Download className="h-4 w-4" />
                 <span className="hidden sm:inline">Export PDF</span>
               </Button>

@@ -1,21 +1,28 @@
 import { TeacherProfileView } from "@/components/portal/teacher-profile-view"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
 
 export default async function TeacherProfilePage() {
-  // Baseline Mock Data
+  const session = await getServerSession(authOptions)
+
+  if (!session?.user) return null
+
+  // Baseline Mock Data merged with session data
   const teacherData = {
-    name: "Usman Sheikh",
-    designation: "Senior Mathematics Teacher",
-    id: "TCH-0042",
+    name: session.user.name || "Teacher",
+    email: session.user.email || "teacher@school.edu",
+    designation: "Senior Faculty",
+    id: `T-${session.user.id.slice(0, 4)}`.toUpperCase(),
     status: "Active",
-    dob: "12th October 1985",
-    gender: "Male",
-    qualifications: "M.Sc. Mathematics, B.Ed",
-    subjects: "Mathematics, Physics",
-    classes: "Grade 10-A, Grade 9-A",
-    joiningDate: "15th August 2018",
-    email: "usman.sheikh@pioneershigh.edu",
-    phone: "+92 300 9876543",
-    address: "House #123, Block-A, Gulberg III, Lahore",
+    dob: "Not Specified",
+    gender: "Not Specified",
+    qualifications: "M.A. / M.Sc.",
+    subjects: "General Academics",
+    classes: "Grade 10, Grade 9",
+    joiningDate: "August 2020",
+    phone: "+92 3XX XXXXXXX",
+    address: "Not provided",
   };
 
   return <TeacherProfileView teacherData={teacherData} />

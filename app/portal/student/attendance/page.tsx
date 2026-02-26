@@ -14,6 +14,9 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay,
 // Internal API base path
 const API_BASE = "/api";
 
+import { useSession } from "next-auth/react"
+import { STUDENT_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+
 type AttendanceStatus = "present" | "absent" | "late" | "none";
 
 const statusColors = {
@@ -22,16 +25,6 @@ const statusColors = {
   late: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
   none: "",
 }
-
-const sidebarItems = [
-  { href: "/portal/student", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/portal/student/grades", label: "My Grades", icon: BookOpen },
-  { href: "/portal/student/attendance", label: "Attendance", icon: CalendarCheck },
-  { href: "/portal/student/timetable", label: "Timetable", icon: Clock },
-  { href: "/portal/student/announcements", label: "Announcements", icon: Megaphone },
-  { href: "/portal/student/profile", label: "Profile", icon: User },
-  { href: "/portal/security", label: "Security", icon: ShieldCheck },
-]
 
 const months = [
   "January 2026",
@@ -134,6 +127,7 @@ export default function AttendancePage() {
   const [activeMonth, setActiveMonth] = useState("February 2026")
   const [loading, setLoading] = useState(true)
   const [attendanceRecords, setAttendanceRecords] = useState<any[]>([])
+  const { data: session } = useSession()
 
   useEffect(() => {
     const fetchAttendance = async () => {
@@ -162,7 +156,7 @@ export default function AttendancePage() {
   const stats = calculateStats(currentCalendar)
 
   return (
-    <AppLayout sidebarItems={sidebarItems} userName="Ahmed Khan" userRole="student">
+    <AppLayout sidebarItems={sidebarItems} userName={session?.user?.name || "Student"} userRole="student">
       <div className="flex flex-col gap-8 pb-8">
 
         {/* Header Section */}

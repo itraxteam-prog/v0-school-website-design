@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { LayoutDashboard, Users, CalendarCheck, BookMarked, FileBarChart, User, ClipboardList, PlusCircle, TrendingUp, UserCheck, FileText, ShieldCheck, Loader2 } from "lucide-react"
 import AppLayout from "@/components/layout/AppLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,11 +10,11 @@ import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/components/ui/use-toast"
 import dynamic from "next/dynamic"
 const ClassPerformanceChart = dynamic(() => import("@/components/portal/teacher-charts").then(mod => mod.ClassPerformanceChart), { ssr: false });
 
 import { TEACHER_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
-
 import { MOCK_TEACHER_DASHBOARD_DATA } from "@/utils/mocks"
 
 interface TeacherDashboardClientProps {
@@ -29,15 +30,37 @@ interface TeacherDashboardClientProps {
 export function TeacherDashboardClient({ user }: TeacherDashboardClientProps) {
     const [loading, setLoading] = useState(true)
     const [data, setData] = useState<any>(null)
+    const router = useRouter()
+    const { toast } = useToast()
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Simulate API delay
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                setData(MOCK_TEACHER_DASHBOARD_DATA);
+                const res = await fetch("/api/teacher/classes", { credentials: "include" });
+                if (res.ok) {
+                    const result = await res.json();
+                    const classes = result.data || [];
+                    // Build dashboard data from real classes
+                    setData({
+                        ...MOCK_TEACHER_DASHBOARD_DATA,
+                        stats: {
+                            ...MOCK_TEACHER_DASHBOARD_DATA.stats,
+                            totalClasses: classes.length,
+                            totalStudents: classes.reduce((acc: number, c: any) => acc + (c.studentCount || 0), 0),
+                        },
+                        classes: classes.map((c: any) => ({
+                            name: c.name,
+                            subject: c.subject || "General",
+                            students: c.studentCount,
+                        })),
+                    });
+                } else {
+                    // Fallback to mock data
+                    setData(MOCK_TEACHER_DASHBOARD_DATA);
+                }
             } catch (error: any) {
                 console.error("Failed to fetch dashboard data", error);
+                setData(MOCK_TEACHER_DASHBOARD_DATA);
             } finally {
                 setLoading(false);
             }
@@ -103,15 +126,26 @@ export function TeacherDashboardClient({ user }: TeacherDashboardClientProps) {
                         </CardHeader>
                         <CardContent>
                             <div className="flex flex-wrap gap-3">
-                                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2">
+                                <Button
+                                    className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2"
+                                    onClick={() => router.push('/portal/teacher/attendance')}
+                                >
                                     <CalendarCheck className="h-4 w-4" />
                                     Mark Attendance
                                 </Button>
-                                <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground flex items-center gap-2"
+                                    onClick={() => router.push('/portal/teacher/gradebook')}
+                                >
                                     <BookMarked className="h-4 w-4" />
                                     Add Grades
                                 </Button>
-                                <Button variant="outline" className="border-border hover:bg-muted flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    className="border-border hover:bg-muted flex items-center gap-2"
+                                    onClick={() => toast({ title: "Coming Soon", description: "Assignment creation module is under development." })}
+                                >
                                     <PlusCircle className="h-4 w-4" />
                                     Create Assignment
                                 </Button>

@@ -25,23 +25,17 @@ import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
-const sidebarItems = [
-    { href: "/portal/teacher", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/portal/teacher/classes", label: "My Classes", icon: Users },
-    { href: "/portal/teacher/attendance", label: "Attendance", icon: CalendarCheck },
-    { href: "/portal/teacher/gradebook", label: "Gradebook", icon: BookMarked },
-    { href: "/portal/teacher/reports", label: "Reports", icon: FileBarChart },
-    { href: "/portal/teacher/profile", label: "Profile", icon: User },
-    { href: "/portal/security", label: "Security", icon: ShieldCheck },
-]
+import { useSession } from "next-auth/react"
+import { TEACHER_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
 interface TeacherProfileViewProps {
     teacherData: any;
 }
 
 export function TeacherProfileView({ teacherData }: TeacherProfileViewProps) {
+    const { data: session } = useSession()
     return (
-        <AppLayout sidebarItems={sidebarItems} userName={teacherData.name} userRole="teacher">
+        <AppLayout sidebarItems={sidebarItems} userName={session?.user?.name || teacherData.name} userRole="teacher">
             <div className="flex flex-col gap-8 pb-8">
                 <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                     <div className="flex flex-col gap-1">

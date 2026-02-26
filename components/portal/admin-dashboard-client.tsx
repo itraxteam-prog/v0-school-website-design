@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Users, ShieldCheck, Mail, Calendar, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper";
+import { useSession } from "next-auth/react";
 
 interface User {
     id: string;
@@ -35,6 +36,7 @@ interface User {
 export function AdminDashboardClient() {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
+    const { data: session } = useSession();
 
     useEffect(() => {
         setLoading(true);
@@ -73,7 +75,7 @@ export function AdminDashboardClient() {
     }
 
     return (
-        <AppLayout sidebarItems={sidebarItems} userName="Admin" userRole="admin">
+        <AppLayout sidebarItems={sidebarItems} userName={session?.user?.name || "Admin"} userRole="admin">
             <div className="p-6 space-y-6">
                 <AnimatedWrapper direction="down">
                     <div className="flex flex-col gap-1 mb-6">
