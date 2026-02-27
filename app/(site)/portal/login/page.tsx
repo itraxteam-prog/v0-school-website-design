@@ -87,16 +87,14 @@ function LoginContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-burgundy-glow p-4 relative overflow-hidden">
-      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,white_0%,transparent_70%)]" />
-
+    <div className="min-h-screen flex items-center justify-center bg-white p-4 relative overflow-hidden">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="w-full max-w-md relative z-10"
       >
-        <Card className="glass-panel text-white shadow-2xl border-white/20">
+        <Card className="bg-white text-foreground shadow-xl border border-slate-200">
           <CardHeader className="space-y-1 text-center pb-2">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
@@ -109,61 +107,61 @@ function LoginContent() {
                 alt="The Pioneers High School Logo"
                 width={120}
                 height={120}
-                className="h-24 w-24 object-contain mx-auto drop-shadow-lg"
+                className="h-24 w-24 object-contain mx-auto"
               />
             </motion.div>
-            <CardTitle className="text-3xl font-bold tracking-tight font-serif">Welcome Back</CardTitle>
-            <CardDescription className="text-white/70">
+            <CardTitle className="text-3xl font-bold tracking-tight font-serif text-slate-900">Welcome Back</CardTitle>
+            <CardDescription className="text-slate-500">
               Enter your credentials to access the school portal
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-white/80">Email Address</Label>
+                <Label htmlFor="email" className="text-sm font-medium text-slate-700">Email Address</Label>
                 <div className="relative group">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-white/40 group-focus-within:text-white transition-colors" />
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-primary transition-colors" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="name@school.edu"
-                    className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:ring-white/40 focus:border-white/40 transition-all rounded-lg"
+                    className="pl-10 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-primary/20 focus:border-primary transition-all rounded-lg"
                     {...register("email")}
                     disabled={isLoading}
                   />
                 </div>
                 {errors.email && (
-                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-rose-300 mt-1 flex items-center gap-1">
+                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-destructive mt-1 flex items-center gap-1">
                     <AlertCircle className="h-3 w-3" /> {errors.email.message}
                   </motion.p>
                 )}
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-sm font-medium text-white/80">Password</Label>
-                  <Button variant="link" className="px-0 font-normal text-xs text-white/60 hover:text-white">
+                  <Label htmlFor="password" className="text-sm font-medium text-slate-700">Password</Label>
+                  <Button variant="link" className="px-0 font-normal text-xs text-primary hover:underline">
                     Forgot password?
                   </Button>
                 </div>
                 <div className="relative group">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-white/40 group-focus-within:text-white transition-colors" />
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-primary transition-colors" />
                   <Input
                     id="password"
                     type="password"
-                    className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:ring-white/40 focus:border-white/40 transition-all rounded-lg"
+                    className="pl-10 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-primary/20 focus:border-primary transition-all rounded-lg"
                     {...register("password")}
                     disabled={isLoading}
                   />
                 </div>
                 {errors.password && (
-                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-rose-300 mt-1 flex items-center gap-1">
+                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-destructive mt-1 flex items-center gap-1">
                     <AlertCircle className="h-3 w-3" /> {errors.password.message}
                   </motion.p>
                 )}
               </div>
               <Button
                 type="submit"
-                className="w-full bg-white text-primary hover:bg-white/90 font-bold h-11 transition-all shadow-xl rounded-lg active:scale-[0.98]"
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-bold h-11 transition-all shadow-md rounded-lg active:scale-[0.98]"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -174,10 +172,10 @@ function LoginContent() {
               </Button>
             </form>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4 border-t border-white/10 pt-6">
-            <div className="text-center text-sm text-white/60">
+          <CardFooter className="flex flex-col space-y-4 border-t border-slate-100 pt-6">
+            <div className="text-center text-sm text-slate-500">
               Don't have an account?{" "}
-              <Button variant="link" className="p-0 font-semibold text-white hover:underline transition-all">
+              <Button variant="link" className="p-0 font-semibold text-primary hover:underline transition-all">
                 Contact Administration
               </Button>
             </div>
