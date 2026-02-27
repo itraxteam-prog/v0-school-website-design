@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect, Suspense } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -86,75 +87,83 @@ function LoginContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-burgundy-glow p-4 relative overflow-hidden">
+      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,white_0%,transparent_70%)]" />
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md relative z-10"
       >
-        <Card className="border-slate-700 bg-slate-900/50 backdrop-blur-xl text-slate-100 shadow-2xl">
-          <CardHeader className="space-y-1 text-center">
+        <Card className="glass-panel text-white shadow-2xl border-white/20">
+          <CardHeader className="space-y-1 text-center pb-2">
             <motion.div
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 200, damping: 10 }}
-              className="mx-auto w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-indigo-500/20"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 200, damping: 15 }}
+              className="mx-auto mb-4"
             >
-              <Lock className="w-6 h-6 text-white" />
+              <Image
+                src="/images/logo-footer-hq.png"
+                alt="The Pioneers High School Logo"
+                width={120}
+                height={120}
+                className="h-24 w-24 object-contain mx-auto drop-shadow-lg"
+              />
             </motion.div>
-            <CardTitle className="text-3xl font-bold tracking-tight">Welcome Back</CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardTitle className="text-3xl font-bold tracking-tight font-serif">Welcome Back</CardTitle>
+            <CardDescription className="text-white/70">
               Enter your credentials to access the school portal
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-slate-300">Email Address</Label>
+                <Label htmlFor="email" className="text-sm font-medium text-white/80">Email Address</Label>
                 <div className="relative group">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-white/40 group-focus-within:text-white transition-colors" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="name@school.edu"
-                    className="pl-10 bg-slate-800/50 border-slate-700 text-slate-100 placeholder:text-slate-500 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                    className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:ring-white/40 focus:border-white/40 transition-all rounded-lg"
                     {...register("email")}
                     disabled={isLoading}
                   />
                 </div>
                 {errors.email && (
-                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-rose-400 mt-1 flex items-center gap-1">
+                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-rose-300 mt-1 flex items-center gap-1">
                     <AlertCircle className="h-3 w-3" /> {errors.email.message}
                   </motion.p>
                 )}
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-sm font-medium text-slate-300">Password</Label>
-                  <Button variant="link" className="px-0 font-normal text-xs text-indigo-400 hover:text-indigo-300">
+                  <Label htmlFor="password" className="text-sm font-medium text-white/80">Password</Label>
+                  <Button variant="link" className="px-0 font-normal text-xs text-white/60 hover:text-white">
                     Forgot password?
                   </Button>
                 </div>
                 <div className="relative group">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-white/40 group-focus-within:text-white transition-colors" />
                   <Input
                     id="password"
                     type="password"
-                    className="pl-10 bg-slate-800/50 border-slate-700 text-slate-100 placeholder:text-slate-500 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                    className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:ring-white/40 focus:border-white/40 transition-all rounded-lg"
                     {...register("password")}
                     disabled={isLoading}
                   />
                 </div>
                 {errors.password && (
-                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-rose-400 mt-1 flex items-center gap-1">
+                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-rose-300 mt-1 flex items-center gap-1">
                     <AlertCircle className="h-3 w-3" /> {errors.password.message}
                   </motion.p>
                 )}
               </div>
               <Button
                 type="submit"
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold h-11 transition-all shadow-lg shadow-indigo-500/20"
+                className="w-full bg-white text-primary hover:bg-white/90 font-bold h-11 transition-all shadow-xl rounded-lg active:scale-[0.98]"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -165,10 +174,10 @@ function LoginContent() {
               </Button>
             </form>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4 border-t border-slate-800 pt-6">
-            <div className="text-center text-sm text-slate-400">
+          <CardFooter className="flex flex-col space-y-4 border-t border-white/10 pt-6">
+            <div className="text-center text-sm text-white/60">
               Don't have an account?{" "}
-              <Button variant="link" className="p-0 font-semibold text-indigo-400 hover:text-indigo-300">
+              <Button variant="link" className="p-0 font-semibold text-white hover:underline transition-all">
                 Contact Administration
               </Button>
             </div>
