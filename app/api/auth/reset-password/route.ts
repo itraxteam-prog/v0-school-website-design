@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 const resetPasswordSchema = z.object({
     token: z.string().min(1),
     password: z.string().min(8),
-});
+}).strict();
 
 export async function POST(req: NextRequest) {
     logRequest(req, "API_RESET_PASSWORD");
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
         // 2. Rate limit (use "reset" bucket)
         const ip = getIP(req);
-        const { success } = await rateLimit(ip, "reset");
+        const { success } = await rateLimit(ip, "password-reset-request");
 
         if (!success) {
             return NextResponse.json(

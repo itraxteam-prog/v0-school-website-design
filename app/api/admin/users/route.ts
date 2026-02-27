@@ -1,20 +1,20 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireRole, handleAuthError } from "@/lib/auth-guard"
+import { handleAuthError } from "@/lib/auth-guard"
 import { withTimeout } from "@/lib/server-timeout"
 import { rateLimit, getIP } from "@/lib/rate-limit"
 import { logAudit } from "@/lib/audit"
+import { assertAdmin } from "@/lib/assert-role"
 import { z } from "zod"
 
 export async function GET() {
     try {
-        await requireRole("ADMIN");
+        await assertAdmin();
 
         const users = await withTimeout(
             prisma.user.findMany({
                 select: {
                     id: true,
-                    name: true,
                     email: true,
                     role: true,
                     status: true,
@@ -34,12 +34,12 @@ export async function GET() {
 
 export async function DELETE(req: NextRequest) {
     try {
-        const session = await requireRole("ADMIN");
+        const session = await assertAdmin();
 
         const ip = getIP(req)
         const { success } = await rateLimit(ip, "mutation")
         if (!success) {
-            return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+            throw new Error("TOO_MANY_REQUESTS");
         }
 
         const { searchParams } = new URL(req.url)
@@ -47,11 +47,14 @@ export async function DELETE(req: NextRequest) {
 
         const schema = z.object({
             id: z.string().uuid()
-        })
+        }).strict()
 
         const parsed = schema.safeParse({ id })
         if (!parsed.success) {
-            return NextResponse.json({ error: "Invalid ID format" }, { status: 400 })
+            return NextResponse.json({
+                error: "Invalid request",
+                details: parsed.error.flatten()
+            }, { status: 400 })
         }
 
         await withTimeout((async () => {

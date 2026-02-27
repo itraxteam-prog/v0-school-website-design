@@ -13,7 +13,8 @@ export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma),
     session: {
         strategy: "jwt",
-        maxAge: 30 * 24 * 60 * 60,
+        maxAge: 24 * 60 * 60, // 24 hours
+        updateAge: 60 * 60, // 1 hour
     },
     pages: {
         signIn: "/portal/login",
@@ -69,7 +70,6 @@ export const authOptions: NextAuthOptions = {
                     email: user.email,
                     role: user.role,
                     status: user.status,
-                    name: user.name,
                 };
             },
         }),
@@ -80,11 +80,8 @@ export const authOptions: NextAuthOptions = {
             if (user) {
                 token.id = user.id;
                 token.role = user.role;
+                token.email = user.email;
                 token.status = user.status;
-
-                if (user.status === "SUSPENDED") {
-                    token.suspended = true;
-                }
             }
 
             return token;
@@ -92,9 +89,10 @@ export const authOptions: NextAuthOptions = {
 
         async session({ session, token }) {
             if (token && session.user) {
-                session.user.id = token.id;
-                session.user.role = token.role;
-                session.user.status = token.status;
+                session.user.id = token.id as string;
+                session.user.role = token.role as Role;
+                session.user.email = token.email as string;
+                session.user.status = token.status as UserStatus;
             }
 
             return session;

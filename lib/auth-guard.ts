@@ -71,6 +71,10 @@ export async function requireActiveUser(context?: AuthContext) {
 
 import { logger } from "./logger";
 
+import * as Sentry from "@sentry/nextjs";
+
+const isProd = process.env.NODE_ENV === "production";
+
 export function handleAuthError(error: unknown) {
     if (error instanceof Error) {
         if (error.message === "UNAUTHORIZED") {
@@ -95,14 +99,23 @@ export function handleAuthError(error: unknown) {
                 message: "Account suspended"
             }, { status: 403 });
         }
+        if (error.message === "TOO_MANY_REQUESTS") {
+            return NextResponse.json({
+                success: false,
+                error: "Too Many Requests",
+                message: "Rate limit exceeded. Please try again later."
+            }, { status: 429 });
+        }
     }
 
-    logger.error({ error }, "API Route Error");
+    // Log the full error for internal tracking
+    logger.error({ error }, "API_ROUTE_ERROR");
+    Sentry.captureException(error);
 
     return NextResponse.json({
         success: false,
         error: "Internal Server Error",
-        message: error instanceof Error ? error.message : "An unexpected error occurred"
+        message: isProd ? "An unexpected error occurred" : (error instanceof Error ? error.message : "Internal Server Error")
     }, { status: 500 });
 }
 

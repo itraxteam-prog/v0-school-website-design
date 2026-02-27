@@ -1,27 +1,19 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
+import { assertAdmin } from "@/lib/assert-role"
+import { handleAuthError } from "@/lib/auth-guard"
 
 const createClassSchema = z.object({
     name: z.string().min(2),
     teacherId: z.string().min(1),
     roomNo: z.string().optional().default(""),
     subject: z.string().optional().default(""),
-})
+}).strict()
 
 export async function GET() {
     try {
-        const session = await getServerSession(authOptions)
-
-        if (!session?.user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
-
-        if (session.user.role !== "ADMIN") {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-        }
+        await assertAdmin();
 
         const classes = await prisma.class.findMany({
             include: {
@@ -44,28 +36,22 @@ export async function GET() {
 
         return NextResponse.json({ data: formatted })
     } catch (error: any) {
-        console.error("[GET /api/admin/classes]", error)
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+        return handleAuthError(error);
     }
 }
 
 export async function POST(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions)
-
-        if (!session?.user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
-
-        if (session.user.role !== "ADMIN") {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-        }
+        const session = await assertAdmin();
 
         const body = await req.json()
         const parsed = createClassSchema.safeParse(body)
 
         if (!parsed.success) {
-            return NextResponse.json({ error: "Invalid request", details: parsed.error.format() }, { status: 400 })
+            return NextResponse.json({
+                error: "Invalid request",
+                details: parsed.error.flatten()
+            }, { status: 400 })
         }
 
         const { name, teacherId, subject } = parsed.data
@@ -106,7 +92,6 @@ export async function POST(req: NextRequest) {
             },
         }, { status: 201 })
     } catch (error: any) {
-        console.error("[POST /api/admin/classes]", error)
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+        return handleAuthError(error);
     }
 }

@@ -1,10 +1,19 @@
 import { prisma } from "@/lib/prisma";
-import { requireRole, handleAuthError } from "@/lib/auth-guard";
+import { handleAuthError } from "@/lib/auth-guard";
 import { NextResponse } from "next/server";
+import { assertAdmin } from "@/lib/assert-role";
+import { z } from "zod";
+
+const settingSchema = z.object({
+    key: z.string().min(1),
+    value: z.string(),
+}).strict();
+
+const settingsArraySchema = z.array(settingSchema);
 
 export async function GET() {
     try {
-        await requireRole("ADMIN");
+        await assertAdmin();
         const settings = await prisma.setting.findMany();
         return NextResponse.json(settings);
     } catch (error) {
@@ -14,12 +23,27 @@ export async function GET() {
 
 export async function POST(req: Request) {
     try {
-        await requireRole("ADMIN");
+        await assertAdmin();
         const body = await req.json();
-        
-        // Body should be an array of {key, value} or a single object
+
+        let validated;
         if (Array.isArray(body)) {
-            const updates = body.map(s => 
+            validated = settingsArraySchema.safeParse(body);
+        } else {
+            validated = settingSchema.safeParse(body);
+        }
+
+        if (!validated.success) {
+            return NextResponse.json({
+                error: "Validation Failed",
+                details: validated.error.flatten()
+            }, { status: 400 });
+        }
+
+        const data = validated.data;
+
+        if (Array.isArray(data)) {
+            const updates = data.map(s =>
                 prisma.setting.upsert({
                     where: { key: s.key },
                     update: { value: s.value },
@@ -27,11 +51,11 @@ export async function POST(req: Request) {
                 })
             );
             await Promise.all(updates);
-        } else if (body.key && body.value) {
+        } else {
             await prisma.setting.upsert({
-                where: { key: body.key },
-                update: { value: body.value },
-                create: { key: body.key, value: body.value }
+                where: { key: data.key },
+                update: { value: data.value },
+                create: { key: data.key, value: data.value }
             });
         }
 

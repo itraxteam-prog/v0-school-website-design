@@ -1,11 +1,25 @@
 import { prisma } from "@/lib/prisma";
-import { requireRole, handleAuthError } from "@/lib/auth-guard";
+import { handleAuthError } from "@/lib/auth-guard";
 import { NextResponse } from "next/server";
 import { DayOfWeek } from "@prisma/client";
+import { assertAdmin } from "@/lib/assert-role";
+import { z } from "zod";
+
+const timetableSchema = z.object({
+    dayOfWeek: z.nativeEnum(DayOfWeek),
+    startTime: z.string().regex(/^([01]\d|2[0-3]):?([0-5]\d)$/, "Invalid start time format (HH:mm)"),
+    endTime: z.string().regex(/^([01]\d|2[0-3]):?([0-5]\d)$/, "Invalid end time format (HH:mm)"),
+    subjectName: z.string().min(1),
+    room: z.string().optional().nullable(),
+    classId: z.string().uuid(),
+    teacherId: z.string().uuid(),
+    term: z.string().optional().nullable(),
+    academicYear: z.string().optional().nullable(),
+}).strict();
 
 export async function GET() {
     try {
-        await requireRole("ADMIN");
+        await assertAdmin();
 
         const timetable = await prisma.timetable.findMany({
             include: {
@@ -26,26 +40,19 @@ export async function GET() {
 
 export async function POST(req: Request) {
     try {
-        await requireRole("ADMIN");
+        await assertAdmin();
         const body = await req.json();
-        const { dayOfWeek, startTime, endTime, subjectName, room, classId, teacherId, term, academicYear } = body;
 
-        if (!dayOfWeek || !startTime || !endTime || !subjectName || !classId || !teacherId) {
-            return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+        const validated = timetableSchema.safeParse(body);
+        if (!validated.success) {
+            return NextResponse.json({
+                error: "Validation Failed",
+                details: validated.error.flatten()
+            }, { status: 400 });
         }
 
         const entry = await prisma.timetable.create({
-            data: {
-                dayOfWeek: dayOfWeek as DayOfWeek,
-                startTime,
-                endTime,
-                subjectName,
-                room,
-                classId,
-                teacherId,
-                term,
-                academicYear,
-            },
+            data: validated.data,
         });
 
         return NextResponse.json(entry);

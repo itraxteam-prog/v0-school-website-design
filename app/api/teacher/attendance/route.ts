@@ -3,18 +3,19 @@ import { prisma } from "@/lib/prisma"
 import { requireRole, handleAuthError } from "@/lib/auth-guard"
 import { withTimeout } from "@/lib/server-timeout"
 import { z } from "zod"
+import { rateLimit, getIP } from "@/lib/rate-limit"
 
 const attendanceRecordSchema = z.object({
     studentId: z.string(),
     status: z.enum(["present", "absent", "late", "excused"]),
     remarks: z.string().optional().default(""),
-})
+}).strict()
 
 const postSchema = z.object({
     classId: z.string(),
     date: z.string(), // ISO date string
     records: z.array(attendanceRecordSchema),
-})
+}).strict()
 
 export async function GET(req: NextRequest) {
     try {
@@ -54,6 +55,13 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
     try {
         const session = await requireRole("TEACHER");
+        const ip = getIP(req);
+
+        // Rate limiting for attendance submission
+        const limitResult = await rateLimit(ip, "attendance-submit");
+        if (!limitResult.success) {
+            throw new Error("TOO_MANY_REQUESTS");
+        }
 
         const body = await req.json()
         const parsed = postSchema.safeParse(body)
