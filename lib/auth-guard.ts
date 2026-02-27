@@ -38,14 +38,15 @@ export async function requireRole(roles: Role | Role[], context?: AuthContext) {
         throw new Error("SUSPENDED");
     }
 
-    const userRole = session.user.role as Role;
+    const userRole = (session.user.role as string)?.toUpperCase();
 
     if (Array.isArray(roles)) {
-        if (!roles.includes(userRole)) {
+        const upperRoles = roles.map(r => r.toUpperCase());
+        if (!upperRoles.includes(userRole)) {
             throw new Error("FORBIDDEN");
         }
     } else {
-        if (userRole !== roles) {
+        if (userRole !== roles.toUpperCase()) {
             throw new Error("FORBIDDEN");
         }
     }

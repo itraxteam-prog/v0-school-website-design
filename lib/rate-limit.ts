@@ -83,36 +83,46 @@ export async function rateLimit(
     identifier: string,
     bucket: RateLimitBucket
 ): Promise<RateLimitResponse> {
-    let result;
+    try {
+        let result;
 
-    switch (bucket) {
-        case "login":
-            result = await loginLimiter.limit(identifier);
-            break;
-        case "register":
-            result = await registerLimiter.limit(identifier);
-            break;
-        case "password-reset-request":
-        case "reset":
-            result = await passwordResetLimiter.limit(identifier);
-            break;
-        case "announcement-create":
-        case "announcement":
-            result = await announcementLimiter.limit(identifier);
-            break;
-        case "attendance-submit":
-        case "attendance":
-            result = await attendanceLimiter.limit(identifier);
-            break;
-        default:
-            result = await generalLimiter.limit(`${bucket}:${identifier}`);
+        switch (bucket) {
+            case "login":
+                result = await loginLimiter.limit(identifier);
+                break;
+            case "register":
+                result = await registerLimiter.limit(identifier);
+                break;
+            case "password-reset-request":
+            case "reset":
+                result = await passwordResetLimiter.limit(identifier);
+                break;
+            case "announcement-create":
+            case "announcement":
+                result = await announcementLimiter.limit(identifier);
+                break;
+            case "attendance-submit":
+            case "attendance":
+                result = await attendanceLimiter.limit(identifier);
+                break;
+            default:
+                result = await generalLimiter.limit(`${bucket}:${identifier}`);
+        }
+
+        return {
+            success: result.success,
+            limit: result.limit,
+            remaining: result.remaining,
+        };
+    } catch (error) {
+        console.error("Rate limit error (permitting request):", error);
+        // Fail-open: allow request if rate limiter is down
+        return {
+            success: true,
+            limit: 10,
+            remaining: 9,
+        };
     }
-
-    return {
-        success: result.success,
-        limit: result.limit,
-        remaining: result.remaining,
-    };
 }
 
 /**
