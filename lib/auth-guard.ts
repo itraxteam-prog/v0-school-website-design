@@ -69,36 +69,57 @@ export async function requireActiveUser(context?: AuthContext) {
     return session;
 }
 
+import { logger } from "./logger";
+
 export function handleAuthError(error: unknown) {
     if (error instanceof Error) {
         if (error.message === "UNAUTHORIZED") {
-            return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
+            return NextResponse.json({
+                success: false,
+                error: "Unauthorized",
+                message: "Authentication required"
+            }, { status: 401 });
         }
         if (error.message === "FORBIDDEN") {
-            return NextResponse.json({ error: "Forbidden access" }, { status: 403 });
+            return NextResponse.json({
+                success: false,
+                error: "Forbidden",
+                message: "You do not have permission to perform this action"
+            }, { status: 403 });
         }
         if (error.message === "SUSPENDED") {
-            return NextResponse.json({ error: "Account suspended", code: "SUSPENDED" }, { status: 403 });
+            return NextResponse.json({
+                success: false,
+                error: "Suspended",
+                code: "SUSPENDED",
+                message: "Account suspended"
+            }, { status: 403 });
         }
     }
 
-    console.error("Auth Guard Error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    logger.error({ error }, "API Route Error");
+
+    return NextResponse.json({
+        success: false,
+        error: "Internal Server Error",
+        message: error instanceof Error ? error.message : "An unexpected error occurred"
+    }, { status: 500 });
 }
 
 export function handlePagesAuthError(res: NextApiResponse, error: unknown) {
     if (error instanceof Error) {
         if (error.message === "UNAUTHORIZED") {
-            return res.status(401).json({ error: "Unauthorized access" });
+            return res.status(401).json({ success: false, error: "Unauthorized access" });
         }
         if (error.message === "FORBIDDEN") {
-            return res.status(403).json({ error: "Forbidden access" });
+            return res.status(403).json({ success: false, error: "Forbidden access" });
         }
         if (error.message === "SUSPENDED") {
-            return res.status(403).json({ error: "Account suspended", code: "SUSPENDED" });
+            return res.status(403).json({ success: false, error: "Account suspended", code: "SUSPENDED" });
         }
     }
 
-    console.error("Auth Guard Error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    logger.error({ error }, "Pages API Error");
+    return res.status(500).json({ success: false, error: "Internal server error" });
 }
+

@@ -1,45 +1,40 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { requireRole, handleAuthError } from "@/lib/auth-guard"
+import { withTimeout } from "@/lib/server-timeout"
 import { rateLimit, getIP } from "@/lib/rate-limit"
 import { logAudit } from "@/lib/audit"
 import { z } from "zod"
 
 export async function GET() {
     try {
-        const session = await getServerSession(authOptions)
+        await requireRole("ADMIN");
 
-        if (!session?.user || session.user.role !== "ADMIN") {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-        }
-
-        const users = await prisma.user.findMany({
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                role: true,
-                status: true,
-                createdAt: true,
-            },
-            orderBy: { createdAt: "desc" },
-        })
+        const users = await withTimeout(
+            prisma.user.findMany({
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    role: true,
+                    status: true,
+                    createdAt: true,
+                },
+                orderBy: { createdAt: "desc" },
+            }),
+            8000,
+            "GET /api/admin/users"
+        );
 
         return NextResponse.json(users)
     } catch (error: any) {
-        console.error("[GET /api/admin/users]", error)
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+        return handleAuthError(error);
     }
 }
 
 export async function DELETE(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions)
-
-        if (!session?.user || session.user.role !== "ADMIN") {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-        }
+        const session = await requireRole("ADMIN");
 
         const ip = getIP(req)
         const { success } = await rateLimit(ip, "mutation")
@@ -59,21 +54,23 @@ export async function DELETE(req: NextRequest) {
             return NextResponse.json({ error: "Invalid ID format" }, { status: 400 })
         }
 
-        await prisma.user.delete({
-            where: { id: parsed.data.id },
-        })
+        await withTimeout((async () => {
+            await prisma.user.delete({
+                where: { id: parsed.data.id },
+            })
 
-        await logAudit({
-            userId: session.user.id,
-            action: "DELETE_USER",
-            entity: "User",
-            entityId: parsed.data.id,
-            metadata: { deletedBy: session.user.email },
-        })
+            await logAudit({
+                userId: session.user.id,
+                action: "DELETE_USER",
+                entity: "User",
+                entityId: parsed.data.id,
+                metadata: { deletedBy: session.user.email },
+            })
+        })(), 8000, "DELETE /api/admin/users");
 
         return NextResponse.json({ success: true })
     } catch (error: any) {
-        console.error("[DELETE /api/admin/users]", error)
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+        return handleAuthError(error);
     }
 }
+

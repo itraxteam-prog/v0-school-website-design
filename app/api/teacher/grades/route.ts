@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { requireRole, handleAuthError } from "@/lib/auth-guard"
+import { withTimeout } from "@/lib/server-timeout"
 import { z } from "zod"
 
 const gradeEntrySchema = z.object({
@@ -18,15 +18,7 @@ const postSchema = z.object({
 
 export async function GET(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions)
-
-        if (!session?.user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
-
-        if (session.user.role !== "TEACHER") {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-        }
+        const session = await requireRole("TEACHER");
 
         const { searchParams } = new URL(req.url)
         const classId = searchParams.get("classId")
@@ -37,34 +29,27 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: "classId, subjectId, and term are required" }, { status: 400 })
         }
 
-        // Verify teacher owns class
-        const cls = await prisma.class.findFirst({ where: { id: classId, teacherId: session.user.id } })
-        if (!cls) {
-            return NextResponse.json({ error: "Class not found or access denied" }, { status: 404 })
-        }
+        const data = await withTimeout((async () => {
+            // Verify teacher owns class
+            const cls = await prisma.class.findFirst({ where: { id: classId, teacherId: session.user.id } })
+            if (!cls) {
+                throw new Error("FORBIDDEN");
+            }
 
-        const grades = await prisma.grade.findMany({
-            where: { classId, subjectId, term },
-        })
+            return prisma.grade.findMany({
+                where: { classId, subjectId, term },
+            })
+        })(), 8000, "GET /api/teacher/grades");
 
-        return NextResponse.json({ data: grades })
+        return NextResponse.json({ data })
     } catch (error: any) {
-        console.error("[GET /api/teacher/grades]", error)
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+        return handleAuthError(error);
     }
 }
 
 export async function POST(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions)
-
-        if (!session?.user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
-
-        if (session.user.role !== "TEACHER") {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-        }
+        const session = await requireRole("TEACHER");
 
         const body = await req.json()
         const parsed = postSchema.safeParse(body)
@@ -75,38 +60,39 @@ export async function POST(req: NextRequest) {
 
         const { classId, subjectId, term, grades } = parsed.data
 
-        // Verify teacher owns this class
-        const cls = await prisma.class.findFirst({ where: { id: classId, teacherId: session.user.id } })
-        if (!cls) {
-            return NextResponse.json({ error: "Class not found or access denied" }, { status: 403 })
-        }
+        await withTimeout((async () => {
+            // Verify teacher owns this class
+            const cls = await prisma.class.findFirst({ where: { id: classId, teacherId: session.user.id } })
+            if (!cls) {
+                throw new Error("FORBIDDEN");
+            }
 
-        // Delete existing grades for this class/subject/term and recreate
-        await prisma.grade.deleteMany({ where: { classId, subjectId, term } })
-
-        await prisma.grade.createMany({
-            data: grades.map((g) => ({
-                studentId: g.studentId,
-                classId,
-                subjectId,
-                term,
-                marks: g.marks,
-            })),
-        })
-
-        // Audit log
-        await prisma.auditLog.create({
-            data: {
-                userId: session.user.id,
-                action: "SAVE_GRADES",
-                entity: "Grade",
-                metadata: { classId, subjectId, term, count: grades.length },
-            },
-        })
+            // Delete existing grades for this class/subject/term and recreate
+            await prisma.$transaction([
+                prisma.grade.deleteMany({ where: { classId, subjectId, term } }),
+                prisma.grade.createMany({
+                    data: grades.map((g) => ({
+                        studentId: g.studentId,
+                        classId,
+                        subjectId,
+                        term,
+                        marks: g.marks,
+                    })),
+                }),
+                prisma.auditLog.create({
+                    data: {
+                        userId: session.user.id,
+                        action: "SAVE_GRADES",
+                        entity: "Grade",
+                        metadata: { classId, subjectId, term, count: grades.length },
+                    },
+                })
+            ]);
+        })(), 8000, "POST /api/teacher/grades");
 
         return NextResponse.json({ success: true, message: "Grades saved successfully" })
     } catch (error: any) {
-        console.error("[POST /api/teacher/grades]", error)
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+        return handleAuthError(error);
     }
 }
+

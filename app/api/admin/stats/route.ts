@@ -1,11 +1,12 @@
 import { prisma } from "@/lib/prisma";
-import { requireRole, handleAuthError } from "@/lib/auth-guard";
+import { requireRole } from "@/lib/auth-guard";
 import { NextResponse } from "next/server";
+import { unstable_cache } from "next/cache";
+import { withTimeout } from "@/lib/server-timeout";
+import { logger } from "@/lib/logger";
 
-export async function GET() {
-    try {
-        await requireRole("ADMIN");
-
+const getCachedAdminStats = unstable_cache(
+    async () => {
         const [
             totalStudents,
             totalTeachers,
@@ -31,7 +32,7 @@ export async function GET() {
             })
         ]);
 
-        return NextResponse.json({
+        return {
             stats: {
                 totalStudents,
                 totalTeachers,
@@ -39,8 +40,33 @@ export async function GET() {
                 attendanceToday: attendanceToday > 0 ? `${Math.round((attendanceToday / totalStudents) * 100)}%` : "0%"
             },
             recentLogs
-        });
-    } catch (error) {
-        return handleAuthError(error);
+        };
+    },
+    ['admin-stats'],
+    { revalidate: 60, tags: ['stats'] }
+);
+
+export async function GET() {
+    try {
+        await requireRole("ADMIN");
+
+        const data = await withTimeout(
+            getCachedAdminStats(),
+            8000,
+            "GET /api/admin/stats"
+        );
+
+        return NextResponse.json(data);
+    } catch (error: any) {
+        logger.error({
+            error: error.message,
+            context: "GET /api/admin/stats"
+        }, "Stats fetch failed");
+
+        return NextResponse.json(
+            { error: "Internal Server Error", message: error.message },
+            { status: error.status || 500 }
+        );
     }
 }
+

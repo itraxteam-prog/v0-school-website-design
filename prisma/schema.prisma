@@ -63,6 +63,7 @@ model User {
   announcements       Announcement[]       @relation("AnnouncementAuthor")
   profile             Profile?
   grades              Grade[]
+  submissions         Submission[]
 
 }
 
@@ -135,6 +136,8 @@ model Assignment {
   classId     String
   class       Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
   
+  submissions Submission[]
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -203,6 +206,21 @@ model Attendance {
   @@index([studentId, date])
 }
 
+model Submission {
+  id           String           @id @default(uuid())
+  content      String           @db.Text
+  status       SubmissionStatus
+  submittedAt  DateTime         @default(now())
+  studentId    String
+  assignmentId String
+  student      User             @relation(fields: [studentId], references: [id])
+  assignment   Assignment       @relation(fields: [assignmentId], references: [id])
+  grade        Grade?
+
+  @@index([studentId])
+  @@index([assignmentId])
+}
+
 model Grade {
   id        String   @id @default(uuid())
   marks     Float
@@ -212,6 +230,9 @@ model Grade {
   student   User     @relation(fields: [studentId], references: [id])
   classId   String
   class     Class    @relation(fields: [classId], references: [id])
+
+  submissionId String?     @unique
+  submission   Submission? @relation(fields: [submissionId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -271,3 +292,9 @@ enum TargetRole {
   ALL
 }
 
+enum SubmissionStatus {
+  PENDING
+  SUBMITTED
+  LATE
+  GRADED
+}

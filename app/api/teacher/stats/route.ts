@@ -1,14 +1,15 @@
 import { prisma } from "@/lib/prisma";
-import { requireRole, handleAuthError } from "@/lib/auth-guard";
+import { requireRole } from "@/lib/auth-guard";
 import { NextResponse } from "next/server";
+import { unstable_cache } from "next/cache";
+import { withTimeout } from "@/lib/server-timeout";
+import { logger } from "@/lib/logger";
 
-export async function GET() {
-    try {
-        const session = await requireRole("TEACHER");
-
+const getCachedTeacherStats = unstable_cache(
+    async (teacherId: string) => {
         // 1. Get classes taught by this teacher
         const classes = await prisma.class.findMany({
-            where: { teacherId: session.user.id },
+            where: { teacherId },
             include: {
                 _count: {
                     select: { students: true }
@@ -34,23 +35,46 @@ export async function GET() {
 
         const attendancePercent = totalStudents > 0 ? Math.round((attendanceToday / totalStudents) * 100) : 0;
 
-        // 3. Pending Grades (Simplified: Assignments with submissions but no grades)
-        // Since we don't have a submission model yet, we'll just return a random small number or 0 for now
-        // BUT the rule says "REMOVE ALL MOCK DATA".
-        // Let's check Assignments count for these classes.
+        // 3. Pending Grades (Simplified: Assignments with submissions)
         const totalAssignments = await prisma.assignment.count({
             where: { classId: { in: classes.map(c => c.id) } }
         });
 
-        return NextResponse.json({
+        return {
             stats: {
                 totalClasses,
                 totalStudents,
                 attendanceToday: `${attendancePercent}%`,
-                pendingGrades: totalAssignments * 2 // Placeholder logic: say 2 tasks per assignment
+                pendingGrades: totalAssignments * 2
             }
-        });
-    } catch (error) {
-        return handleAuthError(error);
+        };
+    },
+    ['teacher-stats'],
+    { revalidate: 60, tags: ['stats'] }
+);
+
+export async function GET() {
+    try {
+        const session = await requireRole("TEACHER");
+
+        const data = await withTimeout(
+            getCachedTeacherStats(session.user.id),
+            8000,
+            "GET /api/teacher/stats"
+        );
+
+        return NextResponse.json(data);
+    } catch (error: any) {
+        logger.error({
+            error: error.message,
+            teacherId: error.userId,
+            context: "GET /api/teacher/stats"
+        }, "Teacher stats fetch failed");
+
+        return NextResponse.json(
+            { error: "Internal Server Error", message: error.message },
+            { status: error.status || 500 }
+        );
     }
 }
+

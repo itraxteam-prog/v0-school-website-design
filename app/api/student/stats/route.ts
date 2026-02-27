@@ -1,18 +1,19 @@
 import { prisma } from "@/lib/prisma";
-import { requireRole, handleAuthError } from "@/lib/auth-guard";
+import { requireRole } from "@/lib/auth-guard";
 import { NextResponse } from "next/server";
+import { unstable_cache } from "next/cache";
+import { withTimeout } from "@/lib/server-timeout";
+import { logger } from "@/lib/logger";
 
-export async function GET() {
-    try {
-        const session = await requireRole("STUDENT");
-
+const getCachedStudentStats = unstable_cache(
+    async (studentId: string) => {
         const [grades, attendance, announcements, assignments] = await Promise.all([
             prisma.grade.findMany({
-                where: { studentId: session.user.id },
+                where: { studentId },
                 orderBy: { term: "desc" }
             }),
             prisma.attendance.findMany({
-                where: { studentId: session.user.id }
+                where: { studentId }
             }),
             prisma.announcement.findMany({
                 where: {
@@ -27,7 +28,7 @@ export async function GET() {
             prisma.assignment.findMany({
                 where: {
                     class: {
-                        students: { some: { id: session.user.id } }
+                        students: { some: { id: studentId } }
                     },
                     dueDate: { gte: new Date() }
                 },
@@ -39,7 +40,6 @@ export async function GET() {
         // Performance calculation
         const totalMarks = grades.reduce((acc, g) => acc + g.marks, 0);
         const performance = grades.length > 0 ? Math.round(totalMarks / grades.length) + "%" : "N/A";
-
 
         // Attendance calculation
         const presentCount = attendance.filter(a => a.status === "PRESENT").length;
@@ -75,7 +75,7 @@ export async function GET() {
             score: Math.round(stats.total / stats.count)
         }));
 
-        return NextResponse.json({
+        return {
             stats: {
                 performance,
                 attendance: attendancePercent,
@@ -98,9 +98,35 @@ export async function GET() {
             })),
             performanceTrend,
             subjectComparison
-        });
+        };
+    },
+    ['student-stats'],
+    { revalidate: 60, tags: ['stats'] }
+);
 
-    } catch (error) {
-        return handleAuthError(error);
+export async function GET() {
+    try {
+        const session = await requireRole("STUDENT");
+
+        const data = await withTimeout(
+            getCachedStudentStats(session.user.id),
+            8000,
+            "GET /api/student/stats"
+        );
+
+        return NextResponse.json(data);
+
+    } catch (error: any) {
+        logger.error({
+            error: error.message,
+            studentId: error.userId,
+            context: "GET /api/student/stats"
+        }, "Student stats fetch failed");
+
+        return NextResponse.json(
+            { error: "Internal Server Error", message: error.message },
+            { status: error.status || 500 }
+        );
     }
 }
+

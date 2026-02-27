@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import { env } from "./env";
+import { logger } from "./logger";
 
 const transporter = nodemailer.createTransport({
   host: env.SMTP_HOST,
@@ -12,32 +13,47 @@ const transporter = nodemailer.createTransport({
 });
 
 /**
- * Standardized email sending function for production.
- * Throws a controlled error and does not leak internal details.
+ * Internal async sender that does not block the main execution flow.
+ * Handles its own errors and logs them.
  */
-export async function sendEmail(
-  to: string,
-  subject: string,
-  html: string
-): Promise<void> {
+async function sendAsync(options: nodemailer.SendMailOptions) {
   try {
     await transporter.sendMail({
       from: env.SMTP_FROM,
-      to,
-      subject,
-      html,
+      ...options,
     });
+    logger.info({ to: options.to, subject: options.subject }, "Email sent successfully");
   } catch (error) {
-    console.error("Email delivery error:", error);
-    // Throw standard controlled error without leaking internal details
-    throw new Error("Failed to send email. Please try again later.");
+    logger.error({
+      error: error instanceof Error ? error.message : "Unknown error",
+      to: options.to,
+      subject: options.subject,
+      stack: error instanceof Error ? error.stack : undefined
+    }, "Email delivery failed");
   }
+}
+
+/**
+ * Standardized email sending function for production.
+ * This is NON-BLOCKING (fire-and-forget).
+ */
+export function sendEmail(
+  to: string,
+  subject: string,
+  html: string
+): void {
+  // Fire and forget - do not await
+  sendAsync({ to, subject, html }).catch((err) => {
+    // This catch is a safeguard for the async function itself, 
+    // though sendAsync already has a try/catch.
+    logger.fatal({ err }, "Unhandled promise rejection in email sender");
+  });
 }
 
 /**
  * Helper to send password reset emails.
  */
-export async function sendPasswordResetEmail(email: string, token: string) {
+export function sendPasswordResetEmail(email: string, token: string) {
   const resetUrl = `${env.NEXTAUTH_URL}/portal/reset-password?token=${token}`;
 
   const html = `
@@ -51,13 +67,13 @@ export async function sendPasswordResetEmail(email: string, token: string) {
     </div>
   `;
 
-  return sendEmail(email, "Reset your password", html);
+  sendEmail(email, "Reset your password", html);
 }
 
 /**
  * Helper to send verification emails.
  */
-export async function sendVerificationEmail(email: string, token: string) {
+export function sendVerificationEmail(email: string, token: string) {
   const verifyUrl = `${env.NEXTAUTH_URL}/portal/verify-email?token=${token}`;
 
   const html = `
@@ -70,5 +86,6 @@ export async function sendVerificationEmail(email: string, token: string) {
     </div>
   `;
 
-  return sendEmail(email, "Verify your email", html);
+  sendEmail(email, "Verify your email", html);
 }
+

@@ -1,17 +1,28 @@
 import { prisma } from "@/lib/prisma";
-import { requireRole, handleAuthError } from "@/lib/auth-guard";
+import { requireRole } from "@/lib/auth-guard";
 import { NextResponse } from "next/server";
+import { unstable_cache } from "next/cache";
+import { withTimeout } from "@/lib/server-timeout";
+import { logger } from "@/lib/logger";
 
-export async function GET() {
-    try {
-        await requireRole("ADMIN");
-
-        // 1. Attendance Trends (Real query, but dataset might be small)
-        // We'll group by month
-        const attendance = await prisma.attendance.findMany({
-            select: { date: true, status: true },
-            orderBy: { date: "asc" }
-        });
+const getCachedAnalytics = unstable_cache(
+    async () => {
+        const [attendance, grades, students, subjectGrades] = await Promise.all([
+            prisma.attendance.findMany({
+                select: { date: true, status: true },
+                orderBy: { date: "asc" }
+            }),
+            prisma.grade.findMany({
+                select: { marks: true }
+            }),
+            prisma.user.findMany({
+                where: { role: "STUDENT" },
+                select: { createdAt: true }
+            }),
+            prisma.grade.findMany({
+                select: { subjectId: true, marks: true }
+            })
+        ]);
 
         const attendanceMap: Record<string, { count: number, present: number }> = {};
         attendance.forEach(a => {
@@ -26,12 +37,6 @@ export async function GET() {
             attendance: Math.round((stats.present / stats.count) * 100)
         })).slice(-6);
 
-        // 2. Grade Distribution
-        const grades = await prisma.grade.findMany({
-            select: { marks: true }
-        });
-
-
         const gradeCounts: Record<string, number> = { 'A+': 0, 'A': 0, 'B': 0, 'C': 0, 'D': 0, 'F': 0 };
         grades.forEach(g => {
             const grade = g.marks >= 90 ? "A+" : g.marks >= 80 ? "A" : g.marks >= 70 ? "B" : g.marks >= 60 ? "C" : g.marks >= 50 ? "D" : "F";
@@ -39,14 +44,7 @@ export async function GET() {
             if (gradeCounts[key] !== undefined) gradeCounts[key]++;
         });
 
-
         const gradeDistributionData = Object.entries(gradeCounts).map(([grade, count]) => ({ grade, count }));
-
-        // 3. Enrollment Stats (By year of creation)
-        const students = await prisma.user.findMany({
-            where: { role: "STUDENT" },
-            select: { createdAt: true }
-        });
 
         const enrollmentMap: Record<string, number> = {};
         students.forEach(s => {
@@ -59,11 +57,6 @@ export async function GET() {
             students: count
         })).sort((a, b) => parseInt(a.year) - parseInt(b.year));
 
-        // 4. Subject Performance
-        const subjectGrades = await prisma.grade.findMany({
-            select: { subjectId: true, marks: true }
-        });
-
         const subjectMap: Record<string, { total: number, count: number }> = {};
         subjectGrades.forEach(g => {
             if (!subjectMap[g.subjectId]) subjectMap[g.subjectId] = { total: 0, count: 0 };
@@ -71,13 +64,12 @@ export async function GET() {
             subjectMap[g.subjectId].count++;
         });
 
-
         const subjectPerformanceData = Object.entries(subjectMap).map(([subject, stats]) => ({
             subject,
             avg: Math.round(stats.total / stats.count)
         }));
 
-        return NextResponse.json({
+        return {
             attendanceData: attendanceData.length > 0 ? attendanceData : [
                 { month: 'Jan', attendance: 95 }, { month: 'Feb', attendance: 92 }
             ],
@@ -86,8 +78,34 @@ export async function GET() {
                 { year: '2025', students: students.length }
             ],
             subjectPerformance: subjectPerformanceData
-        });
-    } catch (error) {
-        return handleAuthError(error);
+        };
+    },
+    ['admin-analytics'],
+    { revalidate: 60, tags: ['analytics'] }
+);
+
+export async function GET() {
+    try {
+        const session = await requireRole("ADMIN");
+
+        const data = await withTimeout(
+            getCachedAnalytics(),
+            8000,
+            "GET /api/admin/analytics"
+        );
+
+        return NextResponse.json(data);
+    } catch (error: any) {
+        logger.error({
+            error: error.message,
+            stack: error.stack,
+            context: "GET /api/admin/analytics"
+        }, "Analytics fetch failed");
+
+        return NextResponse.json(
+            { error: "Internal Server Error", message: error.message },
+            { status: error.status || 500 }
+        );
     }
 }
+
