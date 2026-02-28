@@ -19,6 +19,26 @@ const nextConfig = {
         config.cache = false;
         return config;
     },
+    async rewrites() {
+        return [
+            {
+                source: "/login",
+                destination: "/portal/login",
+            },
+            {
+                source: "/register",
+                destination: "/portal/register",
+            },
+            {
+                source: "/forgot-password",
+                destination: "/portal/forgot-password",
+            },
+            {
+                source: "/reset-password",
+                destination: "/portal/reset-password",
+            },
+        ];
+    },
     async headers() {
         return [
             {

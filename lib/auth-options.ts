@@ -34,8 +34,8 @@ export const authOptions: NextAuthOptions = {
         updateAge: 60 * 60, // 1 hour
     },
     pages: {
-        signIn: "/portal/login",
-        error: "/portal/login",
+        signIn: "/login",
+        error: "/login",
     },
     providers: [
         CredentialsProvider({
@@ -103,6 +103,19 @@ export const authOptions: NextAuthOptions = {
         }),
     ],
     callbacks: {
+        async redirect({ url, baseUrl }) {
+            // Allows relative callback URLs
+            if (url.startsWith("/")) return `${baseUrl}${url}`
+            // Allows callback URLs on the same origin
+            else if (new URL(url).origin === baseUrl) {
+                // If it's just the home page, redirect to /portal
+                if (url === baseUrl || url === `${baseUrl}/`) {
+                    return `${baseUrl}/portal`
+                }
+                return url
+            }
+            return `${baseUrl}/portal`
+        },
         async jwt({ token, user }) {
             // Task 5: Ensure JWT payload only contains allowed fields
             if (user) {
@@ -134,22 +147,21 @@ export const authOptions: NextAuthOptions = {
         },
 
         async session({ session, token }) {
-            // Task 1 & 5: Populate session only with allowed fields
-            // If token is empty (invalidated in jwt callback), session will be empty
-            if (token && token.id && session.user) {
-                session.user.id = token.id as string;
-                session.user.role = token.role as Role;
-                session.user.email = token.email as string;
-
-                const status = (token.accountStatus || "ACTIVE") as UserStatus;
-                session.user.accountStatus = status;
-                // Part 2: Guaranteed availability for UI types
-                session.user.status = status;
-            } else {
-                return null as unknown as Session; // Force logout with safe cast
+            // Updated to ensure UI receives correct field as requested
+            if (token && session.user) {
+                return {
+                    ...session,
+                    user: {
+                        ...session.user,
+                        id: token.id as string,
+                        role: token.role as Role,
+                        email: token.email as string,
+                        status: token.accountStatus as UserStatus,
+                        accountStatus: token.accountStatus as UserStatus,
+                    },
+                };
             }
-
-            return session;
+            return null as unknown as Session;
         },
     },
     secret: process.env.NEXTAUTH_SECRET,

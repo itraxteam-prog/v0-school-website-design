@@ -11,9 +11,9 @@ const quickLinks = [
 ]
 
 const portalLinks = [
-  { href: "/portal/login", label: "Student Portal" },
-  { href: "/portal/login", label: "Teacher Portal" },
-  { href: "/portal/login", label: "Admin Portal" },
+  { href: "/login", label: "Student Portal" },
+  { href: "/login", label: "Teacher Portal" },
+  { href: "/login", label: "Admin Portal" },
 ]
 
 const socialLinks = [

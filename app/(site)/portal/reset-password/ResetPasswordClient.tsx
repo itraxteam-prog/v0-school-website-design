@@ -52,7 +52,7 @@ function ResetPasswordInner() {
             if (!res.ok) throw new Error(data.error ?? "Reset failed.")
 
             setSuccess(true)
-            setTimeout(() => router.push("/portal/login"), 3000)
+            setTimeout(() => router.push("/login"), 3000)
         } catch (err: any) {
             setError(err.message || "Failed to reset password")
         } finally {
@@ -70,7 +70,7 @@ function ResetPasswordInner() {
                         <p className="text-sm text-muted-foreground">
                             This password reset link is invalid or has expired. Please request a new one.
                         </p>
-                        <Link href="/portal/forgot-password">
+                        <Link href="/forgot-password">
                             <Button variant="default" className="mt-2 bg-burgundy hover:bg-burgundy/90">Request New Link</Button>
                         </Link>
                     </CardContent>
@@ -194,7 +194,7 @@ function ResetPasswordInner() {
                                     Your password has been updated. Redirecting to login...
                                 </p>
                             </div>
-                            <Link href="/portal/login" className="w-full">
+                            <Link href="/login" className="w-full">
                                 <Button className="w-full bg-primary hover:bg-primary/90">Login Now</Button>
                             </Link>
                         </div>

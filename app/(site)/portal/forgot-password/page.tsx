@@ -116,7 +116,7 @@ export default function ForgotPasswordPage() {
                                 </div>
                             )}
 
-                            <Link href="/portal/login" className="mt-4">
+                            <Link href="/login" className="mt-4">
                                 <Button variant="ghost" className="text-sm">
                                     Back to Login
                                 </Button>
@@ -127,7 +127,7 @@ export default function ForgotPasswordPage() {
                     {!submitted && (
                         <div className="text-center">
                             <Link
-                                href="/portal/login"
+                                href="/login"
                                 className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"
                             >
                                 <ArrowLeft className="h-4 w-4" />
