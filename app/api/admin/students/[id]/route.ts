@@ -3,8 +3,11 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { requireServerAuth } from "@/lib/server-auth";
+import { Role } from "@prisma/client";
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+    const user = await requireServerAuth([Role.ADMIN]);
     try {
         const session = await getServerSession(authOptions)
 

@@ -2,6 +2,8 @@ export const runtime = "nodejs";
 import { prisma } from "@/lib/prisma";
 import { requireRole, handleAuthError } from "@/lib/auth-guard";
 import { NextResponse } from "next/server";
+import { requireServerAuth } from "@/lib/server-auth";
+import { Role } from "@prisma/client";
 
 export async function GET() {
     try {
@@ -34,7 +36,7 @@ export async function GET() {
             role: student.role,
             status: student.status,
             createdAt: student.createdAt,
-            
+
             // Profile fields
             rollNumber: student.profile?.rollNumber,
             dateOfBirth: student.profile?.dateOfBirth,
@@ -46,14 +48,14 @@ export async function GET() {
             city: student.profile?.city,
             postalCode: student.profile?.postalCode,
             phone: student.profile?.phone,
-            
+
             // Guardian
             guardianName: student.profile?.guardianName,
             guardianPhone: student.profile?.guardianPhone,
             guardianEmail: student.profile?.guardianEmail,
             guardianRelation: student.profile?.guardianRelation,
             guardianOccupation: student.profile?.guardianOccupation,
-            
+
             // Academic
             academicHistory: student.profile?.academicHistory,
             classes: student.classes,
@@ -69,6 +71,7 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
+    const user = await requireServerAuth([Role.STUDENT]);
     try {
         const session = await requireRole("STUDENT");
         const body = await req.json();

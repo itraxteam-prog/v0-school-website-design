@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import { assertAdmin } from "@/lib/assert-role"
 import { handleAuthError } from "@/lib/auth-guard"
+import { requireServerAuth } from "@/lib/server-auth";
+import { Role } from "@prisma/client";
 
 const studentSchema = z.object({
     name: z.string().min(2),
@@ -75,6 +77,7 @@ export async function GET(req: NextRequest) {
 
 
 export async function POST(req: NextRequest) {
+    const user = await requireServerAuth([Role.ADMIN]);
     try {
         await assertAdmin();
 

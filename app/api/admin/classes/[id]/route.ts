@@ -4,6 +4,8 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
+import { requireServerAuth } from "@/lib/server-auth";
+import { Role } from "@prisma/client";
 
 const updateClassSchema = z.object({
     name: z.string().min(2).optional(),
@@ -12,6 +14,7 @@ const updateClassSchema = z.object({
 })
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+    const user = await requireServerAuth([Role.ADMIN]);
     try {
         const session = await getServerSession(authOptions)
 
@@ -84,6 +87,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+    const user = await requireServerAuth([Role.ADMIN]);
     try {
         const session = await getServerSession(authOptions)
 

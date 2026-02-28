@@ -4,6 +4,8 @@ import { requireRole, handleAuthError } from "@/lib/auth-guard";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { requireServerAuth } from "@/lib/server-auth";
+import { Role } from "@prisma/client";
 
 export async function GET(req: Request) {
     try {
@@ -33,6 +35,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+    const user = await requireServerAuth([Role.TEACHER, Role.ADMIN]);
     try {
         await requireRole("TEACHER");
         const session = await getServerSession(authOptions);

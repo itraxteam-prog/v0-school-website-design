@@ -6,6 +6,8 @@ import { logAudit } from "@/lib/audit"
 import { assertAdmin } from "@/lib/assert-role"
 import { handleAuthError } from "@/lib/auth-guard"
 import { z } from "zod"
+import { requireServerAuth } from "@/lib/server-auth";
+import { Role } from "@prisma/client";
 
 const updateRoleSchema = z.object({
     userId: z.string(),
@@ -13,6 +15,7 @@ const updateRoleSchema = z.object({
 }).strict()
 
 export async function POST(req: NextRequest) {
+    const user = await requireServerAuth([Role.ADMIN]);
     try {
         const session = await assertAdmin();
 

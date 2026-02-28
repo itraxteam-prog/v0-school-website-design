@@ -7,6 +7,8 @@ import { rateLimit, getIP } from "@/lib/rate-limit"
 import { logAudit } from "@/lib/audit"
 import { assertAdmin } from "@/lib/assert-role"
 import { z } from "zod"
+import { requireServerAuth } from "@/lib/server-auth";
+import { Role } from "@prisma/client";
 
 export async function GET() {
     try {
@@ -34,6 +36,7 @@ export async function GET() {
 }
 
 export async function DELETE(req: NextRequest) {
+    const user = await requireServerAuth([Role.ADMIN]);
     try {
         const session = await assertAdmin();
 

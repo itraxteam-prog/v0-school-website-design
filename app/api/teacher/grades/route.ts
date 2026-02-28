@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma"
 import { requireRole, handleAuthError } from "@/lib/auth-guard"
 import { withTimeout } from "@/lib/server-timeout"
 import { z } from "zod"
+import { requireServerAuth } from "@/lib/server-auth";
+import { Role } from "@prisma/client";
 
 const gradeEntrySchema = z.object({
     studentId: z.string(),
@@ -49,6 +51,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+    const user = await requireServerAuth([Role.TEACHER, Role.ADMIN]);
     try {
         const session = await requireRole("TEACHER");
 
