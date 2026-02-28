@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth-options";
 import { Role } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next";
+import { isSessionValid } from "./verify-active-session";
 
 type AuthContext =
     | { req: NextApiRequest; res: NextApiResponse }
@@ -18,7 +19,7 @@ export async function requireAuth(context?: AuthContext) {
         throw new Error("UNAUTHORIZED");
     }
 
-    if (session.user.status !== "ACTIVE") {
+    if (!(await isSessionValid(session.user.id))) {
         throw new Error("SUSPENDED");
     }
 
@@ -34,7 +35,7 @@ export async function requireRole(roles: Role | Role[], context?: AuthContext) {
         throw new Error("UNAUTHORIZED");
     }
 
-    if (session.user.status !== "ACTIVE") {
+    if (!(await isSessionValid(session.user.id))) {
         throw new Error("SUSPENDED");
     }
 
@@ -63,7 +64,7 @@ export async function requireActiveUser(context?: AuthContext) {
         throw new Error("UNAUTHORIZED");
     }
 
-    if (session.user.status !== "ACTIVE") {
+    if (!(await isSessionValid(session.user.id))) {
         throw new Error("SUSPENDED");
     }
 

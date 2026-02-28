@@ -1,4 +1,5 @@
-import { NextAuthOptions } from "next-auth";
+import { NextAuthOptions, Session } from "next-auth";
+import { JWT } from "next-auth/jwt";
 export const runtime = "nodejs";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
@@ -9,11 +10,13 @@ import { UserStatus, Role } from "@prisma/client";
 import { logger } from "@/lib/logger";
 
 
+import { logAudit } from "@/lib/audit";
+
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma),
     session: {
         strategy: "jwt",
-        maxAge: 24 * 60 * 60, // 24 hours
+        maxAge: 24 * 60 * 60, // Default 24 hours
         updateAge: 60 * 60, // 1 hour
     },
     pages: {
@@ -34,6 +37,16 @@ export const authOptions: NextAuthOptions = {
                 const limitResult = await rateLimit(ip, "login");
 
                 if (!limitResult.success) {
+                    // Task 3: Log security event on rate limit
+                    await logAudit({
+                        action: "LOGIN_RATE_LIMITED",
+                        entity: "USER",
+                        metadata: {
+                            email: credentials?.email,
+                            ip,
+                            timestamp: new Date().toISOString()
+                        }
+                    });
                     throw new Error("TOO_MANY_REQUESTS");
                 }
                 if (!credentials?.email || !credentials?.password) {
@@ -69,6 +82,7 @@ export const authOptions: NextAuthOptions = {
                     id: user.id,
                     email: user.email,
                     role: user.role,
+                    accountStatus: user.status,
                     status: user.status,
                 };
             },
@@ -76,23 +90,49 @@ export const authOptions: NextAuthOptions = {
     ],
     callbacks: {
         async jwt({ token, user }) {
-            // On first login
+            // Task 5: Ensure JWT payload only contains allowed fields
             if (user) {
-                token.id = user.id;
-                token.role = user.role;
-                token.email = user.email;
-                token.status = user.status;
+                return {
+                    id: user.id,
+                    role: user.role,
+                    email: user.email,
+                    accountStatus: user.accountStatus,
+                    status: user.accountStatus, // Guaranteed mapping
+                };
+            }
+
+            // Task 4: Invalidate ADMIN sessions after 8 hours
+            if (token.role === "ADMIN" && token.iat) {
+                const now = Math.floor(Date.now() / 1000);
+                const eightHours = 8 * 60 * 60;
+                if (now - (token.iat as number) > eightHours) {
+                    // Return an invalid token structure that triggers logout in session callback
+                    return {
+                        id: "",
+                        role: "STUDENT",
+                        accountStatus: "SUSPENDED",
+                        status: "SUSPENDED",
+                    } as JWT;
+                }
             }
 
             return token;
         },
 
         async session({ session, token }) {
-            if (token && session.user) {
+            // Task 1 & 5: Populate session only with allowed fields
+            // If token is empty (invalidated in jwt callback), session will be empty
+            if (token && token.id && session.user) {
                 session.user.id = token.id as string;
                 session.user.role = token.role as Role;
                 session.user.email = token.email as string;
-                session.user.status = token.status as UserStatus;
+
+                const status = (token.accountStatus || "ACTIVE") as UserStatus;
+                session.user.accountStatus = status;
+                // Part 2: Guaranteed availability for UI types
+                session.user.status = status;
+            } else {
+                return null as unknown as Session; // Force logout with safe cast
             }
 
             return session;

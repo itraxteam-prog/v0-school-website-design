@@ -11,11 +11,14 @@ export async function middleware(req: NextRequest) {
 
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
+  // Middleware is now JWT-only to support Edge runtime.
+  // Account status (SUSPENDED) and session invalidation checks
+  // are moved to server components and API routes.
+
   // Root URL
   if (pathname === "/") {
     if (!token) return NextResponse.redirect(new URL("/portal/login", req.url), 307);
     const role = (token.role as string)?.toLowerCase() || "student";
-    // Ensure we don't redirect to /portal/ directly if there's no role
     const targetUrl = role === "admin" || role === "teacher" || role === "student" ? `/portal/${role}` : "/portal/login";
     return NextResponse.redirect(new URL(targetUrl, req.url), 307);
   }
@@ -29,8 +32,8 @@ export async function middleware(req: NextRequest) {
     ) return NextResponse.next();
 
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    if (token.status === "SUSPENDED") return NextResponse.json({ error: "Account suspended" }, { status: 403 });
 
+    // Check role-based access
     if (
       (pathname.startsWith("/api/register") ||
         pathname.startsWith("/api/admin") ||
@@ -43,12 +46,6 @@ export async function middleware(req: NextRequest) {
     }
 
     return NextResponse.next();
-  }
-
-  // Suspended users
-  if (token?.status === "SUSPENDED") {
-    if (pathname === "/portal/login" && req.nextUrl.searchParams.get("error") === "suspended") return NextResponse.next();
-    return NextResponse.redirect(new URL("/portal/login?error=suspended", req.url), 307);
   }
 
   // Prevent redirect loop
@@ -66,32 +63,30 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // RBAC portal checks with case-insensitivity and existence check
+  // RBAC portal checks 
   const userRole = (token.role as string)?.toUpperCase();
+
+  let response = NextResponse.next();
 
   if (pathname.startsWith("/portal/admin") && userRole !== "ADMIN") {
     const role = userRole?.toLowerCase() || "student";
-    if (role === "admin") return NextResponse.redirect(new URL("/portal/login", req.url), 307); // Should not happen but safety
-    return NextResponse.redirect(new URL(`/portal/${role}?error=AccessDenied`, req.url), 307);
-  }
-  if (pathname.startsWith("/portal/teacher") && userRole !== "TEACHER") {
+    response = NextResponse.redirect(new URL(`/portal/${role}?error=AccessDenied`, req.url), 307);
+  } else if (pathname.startsWith("/portal/teacher") && userRole !== "TEACHER") {
     const role = userRole?.toLowerCase() || "student";
-    if (role === "teacher") return NextResponse.redirect(new URL("/portal/login", req.url), 307);
-    return NextResponse.redirect(new URL(`/portal/${role}?error=AccessDenied`, req.url), 307);
-  }
-  if (pathname.startsWith("/portal/student") && userRole !== "STUDENT") {
+    response = NextResponse.redirect(new URL(`/portal/${role}?error=AccessDenied`, req.url), 307);
+  } else if (pathname.startsWith("/portal/student") && userRole !== "STUDENT") {
     const role = userRole?.toLowerCase() || "admin";
-    if (role === "student") return NextResponse.redirect(new URL("/portal/login", req.url), 307);
-    return NextResponse.redirect(new URL(`/portal/${role}?error=AccessDenied`, req.url), 307);
+    response = NextResponse.redirect(new URL(`/portal/${role}?error=AccessDenied`, req.url), 307);
   }
 
-  // Legacy security route
-  if (pathname === "/portal/security") {
-    const role = (token.role as string)?.toLowerCase() || "student";
-    return NextResponse.redirect(new URL(`/portal/${role}/security`, req.url), 307);
+  // Task 6: Prevent back-button reentry by adding anti-caching headers for portal pages
+  if (pathname.startsWith("/portal")) {
+    response.headers.set("Cache-Control", "no-store, max-age=0, must-revalidate");
+    response.headers.set("Pragma", "no-cache");
+    response.headers.set("Expires", "0");
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {
