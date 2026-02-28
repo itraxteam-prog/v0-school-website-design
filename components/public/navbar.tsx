@@ -17,7 +17,7 @@ export function Navbar() {
   const pathname = usePathname()
   const { user } = useAuth()
 
-  const portalHref = user ? `/portal/${user.role.toLowerCase()}` : "/login"
+  const portalHref = user ? `/portal/${user.role.toLowerCase()}` : "/portal/login"
   const portalLabel = "Login"
 
   return (

@@ -14,6 +14,15 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 
+function getRedirectPathByRole(role: string): string {
+  switch (role) {
+    case "ADMIN": return "/portal/admin";
+    case "TEACHER": return "/portal/teacher";
+    case "STUDENT": return "/portal/student";
+    default: return "/portal/login";
+  }
+}
+
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -25,8 +34,16 @@ function LoginContent() {
   // Handle existing session
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
-      const role = (session.user as any).role?.toLowerCase() || "student";
-      router.replace(`/portal/${role}`);
+      const user = session.user as { role?: string; status?: string };
+      if (user.status !== "ACTIVE") {
+        toast.error("Account Suspended", {
+          description: "Your account is not active. Please contact administration."
+        });
+        return;
+      }
+
+      const role = user.role || "STUDENT";
+      router.replace(getRedirectPathByRole(role));
     }
   }, [status, session, router]);
 

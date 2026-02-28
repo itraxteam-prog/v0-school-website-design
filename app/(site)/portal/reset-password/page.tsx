@@ -10,13 +10,13 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 
 function ResetPasswordContent() {
     const router = useRouter();
     const params = useSearchParams();
-    const token = params.get("token") || "";
+    const token = params?.get("token") || "";
     const [showPassword, setShowPassword] = useState(false);
     const [success, setSuccess] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
