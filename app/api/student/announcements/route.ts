@@ -1,3 +1,4 @@
+export const runtime = "nodejs";
 import { prisma } from "@/lib/prisma";
 import { requireRole, handleAuthError } from "@/lib/auth-guard";
 import { NextResponse } from "next/server";
@@ -34,3 +35,4 @@ export async function GET() {
         return handleAuthError(error);
     }
 }
+

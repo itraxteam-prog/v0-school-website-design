@@ -1,6 +1,5 @@
 import { NextAuthOptions, Session } from "next-auth";
 import { JWT } from "next-auth/jwt";
-export const runtime = "nodejs";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
@@ -12,8 +11,23 @@ import { logger } from "@/lib/logger";
 
 import { logAudit } from "@/lib/audit";
 
+const isProd = process.env.NODE_ENV === "production";
+
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma),
+    // @ts-ignore - trustHost is required for some serverless environments
+    trustHost: true,
+    cookies: {
+        sessionToken: {
+            name: isProd ? `__Secure-next-auth.session-token` : `next-auth.session-token`,
+            options: {
+                httpOnly: true,
+                sameSite: "lax",
+                path: "/",
+                secure: isProd,
+            },
+        },
+    },
     session: {
         strategy: "jwt",
         maxAge: 24 * 60 * 60, // Default 24 hours

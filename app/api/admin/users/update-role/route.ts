@@ -1,3 +1,4 @@
+export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { rateLimit, getIP } from "@/lib/rate-limit"
@@ -56,3 +57,4 @@ export async function POST(req: NextRequest) {
         return handleAuthError(error);
     }
 }
+

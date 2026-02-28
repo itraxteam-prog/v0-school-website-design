@@ -1,3 +1,4 @@
+export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { handleAuthError } from "@/lib/auth-guard"
@@ -76,4 +77,5 @@ export async function DELETE(req: NextRequest) {
         return handleAuthError(error);
     }
 }
+
 

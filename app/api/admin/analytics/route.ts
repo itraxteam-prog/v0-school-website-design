@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+export const runtime = "nodejs";
 import { requireRole } from "@/lib/auth-guard";
 import { NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";

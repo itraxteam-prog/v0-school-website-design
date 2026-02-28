@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-export const runtime = "nodejs";
 import { format } from "date-fns";
 
 import { requireRole } from "@/lib/auth-guard";

@@ -6,7 +6,10 @@ const envSchema = z.object({
     DATABASE_URL: z.string().url(),
     DIRECT_URL: z.string().url().optional(),
     NEXTAUTH_SECRET: z.string().min(1),
-    NEXTAUTH_URL: z.string().url().optional(),
+    NEXTAUTH_URL: z.string().url().optional().refine((val) => {
+        if (process.env.NODE_ENV === "production" && !val) return false;
+        return true;
+    }, { message: "NEXTAUTH_URL is required in production" }),
     CSRF_SECRET: z.string().min(1).optional(),
     SMTP_HOST: z.string().min(1),
     SMTP_PORT: z.coerce.number().int().positive(),

@@ -1,32 +1,34 @@
 import { PrismaClient } from "@prisma/client";
 import { logger } from "@/lib/logger";
 
-if (!process.env.DATABASE_URL) {
-    throw new Error("Missing DATABASE_URL - Prisma connection required");
-}
-
-const globalForPrisma = globalThis as unknown as {
-    prisma: PrismaClient | undefined;
+const prismaClientSingleton = () => {
+    return new PrismaClient({
+        log: [
+            { emit: "event", level: "error" },
+            { emit: "event", level: "warn" },
+        ],
+    });
 };
 
-export const prisma =
-    globalForPrisma.prisma ??
-    new PrismaClient({
-        log: ["error"],
-    });
+type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>;
 
-if (process.env.NODE_ENV !== "production") {
-    globalForPrisma.prisma = prisma;
-}
+const globalForPrisma = globalThis as unknown as {
+    prisma: PrismaClientSingleton | undefined;
+};
 
-// Ensure the logger still captures errors even with standard config
+export const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
+
+// Always cache in globalThis for serverless reuse across invocations if global survives
+globalForPrisma.prisma = prisma;
+
+// Ensure the logger captures errors
 // @ts-ignore
-prisma.$on("error" as any, (e: any) => {
-    logger.error(e, "Prisma error");
+prisma.$on("error", (e: any) => {
+    logger.error({ err: e }, "Prisma error");
 });
 
 // @ts-ignore
-prisma.$on("warn" as any, (e: any) => {
-    logger.warn(e, "Prisma warning");
+prisma.$on("warn", (e: any) => {
+    logger.warn({ warn: e }, "Prisma warning");
 });
 

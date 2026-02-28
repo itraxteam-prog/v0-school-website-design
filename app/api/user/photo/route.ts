@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+export const runtime = "nodejs";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
 import { NextResponse } from "next/server";
@@ -26,7 +27,7 @@ export async function POST(req: Request) {
         // Save to public/uploads
         const fileName = `${session.user.id}-${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
         const path = join(process.cwd(), "public", "uploads", fileName);
-        
+
         await writeFile(path, buffer);
         const imageUrl = `/uploads/${fileName}`;
 
