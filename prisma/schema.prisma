@@ -65,6 +65,10 @@ model User {
   grades              Grade[]
   submissions         Submission[]
 
+  // Security
+  two_factor_enabled      Boolean   @default(false)
+  two_factor_secret       String?
+  two_factor_backup_codes String?   @db.Text // JSON string of recovery codes
 }
 
 model Profile {
