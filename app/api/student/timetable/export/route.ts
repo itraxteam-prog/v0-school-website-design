@@ -1,7 +1,6 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { requireRole, handleAuthError } from "@/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
 import { createPdf } from "@/lib/pdf/createPdf";
 import { StudentTimetablePdf } from "@/lib/pdf/templates/StudentTimetablePdf";
@@ -9,12 +8,15 @@ import React from "react";
 
 import { exportGuard } from "@/lib/pdf/export-guard";
 import { logAudit } from "@/lib/audit";
+import { checkExportRateLimit } from "@/lib/pdf/export-rate-limit";
 
 const SCHOOL_NAME = "Vibe School Management System";
 
 export async function GET() {
     try {
         const user = await exportGuard(["STUDENT"]);
+        await checkExportRateLimit(user.id, user.role);
+
         const studentId = user.id;
 
         const userWithClasses = await prisma.user.findUnique({
@@ -84,6 +86,14 @@ export async function GET() {
         });
     } catch (error: any) {
         console.error("[GET /api/student/timetable/export]", error);
+
+        if (error.message === "PDF export rate limit exceeded. Please wait.") {
+            return NextResponse.json(
+                { error: error.message },
+                { status: 429 }
+            );
+        }
+
         return NextResponse.json(
             { error: error.message === "Forbidden" ? "Forbidden" : "Unauthorized" },
             { status: error.message === "Forbidden" ? 403 : 401 }

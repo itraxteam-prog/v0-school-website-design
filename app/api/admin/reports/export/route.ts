@@ -1,7 +1,6 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { requireRole, handleAuthError } from "@/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
 import { createPdf } from "@/lib/pdf/createPdf";
 import { AdminAnalyticsPdf } from "@/lib/pdf/templates/AdminAnalyticsPdf";
@@ -9,12 +8,14 @@ import React from "react";
 
 import { exportGuard } from "@/lib/pdf/export-guard";
 import { logAudit } from "@/lib/audit";
+import { checkExportRateLimit } from "@/lib/pdf/export-rate-limit";
 
 const SCHOOL_NAME = "Vibe School Management System";
 
 export async function GET() {
     try {
         const user = await exportGuard(["ADMIN"]);
+        await checkExportRateLimit(user.id, user.role);
 
         // Fetch the same data that the /api/admin/analytics route computes
         const [
@@ -145,6 +146,14 @@ export async function GET() {
         });
     } catch (error: any) {
         console.error("[GET /api/admin/reports/export]", error);
+
+        if (error.message === "PDF export rate limit exceeded. Please wait.") {
+            return NextResponse.json(
+                { error: error.message },
+                { status: 429 }
+            );
+        }
+
         return NextResponse.json(
             { error: error.message === "Forbidden" ? "Forbidden" : "Unauthorized" },
             { status: error.message === "Forbidden" ? 403 : 401 }

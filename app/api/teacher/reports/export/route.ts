@@ -1,7 +1,6 @@
 export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
-import { requireRole, handleAuthError } from "@/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
 import { createPdf } from "@/lib/pdf/createPdf";
 import { TeacherClassReportPdf } from "@/lib/pdf/templates/TeacherClassReportPdf";
@@ -9,6 +8,7 @@ import React from "react";
 
 import { exportGuard } from "@/lib/pdf/export-guard";
 import { logAudit } from "@/lib/audit";
+import { checkExportRateLimit } from "@/lib/pdf/export-rate-limit";
 
 const SCHOOL_NAME = "Vibe School Management System";
 
@@ -24,6 +24,7 @@ const SCHOOL_NAME = "Vibe School Management System";
 export async function GET(req: NextRequest) {
     try {
         const user = await exportGuard(["TEACHER"]);
+        await checkExportRateLimit(user.id, user.role);
 
         const { searchParams } = new URL(req.url);
         const classId = searchParams.get("classId");
@@ -149,6 +150,14 @@ export async function GET(req: NextRequest) {
         });
     } catch (error: any) {
         console.error("[GET /api/teacher/reports/export]", error);
+
+        if (error.message === "PDF export rate limit exceeded. Please wait.") {
+            return NextResponse.json(
+                { error: error.message },
+                { status: 429 }
+            );
+        }
+
         return NextResponse.json(
             { error: error.message === "Forbidden" ? "Forbidden" : "Unauthorized" },
             { status: error.message === "Forbidden" ? 403 : 401 }
