@@ -1,74 +1,109 @@
-export const runtime = "nodejs";
-import { prisma } from "@/lib/prisma";
-import { requireRole, handleAuthError } from "@/lib/auth-guard";
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { requireServerAuth } from "@/lib/server-auth";
 import { Role } from "@prisma/client";
+import { z } from "zod";
 
-export async function GET(req: Request) {
-    try {
-        await requireRole("TEACHER");
-        const session = await getServerSession(authOptions);
-        const { searchParams } = new URL(req.url);
-        const classId = searchParams.get("classId");
+export const runtime = "nodejs";
 
-        const assignments = await prisma.assignment.findMany({
-            where: {
-                classId: classId || undefined,
-                class: {
-                    teacherId: session?.user?.id
-                }
-            },
-            include: {
-                class: true,
-            },
-            orderBy: { createdAt: "desc" }
-        });
-
-
-        return NextResponse.json(assignments);
-    } catch (error) {
-        return handleAuthError(error);
-    }
-}
+const createAssignmentSchema = z.object({
+    title: z.string().min(1, "Title is required"),
+    description: z.string().optional(),
+    dueDate: z.coerce.date(),
+    maxMarks: z.coerce.number().min(0).default(100),
+    classId: z.string().min(1, "Class ID is required"),
+});
 
 export async function POST(req: Request) {
-    const user = await requireServerAuth([Role.TEACHER, Role.ADMIN]);
     try {
-        await requireRole("TEACHER");
-        const session = await getServerSession(authOptions);
-        const body = await req.json();
-        const { title, description, dueDate, maxPoints, classId } = body;
+        const user = await requireServerAuth([Role.ADMIN, Role.TEACHER]);
 
-        if (!title || !dueDate || !maxPoints || !classId) {
-            return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+        const body = await req.json();
+        const parsed = createAssignmentSchema.safeParse(body);
+
+        if (!parsed.success) {
+            return NextResponse.json(
+                { error: "Invalid input", details: parsed.error.format() },
+                { status: 400 }
+            );
         }
 
-        // Verify teacher owns the class
-        const classRecord = await prisma.class.findFirst({
-            where: { id: classId, teacherId: session?.user?.id }
-        });
+        const { title, description, dueDate, maxMarks, classId } = parsed.data;
 
-        if (!classRecord) {
-            return NextResponse.json({ error: "Unauthorized class access" }, { status: 403 });
+        if (user.role === Role.TEACHER) {
+            const classRecord = await prisma.class.findUnique({
+                where: { id: classId },
+            });
+            if (!classRecord || classRecord.teacherId !== user.id) {
+                return NextResponse.json(
+                    { error: "Forbidden: You do not teach this class" },
+                    { status: 403 }
+                );
+            }
         }
 
         const assignment = await prisma.assignment.create({
             data: {
                 title,
                 description,
-                dueDate: new Date(dueDate),
-                maxMarks: parseFloat(maxPoints),
-                classId
-            }
+                dueDate,
+                maxMarks,
+                classId,
+            },
         });
 
-
-        return NextResponse.json(assignment);
-    } catch (error) {
-        return handleAuthError(error);
+        return NextResponse.json(assignment, { status: 201 });
+    } catch (error: any) {
+        if (error?.message === "Unauthorized") {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+        }
+        console.error("[POST /api/teacher/assignments]", error);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
 
+export async function GET(req: Request) {
+    try {
+        const user = await requireServerAuth([Role.ADMIN, Role.TEACHER]);
+
+        const url = new URL(req.url);
+        const classId = url.searchParams.get("classId");
+
+        const whereClause: Record<string, any> = {};
+
+        if (classId) {
+            whereClause.classId = classId;
+        }
+
+        if (user.role === Role.TEACHER) {
+            whereClause.class = {
+                teacherId: user.id,
+            };
+        }
+
+        const assignments = await prisma.assignment.findMany({
+            where: whereClause,
+            include: {
+                class: {
+                    select: {
+                        id: true,
+                        name: true,
+                        subject: true,
+                    },
+                },
+                _count: {
+                    select: { submissions: true },
+                },
+            },
+            orderBy: { createdAt: "desc" },
+        });
+
+        return NextResponse.json(assignments);
+    } catch (error: any) {
+        if (error?.message === "Unauthorized") {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+        }
+        console.error("[GET /api/teacher/assignments]", error);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    }
+}
