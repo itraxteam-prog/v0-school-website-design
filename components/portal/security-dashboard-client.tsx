@@ -2,7 +2,7 @@
 
 import TwoFactorSetup from "@/components/portal/2fa-setup"
 import { ChangePasswordForm } from "@/components/portal/change-password-form"
-import { AppLayout } from "@/components/layout/app-layout"
+import AppLayout from "@/components/layout/AppLayout"
 import {
     ADMIN_SIDEBAR,
     TEACHER_SIDEBAR,
@@ -12,26 +12,26 @@ import { ShieldCheck, Lock, Smartphone } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export function SecurityDashboardClient({ user }: { user: any }) {
-    // Get sidebar items based on role
+    // Get sidebar items based on role - robust version
     const getSidebarItems = () => {
-        const role = (user?.role || '').toUpperCase()
-        switch (role) {
-            case 'ADMIN':
-                return ADMIN_SIDEBAR
-            case 'TEACHER':
-                return TEACHER_SIDEBAR
-            case 'STUDENT':
-                return STUDENT_SIDEBAR
-            default:
-                return STUDENT_SIDEBAR
-        }
+        if (!user || !user.role) return STUDENT_SIDEBAR;
+        const role = String(user.role).toUpperCase()
+
+        if (role === 'ADMIN') return ADMIN_SIDEBAR
+        if (role === 'TEACHER') return TEACHER_SIDEBAR
+        if (role === 'STUDENT') return STUDENT_SIDEBAR
+
+        return STUDENT_SIDEBAR
     }
+
+    const safeUserName = user?.name || user?.email?.split('@')[0] || "User";
+    const safeUserRole = (user?.role || "user").toLowerCase();
 
     return (
         <AppLayout
             sidebarItems={getSidebarItems()}
-            userName={user?.name || user?.email?.split('@')[0] || "User"}
-            userRole={user?.role || "user"}
+            userName={safeUserName}
+            userRole={safeUserRole}
         >
             <div className="flex flex-col gap-6 pb-8">
                 <div className="flex flex-col gap-1">

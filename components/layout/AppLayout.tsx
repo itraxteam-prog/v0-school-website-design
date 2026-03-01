@@ -232,7 +232,9 @@ export function AppLayout({ children, sidebarItems, userName, userRole }: AppLay
             {/* Avatar */}
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground shrink-0">
-                {userName.split(" ").map((n) => n[0]).join("")}
+                {userName && userName.trim()
+                  ? userName.trim().split(/\s+/).filter(Boolean).map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+                  : "U"}
               </div>
               <div className="hidden lg:block mr-2">
                 <p className="text-xs font-semibold text-foreground truncate max-w-[100px]">{userName}</p>
