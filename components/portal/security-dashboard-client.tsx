@@ -14,7 +14,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 export function SecurityDashboardClient({ user }: { user: any }) {
     // Get sidebar items based on role
     const getSidebarItems = () => {
-        switch (user.role) {
+        const role = (user?.role || '').toUpperCase()
+        switch (role) {
             case 'ADMIN':
                 return ADMIN_SIDEBAR
             case 'TEACHER':
@@ -29,8 +30,8 @@ export function SecurityDashboardClient({ user }: { user: any }) {
     return (
         <AppLayout
             sidebarItems={getSidebarItems()}
-            userName={user.name}
-            userRole={user.role}
+            userName={user?.name || user?.email?.split('@')[0] || "User"}
+            userRole={user?.role || "user"}
         >
             <div className="flex flex-col gap-6 pb-8">
                 <div className="flex flex-col gap-1">
