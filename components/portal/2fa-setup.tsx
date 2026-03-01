@@ -265,38 +265,6 @@ export default function TwoFactorSetup() {
                     )}
                 </CardContent>
             </Card>
-
-            <Card className="glass-panel border-border/50">
-                <CardHeader>
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-red-100 text-red-600">
-                            <ShieldAlert className="h-6 w-6" />
-                        </div>
-                        <div>
-                            <CardTitle className="text-xl">Account Recovery</CardTitle>
-                            <CardDescription>
-                                Manage how you can regain access if you lose your 2FA device.
-                            </CardDescription>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
-                        <div className="space-y-0.5">
-                            <h4 className="font-medium">Recovery Codes</h4>
-                            <p className="text-sm text-muted-foreground">View or regenerate your one-time recovery codes.</p>
-                        </div>
-                        <Button variant="outline" disabled={!isEnabled}>View Codes</Button>
-                    </div>
-                    <div className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
-                        <div className="space-y-0.5">
-                            <h4 className="font-medium">Email Recovery</h4>
-                            <p className="text-sm text-muted-foreground">Use your registered email to receive a recovery link.</p>
-                        </div>
-                        <Button variant="outline" disabled>Configure</Button>
-                    </div>
-                </CardContent>
-            </Card>
         </div>
     )
 }

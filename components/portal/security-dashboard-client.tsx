@@ -32,8 +32,8 @@ export function SecurityDashboardClient({ user }: { user: any }) {
         >
             <div className="flex flex-col gap-8 pb-8">
                 <div className="flex flex-col gap-1">
-                    <h1 className="heading-1 text-burgundy-gradient">Security Settings</h1>
-                    <p className="text-sm text-muted-foreground">Manage your account security and two-factor authentication.</p>
+                    <h1 className="heading-1 text-burgundy-gradient">Two-Factor Authentication</h1>
+                    <p className="text-sm text-muted-foreground">Manage your account two-factor authentication setup.</p>
                 </div>
 
                 <TwoFactorSetup />
