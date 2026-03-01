@@ -1,5 +1,3 @@
-export const runtime = "nodejs";
-
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createPdf } from "@/lib/pdf/createPdf";
@@ -9,6 +7,8 @@ import React from "react";
 import { exportGuard } from "@/lib/pdf/export-guard";
 import { logAudit } from "@/lib/audit";
 import { checkExportRateLimit } from "@/lib/pdf/export-rate-limit";
+import { createPdfResponse } from "@/lib/pdf/pdf-response";
+import { assertNodeRuntime } from "@/lib/runtime-assert";
 
 const SCHOOL_NAME = "Vibe School Management System";
 
@@ -23,6 +23,7 @@ const SCHOOL_NAME = "Vibe School Management System";
  */
 export async function GET(req: NextRequest) {
     try {
+        assertNodeRuntime();
         const user = await exportGuard(["TEACHER"]);
         await checkExportRateLimit(user.id, user.role);
 
@@ -139,15 +140,9 @@ export async function GET(req: NextRequest) {
             },
         });
 
-        const filename = `class_${type}_${classId}_${Date.now()}.pdf`;
+        const filename = `class_${type}_${classId}`;
 
-        return new NextResponse(pdfBuffer, {
-            status: 200,
-            headers: {
-                "Content-Type": "application/pdf",
-                "Content-Disposition": `attachment; filename="${filename}"`,
-            },
-        });
+        return createPdfResponse(pdfBuffer, filename);
     } catch (error: any) {
         console.error("[GET /api/teacher/reports/export]", error);
 
@@ -164,4 +159,5 @@ export async function GET(req: NextRequest) {
         );
     }
 }
+
 

@@ -6,15 +6,12 @@ const envSchema = z.object({
     DATABASE_URL: z.string().url(),
     DIRECT_URL: z.string().url().optional(),
     NEXTAUTH_SECRET: z.string().min(1),
-    NEXTAUTH_URL: z.string().url().optional().refine((val) => {
-        if (process.env.NODE_ENV === "production" && !val) return false;
-        return true;
-    }, { message: "NEXTAUTH_URL is required in production" }),
+    NEXTAUTH_URL: z.string().url(),
     CSRF_SECRET: z.string().min(1).optional(),
     SMTP_HOST: z.string().min(1),
     SMTP_PORT: z.coerce.number().int().positive(),
     SMTP_USER: z.string().email(),
-    SMTP_PASS: z.string().min(16),
+    SMTP_PASS: z.string().min(1),
     SMTP_FROM: z.string().min(1).refine((val) => {
         const match = val.match(/<([^>]+)>/);
         const email = match ? match[1] : val;
@@ -22,10 +19,7 @@ const envSchema = z.object({
     }, { message: "Invalid SMTP_FROM format. Use 'email@example.com' or 'Name <email@example.com>'" }),
     UPSTASH_REDIS_REST_URL: z.string().url(),
     UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
-    SENTRY_DSN: z.string().url().optional().refine((val) => {
-        if (process.env.NODE_ENV === "production" && !val) return false;
-        return true;
-    }, { message: "SENTRY_DSN is required in production" }),
+    SENTRY_DSN: z.string().url(),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 });
 
@@ -33,12 +27,16 @@ export const env = (() => {
     const result = envSchema.safeParse(process.env);
 
     if (!result.success) {
-        console.error("❌ Invalid environment variables:", result.error.flatten().fieldErrors);
-        throw new Error("Invalid environment variables. Fix them and restart the app.");
+        console.error("❌ CRITICAL: Missing or invalid required environment variables:");
+        result.error.issues.forEach(issue => {
+            console.error(`   - ${issue.path.join(".")}: ${issue.message}`);
+        });
+        throw new Error("Missing required environment variables. System cannot boot.");
     }
 
     return result.data;
 })();
+
 
 export function validateEnv() {
     // This function is just a trigger to ensure the 'env' constant is evaluated
