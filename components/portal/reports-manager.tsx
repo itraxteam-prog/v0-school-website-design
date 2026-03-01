@@ -58,6 +58,29 @@ export function ReportsManager({ initialData }: ReportsManagerProps) {
         setShowPreview(true)
     }
 
+    const handleExportCSV = () => {
+        toast.success("Downloading CSV...");
+        let csvContent = "";
+        if (reportType === "student-performance") {
+            csvContent = "Roll No,Name,Attendance,Avg Grade,Remarks\n" +
+                initialData.studentPerformance.map(s => `${s.rollNo},"${s.name}",${s.attendance},${s.grade},"${s.remarks}"`).join("\n");
+        } else if (reportType === "teacher-performance") {
+            csvContent = "Teacher Name,Classes,Avg Class Grade,Attendance Rate\n" +
+                initialData.teacherPerformance.map(t => `"${t.name}",${t.classes},${t.grade},${t.attendance}`).join("\n");
+        } else {
+            csvContent = "Data not available for CSV export";
+        }
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `${reportType}-export-${Date.now()}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
 
     return (
         <AppLayout sidebarItems={sidebarItems} userName="Dr. Ahmad Raza" userRole="admin">
@@ -222,9 +245,9 @@ export function ReportsManager({ initialData }: ReportsManagerProps) {
                         )}
 
                         <div className="flex items-center justify-end gap-3 pt-4">
-                            <Button variant="outline" size="sm" onClick={() => toast.success("Exporting report...")} className="gap-2 glass-card"><FileText className="h-4 w-4 text-primary" /> Export CSV</Button>
-                            <Button variant="outline" size="sm" onClick={() => toast.success("Downloading report...")} className="gap-2 glass-card"><Download className="h-4 w-4 text-primary" /> Export PDF</Button>
-                            <Button className="h-10 px-6 bg-primary text-white shadow-burgundy-glow" onClick={() => toast.success("Printing...")}><Printer className="mr-2 h-4 w-4" /> Print Report</Button>
+                            <Button variant="outline" size="sm" onClick={handleExportCSV} className="gap-2 glass-card"><FileText className="h-4 w-4 text-primary" /> Export CSV</Button>
+                            <Button variant="outline" size="sm" onClick={() => { toast.success("Downloading PDF..."); window.open("/api/admin/reports/export", "_blank"); }} className="gap-2 glass-card"><Download className="h-4 w-4 text-primary" /> Export PDF</Button>
+                            <Button className="h-10 px-6 bg-primary text-white shadow-burgundy-glow" onClick={() => { toast.success("Printing..."); window.open("/api/admin/reports/export", "_blank"); }}><Printer className="mr-2 h-4 w-4" /> Print Report</Button>
                         </div>
                     </div>
                 )}

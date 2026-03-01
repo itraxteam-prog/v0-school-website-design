@@ -415,7 +415,7 @@ export function PeriodsManager({ initialPeriods, initialClasses, initialTeachers
                                         <DialogFooter className="pt-4">
                                             <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
                                             <Button type="submit" disabled={isSubmitting} className="bg-primary text-white hover:bg-primary/90 shadow-burgundy-glow min-w-[120px]">
-                                                {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : (editingPeriod ? 'Update' : 'Save')}
+                                                {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : (editingPeriod ? 'Update' : 'Create')}
                                             </Button>
                                         </DialogFooter>
                                     </form>

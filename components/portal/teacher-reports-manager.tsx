@@ -54,6 +54,21 @@ export function TeacherReportsManager({
         s.name.toLowerCase().includes(searchQuery.toLowerCase())
     )
 
+    const handleExportCSV = () => {
+        toast.success("Downloading CSV...");
+        let csvContent = "Student Name,Attendance %,Avg Grade,Status\n" +
+            filteredStudents.map(s => `"${s.name}",${s.attendance},${s.avgGrade},"${s.status}"`).join("\n");
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `class-report-${Date.now()}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
     return (
         <AppLayout sidebarItems={sidebarItems} userName={session?.user?.name || "Teacher"} userRole="teacher">
             <div className="flex flex-col gap-8 pb-8">
@@ -63,10 +78,10 @@ export function TeacherReportsManager({
                         <p className="text-sm text-muted-foreground">Comprehensive insights into class performance and attendance.</p>
                     </div>
                     <div className="flex items-center gap-3">
-                        <Button variant="outline" className="border-border hover:bg-muted text-sm flex items-center gap-2" onClick={() => toast.success("Exporting CSV...")}>
+                        <Button variant="outline" className="border-border hover:bg-muted text-sm flex items-center gap-2" onClick={handleExportCSV}>
                             <Download size={16} /> Export CSV
                         </Button>
-                        <Button className="bg-primary text-white hover:bg-primary/90 text-sm flex items-center gap-2" onClick={() => toast.success("Saving PDF...")}>
+                        <Button className="bg-primary text-white hover:bg-primary/90 text-sm flex items-center gap-2" onClick={() => { toast.success("Saving PDF..."); window.open("/api/admin/reports/export", "_blank"); }}>
                             <Download size={16} /> Save PDF
                         </Button>
                     </div>

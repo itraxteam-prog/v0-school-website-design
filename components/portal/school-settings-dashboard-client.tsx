@@ -138,19 +138,19 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
             const res = await fetch("/api/admin/settings", { credentials: "include" });
             if (!res.ok) throw new Error("Failed to fetch settings");
             const data = await res.json();
-            
+
             // Map array of key/value pairs to the form structure
             const mappedSettings: any = {
                 schoolHours: { startTime: "08:00 AM", endTime: "02:00 PM" },
-                portalPreferences: { 
-                    darkMode: false, 
-                    language: "en", 
-                    timezone: "pk", 
-                    smsNotifications: true, 
-                    emailNotifications: true 
+                portalPreferences: {
+                    darkMode: false,
+                    language: "en",
+                    timezone: "pk",
+                    smsNotifications: true,
+                    emailNotifications: true
                 }
             };
-            
+
             data.forEach((s: any) => {
                 if (s.key.includes('.')) {
                     const [parent, child] = s.key.split('.');
@@ -208,13 +208,16 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
                     }
                 });
             };
-            flatten(data);
+            const flattenedArray = Object.keys(flattened).map(key => ({
+                key,
+                value: String(flattened[key])
+            }));
 
             const res = await fetch("/api/admin/settings", {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ settings: flattened })
+                body: JSON.stringify(flattenedArray)
             });
 
             if (!res.ok) throw new Error("Failed to save settings");
