@@ -117,13 +117,13 @@ export const authOptions: NextAuthOptions = {
             return `${baseUrl}/portal`
         },
         async jwt({ token, user }) {
-            // Ensure user role and status are preserved across callbacks
+            // Preservation logic for user role across JWT updates
             if (user) {
                 token.id = user.id;
                 token.role = user.role;
                 token.email = user.email;
-                token.accountStatus = user.accountStatus;
-                token.status = user.accountStatus;
+                token.status = user.status;
+                token.accountStatus = user.status;
             }
 
             // Task 4: Invalidate ADMIN sessions after 8 hours
@@ -145,21 +145,14 @@ export const authOptions: NextAuthOptions = {
         },
 
         async session({ session, token }) {
-            // Updated to ensure UI receives correct field as requested
             if (token && session.user) {
-                return {
-                    ...session,
-                    user: {
-                        ...session.user,
-                        id: token.id as string,
-                        role: token.role as Role,
-                        email: token.email as string,
-                        status: token.accountStatus as UserStatus,
-                        accountStatus: token.accountStatus as UserStatus,
-                    },
-                };
+                session.user.id = token.id as string;
+                session.user.role = token.role as Role;
+                session.user.email = token.email as string;
+                session.user.status = token.status as UserStatus;
+                session.user.accountStatus = token.accountStatus as UserStatus;
             }
-            return null as unknown as Session;
+            return session;
         },
     },
     secret: process.env.NEXTAUTH_SECRET,

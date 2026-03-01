@@ -167,12 +167,6 @@ function LoginContent() {
             </form>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4 border-t border-slate-100 pt-6">
-            <Link
-              href="/portal/forgot-password"
-              className="text-center text-sm text-slate-500 hover:text-primary transition-colors font-medium"
-            >
-              Forgot password
-            </Link>
           </CardFooter>
         </Card>
       </motion.div>
