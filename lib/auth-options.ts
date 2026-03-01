@@ -117,15 +117,13 @@ export const authOptions: NextAuthOptions = {
             return `${baseUrl}/portal`
         },
         async jwt({ token, user }) {
-            // Task 5: Ensure JWT payload only contains allowed fields
+            // Ensure user role and status are preserved across callbacks
             if (user) {
-                return {
-                    id: user.id,
-                    role: user.role,
-                    email: user.email,
-                    accountStatus: user.accountStatus,
-                    status: user.accountStatus, // Guaranteed mapping
-                };
+                token.id = user.id;
+                token.role = user.role;
+                token.email = user.email;
+                token.accountStatus = user.accountStatus;
+                token.status = user.accountStatus;
             }
 
             // Task 4: Invalidate ADMIN sessions after 8 hours
@@ -133,8 +131,8 @@ export const authOptions: NextAuthOptions = {
                 const now = Math.floor(Date.now() / 1000);
                 const eightHours = 8 * 60 * 60;
                 if (now - (token.iat as number) > eightHours) {
-                    // Return an invalid token structure that triggers logout in session callback
                     return {
+                        ...token,
                         id: "",
                         role: "STUDENT",
                         accountStatus: "SUSPENDED",

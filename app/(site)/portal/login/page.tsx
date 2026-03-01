@@ -155,7 +155,7 @@ function LoginContent() {
               </div>
               <Button
                 type="submit"
-                className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98]"
+                className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -167,9 +167,12 @@ function LoginContent() {
             </form>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4 border-t border-slate-100 pt-6">
-            <div className="text-center text-sm text-slate-500">
-              Need help? <span className="font-semibold text-blue-600 cursor-help">Contact IT Support</span>
-            </div>
+            <Link
+              href="/portal/forgot-password"
+              className="text-center text-sm text-slate-500 hover:text-primary transition-colors font-medium"
+            >
+              Forgot password
+            </Link>
           </CardFooter>
         </Card>
       </motion.div>
