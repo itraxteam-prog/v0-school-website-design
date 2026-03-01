@@ -57,6 +57,8 @@ import {
     UserX,
     RefreshCcw,
     AlertCircle,
+    Eye,
+    EyeOff,
 } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -99,6 +101,7 @@ export function UserManagementDashboardClient({ user: currentUser }: { user: any
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
     const [selectedUser, setSelectedUser] = useState<User | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [showPassword, setShowPassword] = useState(false)
 
     const form = useForm<UserFormValues>({
         resolver: zodResolver(userSchema),
@@ -300,7 +303,16 @@ export function UserManagementDashboardClient({ user: currentUser }: { user: any
                                                 <FormItem>
                                                     <FormLabel>Password</FormLabel>
                                                     <FormControl>
-                                                        <Input type="password" placeholder="••••••••" {...field} className="glass-card" />
+                                                        <div className="relative">
+                                                            <Input type={showPassword ? "text" : "password"} placeholder="••••••••" {...field} className="glass-card pr-10" />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setShowPassword(!showPassword)}
+                                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+                                                            >
+                                                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                            </button>
+                                                        </div>
                                                     </FormControl>
                                                     <p className="text-[10px] text-muted-foreground mt-1 px-1">
                                                         Min 8 characters, with uppercase, lowercase, number, and special character.
