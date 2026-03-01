@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useToast } from "@/components/ui/use-toast"
 import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -70,6 +70,7 @@ const settingsSchema = z.object({
         smsNotifications: z.boolean(),
         emailNotifications: z.boolean(),
     }),
+    schoolLogo: z.string().optional(),
 })
 
 type SettingsFormValues = z.infer<typeof settingsSchema>
@@ -94,7 +95,9 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
     const [isSaving, setIsSaving] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [settings, setSettings] = useState<SettingsFormValues | null>(null)
-    const { setTheme, theme } = useTheme()
+    const [previewLogo, setPreviewLogo] = useState<string | null>(null)
+    const fileInputRef = useRef<HTMLInputElement>(null)
+    const { setTheme } = useTheme()
 
     const { toast } = useToast()
 
@@ -176,6 +179,9 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
 
             setSettings(mappedSettings)
             form.reset(mappedSettings)
+            if (mappedSettings.schoolLogo) {
+                setPreviewLogo(mappedSettings.schoolLogo);
+            }
         } catch (err: any) {
             console.error("Fetch error:", err)
             setError(err.message)
@@ -208,6 +214,7 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
                     }
                 });
             };
+            flatten(data); // ← populate flattened object
             const flattenedArray = Object.keys(flattened).map(key => ({
                 key,
                 value: String(flattened[key])
@@ -340,16 +347,41 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
                                             <CardContent className="space-y-6">
                                                 <div className="flex flex-col md:flex-row gap-8 items-start">
                                                     <div className="flex flex-col items-center gap-4">
-                                                        <div className="h-32 w-32 rounded-2xl bg-muted border-2 border-dashed border-border flex items-center justify-center relative group overflow-hidden cursor-pointer shadow-inner">
-                                                            <div className="text-center p-4 group-hover:opacity-0 transition-opacity">
-                                                                <Camera className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                                                                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Upload Logo</span>
-                                                            </div>
+                                                        <div
+                                                            className="h-32 w-32 rounded-2xl bg-muted border-2 border-dashed border-border flex items-center justify-center relative group overflow-hidden cursor-pointer shadow-inner"
+                                                            onClick={() => fileInputRef.current?.click()}
+                                                        >
+                                                            {previewLogo ? (
+                                                                <img src={previewLogo} alt="School Logo" className="w-full h-full object-contain" />
+                                                            ) : (
+                                                                <div className="text-center p-4 group-hover:opacity-0 transition-opacity">
+                                                                    <Camera className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                                                                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Upload Logo</span>
+                                                                </div>
+                                                            )}
                                                             <div className="absolute inset-0 bg-primary/80 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-white transition-opacity">
                                                                 <Save className="h-6 w-6 mb-1" />
                                                                 <span className="text-[10px] font-bold uppercase">Change</span>
                                                             </div>
                                                         </div>
+                                                        <input
+                                                            type="file"
+                                                            ref={fileInputRef}
+                                                            className="hidden"
+                                                            accept="image/*"
+                                                            onChange={(e) => {
+                                                                const file = e.target.files?.[0];
+                                                                if (file) {
+                                                                    const reader = new FileReader();
+                                                                    reader.onloadend = () => {
+                                                                        const base64String = reader.result as string;
+                                                                        setPreviewLogo(base64String);
+                                                                        form.setValue('schoolLogo', base64String);
+                                                                    };
+                                                                    reader.readAsDataURL(file);
+                                                                }
+                                                            }}
+                                                        />
                                                         <p className="text-[10px] text-muted-foreground italic">Recommended: 512x512px. PNG/SVG.</p>
                                                     </div>
 

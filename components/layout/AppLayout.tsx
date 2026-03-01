@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { LucideIcon } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
+import { useTheme } from "next-themes"
 
 export interface SidebarItem {
   href: string
@@ -28,8 +29,24 @@ export function AppLayout({ children, sidebarItems, userName, userRole }: AppLay
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [isSearchVisible, setIsSearchVisible] = useState(false)
+  const [settings, setSettings] = useState<any>(null)
   const pathname = usePathname()
   const { logout } = useAuth()
+  const { setTheme } = useTheme()
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (!data.error) {
+          setSettings(data)
+          if (data?.portalPreferences?.darkMode !== undefined) {
+            setTheme(data.portalPreferences.darkMode ? "dark" : "light")
+          }
+        }
+      })
+      .catch(console.error)
+  }, [setTheme])
 
   const handleLogout = async () => {
     await logout()
@@ -67,9 +84,13 @@ export function AppLayout({ children, sidebarItems, userName, userRole }: AppLay
         {/* Sidebar Header */}
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <Link href="/" prefetch={true} className="flex items-center gap-2">
-            <Image src="/images/logo.png" alt="Logo" width={60} height={60} className="h-[60px] w-[60px] object-contain" />
+            {settings?.schoolLogo ? (
+              <img src={settings.schoolLogo} alt="Logo" className="h-[40px] w-[40px] rounded object-contain" />
+            ) : (
+              <Image src="/images/logo.png" alt="Logo" width={60} height={60} className="h-[60px] w-[60px] object-contain" />
+            )}
             <div className="hidden sm:block">
-              <p className="text-xs font-bold leading-tight text-foreground">Pioneers High</p>
+              <p className="text-xs font-bold leading-tight text-foreground">{settings?.schoolName || "Pioneers High"}</p>
               <p className="text-[10px] text-muted-foreground">{userRole}</p>
             </div>
           </Link>

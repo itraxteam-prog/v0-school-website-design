@@ -17,10 +17,20 @@ const inter = Inter({
   display: 'swap',
 })
 
-export const metadata: Metadata = {
-  title: 'The Pioneers High School | The Institute for Quality Education',
-  description:
-    'The Pioneers High School - A premier private K-12 academic institution committed to academic excellence, discipline, and holistic student development.',
+import { prisma } from '@/lib/prisma'
+
+export async function generateMetadata(): Promise<Metadata> {
+  let schoolName = 'The Pioneers High School';
+  try {
+    const setting = await prisma.setting.findUnique({ where: { key: 'schoolName' } });
+    if (setting?.value) schoolName = setting.value;
+  } catch (e) {
+    // Ignore db err during build
+  }
+  return {
+    title: `${schoolName} | The Institute for Quality Education`,
+    description: `${schoolName} - A premier private K-12 academic institution committed to academic excellence, discipline, and holistic student development.`
+  }
 }
 
 export const viewport: Viewport = {
@@ -34,17 +44,28 @@ export const viewport: Viewport = {
 import { AuthProvider } from '@/context/AuthContext';
 import { ThemeProvider } from '@/components/theme-provider';
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  let lang = "en";
+  let defaultTheme = "light";
+
+  try {
+    const langSet = await prisma.setting.findUnique({ where: { key: 'portalPreferences.language' } });
+    if (langSet?.value) lang = langSet.value;
+
+    const themeSet = await prisma.setting.findUnique({ where: { key: 'portalPreferences.darkMode' } });
+    if (themeSet?.value === 'true') defaultTheme = "dark";
+  } catch (e) { }
+
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable}`} suppressHydrationWarning>
+    <html lang={lang} className={`${inter.variable} ${playfair.variable}`} suppressHydrationWarning>
       <body className="font-sans antialiased">
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          defaultTheme={defaultTheme}
           enableSystem
           disableTransitionOnChange
         >

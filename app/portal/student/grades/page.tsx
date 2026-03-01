@@ -30,7 +30,15 @@ export default function GradesPage() {
   const [activeSubject, setActiveSubject] = useState("All Subjects")
   const [loading, setLoading] = useState(true)
   const [grades, setGrades] = useState<any[]>([])
+  const [schoolSettings, setSchoolSettings] = useState<any>(null)
   const { data: session } = useSession()
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => { if (!data.error) setSchoolSettings(data) })
+      .catch(console.error)
+  }, [])
 
   useEffect(() => {
     const fetchGrades = async () => {
@@ -70,6 +78,14 @@ export default function GradesPage() {
             <div>
               <h1 className="heading-1 text-burgundy-gradient">My Grades</h1>
               <p className="text-sm text-muted-foreground">Detailed academic performance report.</p>
+              {schoolSettings?.gradingSystem && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  System: <span className="font-semibold text-primary capitalize">{schoolSettings.gradingSystem === 'gpa' ? 'Standard GPA (4.0 Scale)' : schoolSettings.gradingSystem === 'relative' ? 'Relative Grading (Curved)' : 'Percentage Based (0–100%)'}</span>
+                  {schoolSettings?.promotionThreshold !== undefined && (
+                    <> &nbsp;·&nbsp; Pass: <span className="font-semibold text-primary">&ge;{schoolSettings.promotionThreshold}%</span></>
+                  )}
+                </p>
+              )}
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <Select value={activeTerm} onValueChange={setActiveTerm}>

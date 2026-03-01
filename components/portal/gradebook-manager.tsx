@@ -58,6 +58,14 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
     const [students, setStudents] = useState<Student[]>([])
     const [grades, setGrades] = useState<Record<string, number>>({})
     const [searchQuery, setSearchQuery] = useState("")
+    const [schoolSettings, setSchoolSettings] = useState<any>(null)
+
+    useEffect(() => {
+        fetch('/api/settings')
+            .then(res => res.json())
+            .then(data => { if (!data.error) setSchoolSettings(data) })
+            .catch(console.error)
+    }, [])
 
     useEffect(() => {
         if (!selectedClassId) return;
@@ -99,11 +107,27 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
     }, [selectedClassId, selectedSubjectId, selectedTerm]);
 
     const calculateGrade = (marks: number) => {
+        const gradingSystem = schoolSettings?.gradingSystem || 'percentage'
+        const passThreshold = Number(schoolSettings?.promotionThreshold || 40)
+
+        if (gradingSystem === 'gpa') {
+            // 4.0 GPA scale
+            if (marks >= 93) return { label: "A+", color: "bg-green-100 text-green-700" }
+            if (marks >= 87) return { label: "A", color: "bg-green-50 text-green-600" }
+            if (marks >= 80) return { label: "B+", color: "bg-blue-50 text-blue-600" }
+            if (marks >= 73) return { label: "B", color: "bg-blue-50 text-blue-500" }
+            if (marks >= 67) return { label: "C+", color: "bg-amber-50 text-amber-600" }
+            if (marks >= 60) return { label: "C", color: "bg-amber-50 text-amber-500" }
+            if (marks >= passThreshold) return { label: "D", color: "bg-orange-50 text-orange-600" }
+            return { label: "F", color: "bg-red-50 text-red-600" }
+        }
+
+        // Percentage-based or relative
         if (marks >= 90) return { label: "A+", color: "bg-green-100 text-green-700" }
         if (marks >= 80) return { label: "A", color: "bg-green-50 text-green-600" }
         if (marks >= 70) return { label: "B", color: "bg-blue-50 text-blue-600" }
         if (marks >= 60) return { label: "C", color: "bg-amber-50 text-amber-600" }
-        if (marks >= 50) return { label: "D", color: "bg-orange-50 text-orange-600" }
+        if (marks >= passThreshold) return { label: "D", color: "bg-orange-50 text-orange-600" }
         return { label: "F", color: "bg-red-50 text-red-600" }
     }
 
