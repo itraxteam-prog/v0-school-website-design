@@ -22,8 +22,9 @@ export function ChangePasswordDashboardClient({ user }: { user: any }) {
     })
 
     // Minimal sidebar items based on role
-    const getSidebarItems = (role: string) => {
-        const dashboardPath = `/portal/${role.toLowerCase()}`
+    const getSidebarItems = (role: string = '') => {
+        const roleLower = (role || 'student').toLowerCase()
+        const dashboardPath = `/portal/${roleLower}`
         return [
             { href: dashboardPath, label: "Dashboard", icon: Lock },
             { href: "/portal/change-password", label: "Security", icon: ShieldCheck },
@@ -70,11 +71,14 @@ export function ChangePasswordDashboardClient({ user }: { user: any }) {
         }
     }
 
+    const safeUserName = user?.name || user?.email?.split('@')[0] || "User";
+    const safeUserRole = user?.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase()) : "User";
+
     return (
         <AppLayout
-            sidebarItems={getSidebarItems(user.role)}
-            userName={user.name}
-            userRole={user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase()}
+            sidebarItems={getSidebarItems(user?.role)}
+            userName={safeUserName}
+            userRole={safeUserRole}
         >
             <div className="max-w-2xl mx-auto py-8 px-4">
                 <AnimatedWrapper direction="down">
