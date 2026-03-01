@@ -1,0 +1,134 @@
+export const runtime = "nodejs";
+
+import { NextRequest, NextResponse } from "next/server";
+import { requireRole, handleAuthError } from "@/lib/auth-guard";
+import { prisma } from "@/lib/prisma";
+import { createPdf } from "@/lib/pdf/createPdf";
+import { TeacherClassReportPdf } from "@/lib/pdf/templates/TeacherClassReportPdf";
+import React from "react";
+
+/**
+ * GET /api/teacher/reports/export
+ *
+ * Query params:
+ *   classId   (required)
+ *   type      "grades" | "attendance"  (required)
+ *   subjectId (required when type=grades)
+ *   term      (required when type=grades)
+ */
+export async function GET(req: NextRequest) {
+    try {
+        const session = await requireRole("TEACHER");
+
+        const { searchParams } = new URL(req.url);
+        const classId = searchParams.get("classId");
+        const type = searchParams.get("type") as "grades" | "attendance" | null;
+
+        if (!classId || !type || !["grades", "attendance"].includes(type)) {
+            return NextResponse.json(
+                { error: "classId and type (grades|attendance) are required" },
+                { status: 400 }
+            );
+        }
+
+        // Verify teacher owns this class
+        const cls = await prisma.class.findFirst({
+            where: { id: classId, teacherId: session.user.id },
+        });
+
+        if (!cls) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+
+        const teacherName = session.user.name ?? "Teacher";
+        const subject = cls.subject ?? "General";
+
+        let gradeRows: { studentName: string; marks: number; grade: string; term: string }[] = [];
+        let attendanceRows: { studentName: string; date: string; status: string }[] = [];
+
+        if (type === "grades") {
+            const subjectId = searchParams.get("subjectId");
+            const term = searchParams.get("term");
+
+            if (!subjectId || !term) {
+                return NextResponse.json(
+                    { error: "subjectId and term are required for grades export" },
+                    { status: 400 }
+                );
+            }
+
+            const grades = await prisma.grade.findMany({
+                where: { classId, subjectId, term },
+                include: { student: { select: { name: true, email: true } } },
+                orderBy: { student: { name: "asc" } },
+            });
+
+            gradeRows = grades.map((g) => {
+                const marks = g.marks;
+                let grade = "F";
+                if (marks >= 90) grade = "A+";
+                else if (marks >= 85) grade = "A";
+                else if (marks >= 80) grade = "A-";
+                else if (marks >= 75) grade = "B+";
+                else if (marks >= 70) grade = "B";
+                else if (marks >= 65) grade = "B-";
+                else if (marks >= 60) grade = "C+";
+                else if (marks >= 55) grade = "C";
+                else if (marks >= 50) grade = "D";
+                return {
+                    studentName: g.student?.name ?? g.student?.email ?? "Unknown",
+                    marks,
+                    grade,
+                    term: g.term,
+                };
+            });
+        } else {
+            // attendance: fetch all attendance for this class ordered by date then student
+            const records = await prisma.attendance.findMany({
+                where: { classId },
+                include: {
+                    // Attendance model doesn't have a student relation — we join via User
+                },
+                orderBy: [{ date: "desc" }],
+            });
+
+            // Resolve student names in one query
+            const studentIds = [...new Set(records.map((r) => r.studentId))];
+            const students = await prisma.user.findMany({
+                where: { id: { in: studentIds } },
+                select: { id: true, name: true, email: true },
+            });
+            const studentMap = new Map(students.map((s) => [s.id, s.name ?? s.email ?? "Unknown"]));
+
+            attendanceRows = records.map((r) => ({
+                studentName: studentMap.get(r.studentId) ?? "Unknown",
+                date: r.date.toISOString().split("T")[0],
+                status: r.status,
+            }));
+        }
+
+        const pdfBuffer = await createPdf(
+            React.createElement(TeacherClassReportPdf, {
+                teacherName,
+                className: cls.name,
+                subject,
+                generatedAt: new Date().toLocaleString("en-US", { timeZone: "UTC" }) + " UTC",
+                reportType: type,
+                grades: gradeRows,
+                attendance: attendanceRows,
+            })
+        );
+
+        const filename = `class_${type}_${classId}_${Date.now()}.pdf`;
+
+        return new NextResponse(pdfBuffer, {
+            status: 200,
+            headers: {
+                "Content-Type": "application/pdf",
+                "Content-Disposition": `attachment; filename="${filename}"`,
+            },
+        });
+    } catch (error) {
+        return handleAuthError(error);
+    }
+}

@@ -12,6 +12,18 @@ const nextConfig = {
     compress: true,
     poweredByHeader: false,
     productionBrowserSourceMaps: false,
+    // @react-pdf/renderer and its sub-packages are ESM-only; Next.js must transpile them.
+    transpilePackages: [
+        "@react-pdf/renderer",
+        "@react-pdf/font",
+        "@react-pdf/image",
+        "@react-pdf/layout",
+        "@react-pdf/pdfkit",
+        "@react-pdf/primitives",
+        "@react-pdf/stylesheet",
+        "@react-pdf/textkit",
+        "@react-pdf/fns",
+    ],
     experimental: {
         instrumentationHook: true,
     },
