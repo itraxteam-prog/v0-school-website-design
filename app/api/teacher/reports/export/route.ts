@@ -7,6 +7,11 @@ import { createPdf } from "@/lib/pdf/createPdf";
 import { TeacherClassReportPdf } from "@/lib/pdf/templates/TeacherClassReportPdf";
 import React from "react";
 
+import { exportGuard } from "@/lib/pdf/export-guard";
+import { logAudit } from "@/lib/audit";
+
+const SCHOOL_NAME = "Vibe School Management System";
+
 /**
  * GET /api/teacher/reports/export
  *
@@ -18,7 +23,7 @@ import React from "react";
  */
 export async function GET(req: NextRequest) {
     try {
-        const session = await requireRole("TEACHER");
+        const user = await exportGuard(["TEACHER"]);
 
         const { searchParams } = new URL(req.url);
         const classId = searchParams.get("classId");
@@ -33,14 +38,14 @@ export async function GET(req: NextRequest) {
 
         // Verify teacher owns this class
         const cls = await prisma.class.findFirst({
-            where: { id: classId, teacherId: session.user.id },
+            where: { id: classId, teacherId: user.id },
         });
 
         if (!cls) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
-        const teacherName = session.user.name ?? "Teacher";
+        const teacherName = user.name ?? "Teacher";
         const subject = cls.subject ?? "General";
 
         let gradeRows: { studentName: string; marks: number; grade: string; term: string }[] = [];
@@ -110,6 +115,8 @@ export async function GET(req: NextRequest) {
         const pdfBuffer = await createPdf(
             React.createElement(TeacherClassReportPdf, {
                 teacherName,
+                schoolName: SCHOOL_NAME,
+                userEmail: user.email ?? "unknown",
                 className: cls.name,
                 subject,
                 generatedAt: new Date().toLocaleString("en-US", { timeZone: "UTC" }) + " UTC",
@@ -118,6 +125,18 @@ export async function GET(req: NextRequest) {
                 attendance: attendanceRows,
             })
         );
+
+        await logAudit({
+            userId: user.id,
+            action: "PDF_EXPORT",
+            entity: "CLASS",
+            entityId: classId,
+            metadata: {
+                type,
+                targetEntity: classId,
+                timestamp: new Date().toISOString(),
+            },
+        });
 
         const filename = `class_${type}_${classId}_${Date.now()}.pdf`;
 
@@ -128,7 +147,12 @@ export async function GET(req: NextRequest) {
                 "Content-Disposition": `attachment; filename="${filename}"`,
             },
         });
-    } catch (error) {
-        return handleAuthError(error);
+    } catch (error: any) {
+        console.error("[GET /api/teacher/reports/export]", error);
+        return NextResponse.json(
+            { error: error.message === "Forbidden" ? "Forbidden" : "Unauthorized" },
+            { status: error.message === "Forbidden" ? 403 : 401 }
+        );
     }
 }
+

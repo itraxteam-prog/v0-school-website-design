@@ -8,19 +8,15 @@ import { createPdf } from "@/lib/pdf/createPdf";
 import { StudentGradesPdf } from "@/lib/pdf/templates/StudentGradesPdf";
 import React from "react";
 
+import { exportGuard } from "@/lib/pdf/export-guard";
+import { logAudit } from "@/lib/audit";
+
+const SCHOOL_NAME = "Vibe School Management System";
+
 export async function GET() {
     try {
-        const session = await getServerSession(authOptions);
-
-        if (!session?.user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        if (session.user.role !== "STUDENT") {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-        }
-
-        const studentId = session.user.id;
+        const user = await exportGuard(["STUDENT"]);
+        const studentId = user.id;
 
         const grades = await prisma.grade.findMany({
             where: { studentId },
@@ -52,12 +48,26 @@ export async function GET() {
 
         const pdfBuffer = await createPdf(
             React.createElement(StudentGradesPdf, {
-                studentName: session.user.name ?? "Student",
-                studentEmail: session.user.email ?? "",
+                studentName: user.name ?? "Student",
+                studentEmail: user.email ?? "",
+                schoolName: SCHOOL_NAME,
+                userEmail: user.email ?? "unknown",
                 generatedAt: new Date().toLocaleString("en-US", { timeZone: "UTC" }) + " UTC",
                 rows,
             })
         );
+
+        await logAudit({
+            userId: user.id,
+            action: "PDF_EXPORT",
+            entity: "STUDENT",
+            entityId: studentId,
+            metadata: {
+                type: "grades",
+                targetEntity: studentId,
+                timestamp: new Date().toISOString(),
+            },
+        });
 
         const filename = `grades_${studentId}_${Date.now()}.pdf`;
 
@@ -70,6 +80,10 @@ export async function GET() {
         });
     } catch (error: any) {
         console.error("[GET /api/student/grades/export]", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        return NextResponse.json(
+            { error: error.message === "Forbidden" ? "Forbidden" : "Unauthorized" },
+            { status: error.message === "Forbidden" ? 403 : 401 }
+        );
     }
 }
+

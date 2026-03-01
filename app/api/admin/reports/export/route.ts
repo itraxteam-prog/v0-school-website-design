@@ -7,9 +7,14 @@ import { createPdf } from "@/lib/pdf/createPdf";
 import { AdminAnalyticsPdf } from "@/lib/pdf/templates/AdminAnalyticsPdf";
 import React from "react";
 
+import { exportGuard } from "@/lib/pdf/export-guard";
+import { logAudit } from "@/lib/audit";
+
+const SCHOOL_NAME = "Vibe School Management System";
+
 export async function GET() {
     try {
-        await requireRole("ADMIN");
+        const user = await exportGuard(["ADMIN"]);
 
         // Fetch the same data that the /api/admin/analytics route computes
         const [
@@ -104,6 +109,8 @@ export async function GET() {
         const pdfBuffer = await createPdf(
             React.createElement(AdminAnalyticsPdf, {
                 generatedAt: new Date().toLocaleString("en-US", { timeZone: "UTC" }) + " UTC",
+                schoolName: SCHOOL_NAME,
+                userEmail: user.email ?? "unknown",
                 stats: {
                     totalStudents,
                     totalTeachers,
@@ -117,6 +124,16 @@ export async function GET() {
             })
         );
 
+        await logAudit({
+            userId: user.id,
+            action: "PDF_EXPORT",
+            entity: "REPORTS",
+            metadata: {
+                type: "analytics",
+                timestamp: new Date().toISOString(),
+            },
+        });
+
         const filename = `admin_analytics_${Date.now()}.pdf`;
 
         return new NextResponse(pdfBuffer, {
@@ -126,7 +143,12 @@ export async function GET() {
                 "Content-Disposition": `attachment; filename="${filename}"`,
             },
         });
-    } catch (error) {
-        return handleAuthError(error);
+    } catch (error: any) {
+        console.error("[GET /api/admin/reports/export]", error);
+        return NextResponse.json(
+            { error: error.message === "Forbidden" ? "Forbidden" : "Unauthorized" },
+            { status: error.message === "Forbidden" ? 403 : 401 }
+        );
     }
 }
+
