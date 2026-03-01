@@ -193,7 +193,7 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
         } finally {
             setLoading(false)
         }
-    }, [toast, form])
+    }, [toast, form.reset])
 
     useEffect(() => {
         fetchSettings()
