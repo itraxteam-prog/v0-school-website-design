@@ -35,19 +35,30 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
         const { name, teacherId, subject } = parsed.data
 
-        // If updating teacher, verify they exist and are a TEACHER
+        // If updating teacher, verify they exist
+        let finalTeacherId = teacherId;
         if (teacherId) {
-            const teacher = await prisma.user.findFirst({ where: { id: teacherId, role: "TEACHER" } })
+            let teacher = await prisma.user.findFirst({
+                where: {
+                    role: "TEACHER",
+                    OR: [
+                        { id: teacherId.length === 36 ? teacherId : undefined },
+                        { profile: { rollNumber: teacherId } },
+                        { name: { contains: teacherId, mode: 'insensitive' } }
+                    ]
+                }
+            })
             if (!teacher) {
                 return NextResponse.json({ error: "Teacher not found" }, { status: 404 })
             }
+            finalTeacherId = teacher.id;
         }
 
         const updated = await prisma.class.update({
             where: { id: params.id },
             data: {
                 ...(name && { name }),
-                ...(teacherId && { teacherId }),
+                ...(finalTeacherId && { teacherId: finalTeacherId }),
                 ...(subject !== undefined && { subject }),
             },
             include: {

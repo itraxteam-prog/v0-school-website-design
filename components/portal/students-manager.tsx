@@ -83,13 +83,14 @@ interface StudentsManagerProps {
 
 export function StudentsManager({ initialStudents }: StudentsManagerProps) {
     const [students, setStudents] = useState<Student[]>([])
-    const [loading, setLoading] = useState(false)
+    const [classes, setClasses] = useState<{ id: string, name: string }[]>([])
+    const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [searchTerm, setSearchTerm] = useState("")
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingStudent, setEditingStudent] = useState<Student | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
-    
+
     // Pagination State
     const [page, setPage] = useState(1)
     const [limit, setLimit] = useState(10)
@@ -111,6 +112,17 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
         },
     })
 
+    const fetchClasses = useCallback(async () => {
+        try {
+            const res = await fetch("/api/admin/classes", { credentials: "include" });
+            if (!res.ok) throw new Error("Failed to fetch classes");
+            const result = await res.json();
+            setClasses(result.data || []);
+        } catch (err) {
+            console.error("Failed to fetch classes", err);
+        }
+    }, []);
+
     const fetchStudents = useCallback(async () => {
         setLoading(true)
         setError(null)
@@ -119,17 +131,17 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
             const res = await fetch(url, { credentials: "include" })
             if (!res.ok) throw new Error("Failed to fetch students")
             const result = await res.json()
-            
+
             setStudents(result.data.map((s: any) => ({
                 id: s.id,
                 name: s.name || "",
-                rollNo: s.profile?.rollNumber || `S-${s.id.split('-')[0].toUpperCase()}`,
-                classId: s.profile?.class || "N/A",
-                dob: s.profile?.dateOfBirth || "",
-                guardianPhone: s.profile?.guardianPhone || "",
-                address: s.profile?.address || ""
+                rollNo: s.profile?.rollNumber || s.rollNo || "",
+                classId: s.classId || "N/A",
+                dob: s.dob || s.profile?.dateOfBirth || "",
+                guardianPhone: s.guardianPhone || s.profile?.guardianPhone || "",
+                address: s.address || s.profile?.address || ""
             })))
-            
+
             setTotalPages(result.pagination?.pages || 1)
             setTotalStudents(result.pagination?.total || result.data.length)
         } catch (err: any) {
@@ -141,7 +153,8 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
 
     useEffect(() => {
         fetchStudents()
-    }, [fetchStudents])
+        fetchClasses()
+    }, [fetchStudents, fetchClasses])
 
     useEffect(() => {
         if (editingStudent) {
@@ -295,10 +308,13 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                                                                     <SelectValue placeholder="Select class" />
                                                                 </SelectTrigger>
                                                             </FormControl>
-                                                            <SelectContent>
-                                                                <SelectItem value="cls-001">10-A</SelectItem>
-                                                                <SelectItem value="cls-002">9-B</SelectItem>
-                                                                <SelectItem value="cls-003">8-C</SelectItem>
+                                                            <SelectContent className="glass-panel">
+                                                                <SelectItem value="Unassigned">Unassigned</SelectItem>
+                                                                {classes.map((cls) => (
+                                                                    <SelectItem key={cls.id} value={cls.id}>
+                                                                        {cls.name}
+                                                                    </SelectItem>
+                                                                ))}
                                                             </SelectContent>
                                                         </Select>
                                                         <FormMessage />
@@ -495,19 +511,19 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                             Showing <span className="font-semibold text-foreground">{Math.min((page - 1) * limit + 1, totalStudents)}-{Math.min(page * limit, totalStudents)}</span> of <span className="font-semibold text-foreground">{totalStudents}</span> students
                         </p>
                         <div className="flex items-center gap-1">
-                            <Button 
-                                variant="outline" 
-                                size="icon" 
-                                className="h-9 w-9 glass-card" 
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-9 w-9 glass-card"
                                 disabled={page === 1}
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                             >
                                 <ChevronLeft size={16} />
                             </Button>
                             <Button variant="ghost" size="sm" className="h-9 w-9 bg-primary text-white hover:bg-primary/90 rounded-md">{page}</Button>
-                            <Button 
-                                variant="outline" 
-                                size="icon" 
+                            <Button
+                                variant="outline"
+                                size="icon"
                                 className="h-9 w-9 glass-card"
                                 disabled={page >= totalPages}
                                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}

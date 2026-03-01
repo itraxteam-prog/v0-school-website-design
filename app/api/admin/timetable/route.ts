@@ -16,7 +16,8 @@ const timetableSchema = z.object({
     teacherId: z.string().uuid(),
     term: z.string().optional().nullable(),
     academicYear: z.string().optional().nullable(),
-}).strict();
+    name: z.string().optional(), // Allow but don't require
+}).passthrough(); // Use passthrough to allow extra fields like 'name' from UI
 
 export async function GET() {
     try {
@@ -52,8 +53,10 @@ export async function POST(req: Request) {
             }, { status: 400 });
         }
 
+        const { name: _, ...prismaData } = validated.data;
+
         const entry = await prisma.timetable.create({
-            data: validated.data,
+            data: prismaData,
         });
 
         return NextResponse.json(entry);

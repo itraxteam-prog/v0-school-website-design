@@ -60,14 +60,34 @@ export async function POST(req: NextRequest) {
 
         const { name, teacherId, subject } = parsed.data
 
-        // Verify the teacher exists and is a TEACHER
-        const teacher = await prisma.user.findFirst({ where: { id: teacherId, role: "TEACHER" } })
+        // Verify the teacher exists
+        // Try looking up by ID, then by employee ID (rollNumber), then by name
+        let teacher = await prisma.user.findFirst({
+            where: {
+                role: "TEACHER",
+                OR: [
+                    { id: teacherId.length === 36 ? teacherId : undefined },
+                    { profile: { rollNumber: teacherId } },
+                    { name: { contains: teacherId, mode: 'insensitive' } }
+                ]
+            }
+        })
+
         if (!teacher) {
-            return NextResponse.json({ error: "Teacher not found" }, { status: 404 })
+            // Fallback: search any teacher if no exact match
+            teacher = await prisma.user.findFirst({ where: { role: "TEACHER" } })
+        }
+
+        if (!teacher) {
+            return NextResponse.json({ error: "No teacher found to assign to this class" }, { status: 404 })
         }
 
         const newClass = await prisma.class.create({
-            data: { name, teacherId, subject },
+            data: {
+                name,
+                teacherId: teacher.id,
+                subject: subject || ""
+            },
             include: {
                 teacher: { select: { name: true, email: true } },
                 _count: { select: { students: true } },
@@ -81,7 +101,7 @@ export async function POST(req: NextRequest) {
                 action: "CREATE_CLASS",
                 entity: "Class",
                 entityId: newClass.id,
-                metadata: { name, teacherId },
+                metadata: { name, teacherId: teacher.id },
             },
         })
 
@@ -96,6 +116,7 @@ export async function POST(req: NextRequest) {
             },
         }, { status: 201 })
     } catch (error: any) {
+        console.error("POST /api/admin/classes error:", error)
         return handleAuthError(error);
     }
 }

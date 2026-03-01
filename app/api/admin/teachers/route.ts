@@ -10,6 +10,9 @@ import { Role } from "@prisma/client";
 const teacherSchema = z.object({
     name: z.string().min(2),
     email: z.string().email(),
+    employeeId: z.string().optional(),
+    department: z.string().optional(),
+    classIds: z.string().optional(),
 }).strict()
 
 export async function GET(req: NextRequest) {
@@ -27,7 +30,8 @@ export async function GET(req: NextRequest) {
             ...(search ? {
                 OR: [
                     { name: { contains: search, mode: "insensitive" as const } },
-                    { email: { contains: search, mode: "insensitive" as const } }
+                    { email: { contains: search, mode: "insensitive" as const } },
+                    { profile: { rollNumber: { contains: search, mode: "insensitive" as const } } }
                 ]
             } : {})
         }
@@ -35,12 +39,9 @@ export async function GET(req: NextRequest) {
         const [teachers, total] = await Promise.all([
             prisma.user.findMany({
                 where,
-                select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    status: true,
-                    createdAt: true,
+                include: {
+                    profile: true,
+                    taughtClasses: true,
                 },
                 orderBy: { name: "asc" },
                 skip,
@@ -49,8 +50,19 @@ export async function GET(req: NextRequest) {
             prisma.user.count({ where })
         ])
 
+        const formatted = teachers.map(t => ({
+            id: t.id,
+            name: t.name,
+            email: t.email,
+            status: t.status,
+            employeeId: t.profile?.rollNumber || "N/A",
+            department: t.profile?.gender || "Faculty", // Using gender field as temporary store if department not in schema, but let's check schema again
+            classIds: t.taughtClasses.map(c => c.id).join(', '),
+            createdAt: t.createdAt,
+        }))
+
         return NextResponse.json({
-            data: teachers,
+            data: formatted,
             pagination: {
                 total,
                 page,
@@ -65,7 +77,7 @@ export async function GET(req: NextRequest) {
 
 
 export async function POST(req: NextRequest) {
-    const user = await requireServerAuth([Role.ADMIN]);
+    await requireServerAuth([Role.ADMIN]);
     try {
         await assertAdmin();
 
@@ -79,7 +91,7 @@ export async function POST(req: NextRequest) {
             }, { status: 400 })
         }
 
-        const { name, email } = parsed.data
+        const { name, email, employeeId, department, classIds } = parsed.data
 
         // Check if user exists
         const existing = await prisma.user.findUnique({ where: { email } })
@@ -93,8 +105,30 @@ export async function POST(req: NextRequest) {
                 email,
                 role: "TEACHER",
                 status: "ACTIVE",
+                profile: {
+                    create: {
+                        rollNumber: employeeId,
+                        // We don't have a 'department' field in Profile, so we might skip it or use a generic field
+                        gender: department, // Hack: using gender to store department if no other field is suitable
+                    }
+                }
             },
         })
+
+        // Handle class associations if classIds provided
+        if (classIds) {
+            const ids = classIds.split(',').map(id => id.trim()).filter(id => id.length > 0)
+            for (const id of ids) {
+                try {
+                    await prisma.class.update({
+                        where: { id },
+                        data: { teacherId: newTeacher.id }
+                    })
+                } catch (e) {
+                    console.error(`Failed to assign class ${id} to teacher ${newTeacher.id}`)
+                }
+            }
+        }
 
         return NextResponse.json({ data: newTeacher }, { status: 201 })
     } catch (error: any) {

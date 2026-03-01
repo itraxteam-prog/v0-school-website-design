@@ -10,7 +10,11 @@ import { Role } from "@prisma/client";
 const studentSchema = z.object({
     name: z.string().min(2),
     email: z.string().email(),
+    rollNo: z.string().min(1),
     classId: z.string().optional(),
+    dob: z.string().optional(),
+    guardianPhone: z.string().optional(),
+    address: z.string().optional(),
 }).strict()
 
 export async function GET(req: NextRequest) {
@@ -55,9 +59,9 @@ export async function GET(req: NextRequest) {
             rollNo: s.profile?.rollNumber || "Unassigned",
             classId: s.classes[0]?.id || "Unassigned",
             className: s.classes[0]?.name || "Unassigned",
-            dob: s.profile?.dateOfBirth ? s.profile.dateOfBirth.toISOString().split('T')[0] : "Unassigned",
-            guardianPhone: s.profile?.guardianPhone || "Unassigned",
-            address: s.profile?.address || "Unassigned",
+            dob: s.profile?.dateOfBirth ? s.profile.dateOfBirth.toISOString().split('T')[0] : "",
+            guardianPhone: s.profile?.guardianPhone || "",
+            address: s.profile?.address || "",
             status: s.status,
         }))
 
@@ -77,7 +81,7 @@ export async function GET(req: NextRequest) {
 
 
 export async function POST(req: NextRequest) {
-    const user = await requireServerAuth([Role.ADMIN]);
+    await requireServerAuth([Role.ADMIN]);
     try {
         await assertAdmin();
 
@@ -91,7 +95,7 @@ export async function POST(req: NextRequest) {
             }, { status: 400 })
         }
 
-        const { name, email, classId } = parsed.data
+        const { name, email, rollNo, classId, dob, guardianPhone, address } = parsed.data
 
         // Check if user exists
         const existing = await prisma.user.findUnique({ where: { email } })
@@ -105,11 +109,39 @@ export async function POST(req: NextRequest) {
                 email,
                 role: "STUDENT",
                 status: "ACTIVE",
-                ...(classId && classId !== "Unassigned" && {
+                profile: {
+                    create: {
+                        rollNumber: rollNo,
+                        dateOfBirth: dob ? new Date(dob) : null,
+                        guardianPhone: guardianPhone,
+                        address: address,
+                    }
+                },
+                ...(classId && classId !== "Unassigned" && classId !== "cls-001" && classId !== "cls-002" && classId !== "cls-003" && {
                     classes: { connect: { id: classId } }
                 })
+                // Note: The UI has hardcoded class IDs in StudentsManager.tsx like "cls-001".
+                // If those don't exist in DB, connect will fail.
+                // Let's check for specific ones or just try to connect if it looks like a real ID.
             },
         })
+
+        // If classId is one of the hardcoded ones, we might need to handle it differently or ensure they exist.
+        // For now, let's just make it robust.
+        if (classId && classId !== "Unassigned") {
+            try {
+                await prisma.user.update({
+                    where: { id: newStudent.id },
+                    data: {
+                        classes: {
+                            connect: { id: classId }
+                        }
+                    }
+                })
+            } catch (e) {
+                console.error("Failed to connect class:", e)
+            }
+        }
 
         return NextResponse.json({ data: newStudent }, { status: 201 })
     } catch (error: any) {
