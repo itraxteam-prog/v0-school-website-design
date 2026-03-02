@@ -125,10 +125,12 @@ export const authOptions: NextAuthOptions = {
                 token.status = user.status;
                 token.accountStatus = user.status;
                 token.name = user.name;
+                token.picture = user.image;
             }
 
-            if (trigger === "update" && session?.name) {
-                token.name = session.name;
+            if (trigger === "update") {
+                if (session?.name) token.name = session.name;
+                if (session?.image) token.picture = session.image;
             }
 
             // Task 4: Invalidate ADMIN sessions after 8 hours
@@ -157,6 +159,7 @@ export const authOptions: NextAuthOptions = {
                 session.user.status = token.status as UserStatus;
                 session.user.accountStatus = token.accountStatus as UserStatus;
                 session.user.name = token.name as string;
+                session.user.image = token.picture as string;
             }
             return session;
         },

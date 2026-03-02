@@ -23,9 +23,10 @@ interface AppLayoutProps {
   sidebarItems: SidebarItem[]
   userName: string
   userRole: string
+  userImage?: string
 }
 
-export function AppLayout({ children, sidebarItems, userName, userRole }: AppLayoutProps) {
+export function AppLayout({ children, sidebarItems, userName, userRole, userImage }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [isSearchVisible, setIsSearchVisible] = useState(false)
@@ -252,12 +253,16 @@ export function AppLayout({ children, sidebarItems, userName, userRole }: AppLay
             </Button>
             {/* Avatar */}
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground shrink-0">
-                {userName && userName.trim()
-                  ? userName.trim().split(/\s+/).filter(Boolean).map((n) => n[0]).join("").toUpperCase().slice(0, 2)
-                  : "U"}
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground shrink-0 overflow-hidden ring-2 ring-primary/20">
+                {userImage ? (
+                  <img src={userImage} alt={userName} className="h-full w-full object-cover" />
+                ) : (
+                  userName && userName.trim()
+                    ? userName.trim().split(/\s+/).filter(Boolean).map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+                    : "U"
+                )}
               </div>
-              <div className="hidden lg:block mr-2">
+              <div className="hidden lg:block mr-2 text-left">
                 <p className="text-xs font-semibold text-foreground truncate max-w-[100px]">{userName}</p>
                 <p className="text-[10px] text-muted-foreground">{userRole}</p>
               </div>

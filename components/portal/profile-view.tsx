@@ -67,7 +67,11 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
             if (!res.ok) throw new Error("Upload failed");
             const result = await res.json();
 
-            setProfileData((prev: any) => ({ ...prev, avatarUrl: result.url })); // Renamed setTeacherData to setProfileData
+            setProfileData((prev: any) => ({ ...prev, avatarUrl: result.url }));
+
+            // Update session so header avatar updates
+            update({ image: result.url });
+
             toast.dismiss();
             toast.success("Photo updated successfully");
         } catch (err) {
@@ -94,7 +98,7 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
 
             if (!res.ok) throw new Error("Update failed");
 
-            setProfileData((prev: any) => ({ ...prev, ...formData })); // Renamed setTeacherData to setProfileData
+            setProfileData((prev: any) => ({ ...prev, ...formData }));
             setIsEditing(false);
             toast.success("Profile updated successfully");
             // Update session if name changed
@@ -109,7 +113,12 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
     };
 
     return (
-        <AppLayout sidebarItems={finalSidebarItems} userName={session?.user?.name || profileData.name} userRole={userRole}>
+        <AppLayout
+            sidebarItems={finalSidebarItems}
+            userName={session?.user?.name || profileData.name}
+            userRole={userRole}
+            userImage={session?.user?.image || profileData.avatarUrl}
+        >
             <div className="flex flex-col gap-8 pb-8">
                 <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                     <div className="flex flex-col gap-1">
