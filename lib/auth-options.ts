@@ -34,8 +34,8 @@ export const authOptions: NextAuthOptions = {
         updateAge: 60 * 60, // 1 hour
     },
     pages: {
-        signIn: "/login",
-        error: "/login",
+        signIn: "/portal/login",
+        error: "/portal/login",
     },
     providers: [
         CredentialsProvider({

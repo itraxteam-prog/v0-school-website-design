@@ -8,10 +8,10 @@ export async function middleware(request: NextRequest) {
   // 1️⃣ Add public route bypass
   const PUBLIC_PATHS = [
     "/",
-    "/login",
-    "/register",
-    "/forgot-password",
-    "/reset-password",
+    "/portal/login",
+    "/portal/register",
+    "/portal/forgot-password",
+    "/portal/reset-password",
     "/api/auth",
     "/_next",
     "/favicon.ico"
@@ -25,8 +25,8 @@ export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
 
   // 3️⃣ Before redirecting unauthenticated users, ensure login is excluded
-  if (!token && pathname !== "/login") {
-    return NextResponse.redirect(new URL("/login", request.url));
+  if (!token && pathname !== "/portal/login") {
+    return NextResponse.redirect(new URL("/portal/login", request.url));
   }
 
   // RBAC checks for API routes

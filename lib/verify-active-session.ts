@@ -39,7 +39,7 @@ export async function isSessionValid(userId: string, sessionIat?: number): Promi
  * and redirects the user to the login portal.
  */
 export function forceLogoutResponse(req: Request, error: string = "SessionExpired") {
-    const url = new URL("/login", req.url);
+    const url = new URL("/portal/login", req.url);
     url.searchParams.set("error", error);
 
     const response = NextResponse.redirect(url);

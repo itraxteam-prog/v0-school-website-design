@@ -11,7 +11,7 @@ export function useRequireAuth(allowedRoles: string[]) {
     useEffect(() => {
         if (!loading) {
             if (!user) {
-                router.push('/login');
+                router.push('/portal/login');
             } else if (!allowedRoles.includes(user.role)) {
                 // Redirect logged-in users to their own portal if they try to access a restricted page
                 const rolePortalMap: Record<string, string> = {
@@ -24,7 +24,7 @@ export function useRequireAuth(allowedRoles: string[]) {
                 if (userPortal) {
                     router.push(userPortal);
                 } else {
-                    router.push('/login');
+                    router.push('/portal/login');
                 }
             }
         }

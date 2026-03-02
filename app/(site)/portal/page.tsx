@@ -6,7 +6,7 @@ export default async function PortalPage() {
     const session = await getServerSession(authOptions);
 
     if (!session) {
-        redirect("/login");
+        redirect("/portal/login");
     }
 
     const role = session.user.role.toLowerCase();

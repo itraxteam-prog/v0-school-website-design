@@ -8,7 +8,7 @@ export default async function TeacherAssignmentsPage() {
     const session = await getServerSession(authOptions)
 
     if (!session?.user || session.user.role !== "TEACHER") {
-        redirect("/login")
+        redirect("/portal/login")
     }
 
     const classes = await prisma.class.findMany({

@@ -63,7 +63,7 @@ function AuthContextProvider({ children }: { children: React.ReactNode }) {
 
     const logout = async () => {
         await signOut({ redirect: false });
-        router.push('/login');
+        router.push('/portal/login');
     };
 
     return (
