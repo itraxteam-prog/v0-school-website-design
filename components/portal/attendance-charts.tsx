@@ -130,6 +130,7 @@ interface AttendanceStats {
     present: number
     absent: number
     late: number
+    excused: number
 }
 
 export function AttendanceDistributionChart({ data }: { data: AttendanceStats }) {
@@ -137,18 +138,20 @@ export function AttendanceDistributionChart({ data }: { data: AttendanceStats })
         { name: 'Present', value: data.present, color: '#16a34a' },
         { name: 'Late', value: data.late, color: '#d97706' },
         { name: 'Absent', value: data.absent, color: '#dc2626' },
+        { name: 'Excused', value: data.excused, color: '#2563eb' },
     ]
 
     const barData = [
         { status: 'Present', count: data.present },
         { status: 'Late', count: data.late },
         { status: 'Absent', count: data.absent },
+        { status: 'Excused', count: data.excused },
     ]
 
-    const COLORS = ['#16a34a', '#d97706', '#dc2626']
+    const COLORS = ['#16a34a', '#d97706', '#dc2626', '#2563eb']
 
-    const total = data.present + data.absent + data.late
-    const presentPercentage = total > 0 ? ((data.present / total) * 100).toFixed(1) : '0'
+    const total = data.present + data.absent + data.late + data.excused
+    const presentPercentage = total > 0 ? (((data.present + data.excused) / total) * 100).toFixed(1) : '0'
 
     return (
         <div className="flex flex-col gap-6">

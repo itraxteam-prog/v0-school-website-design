@@ -84,6 +84,7 @@ export async function POST(req: NextRequest) {
             }
 
             const attendanceDate = new Date(date)
+            attendanceDate.setHours(0, 0, 0, 0)
 
             // Efficient upsert using transaction + deleteMany/createMany or multiple upserts
             // Since we don't have a reliable upsertMany, we'll use sequential within transaction 

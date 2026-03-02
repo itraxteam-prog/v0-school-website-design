@@ -69,15 +69,38 @@ export function AttendanceManager({ initialClasses }: AttendanceManagerProps) {
 
             setLoading(true);
             try {
-                const res = await fetch(`/api/teacher/students?classId=${selectedClassId}`, { credentials: "include" });
-                if (res.ok) {
-                    const result = await res.json();
-                    const fetchedStudents: Student[] = result.data || [];
+                const [studentsRes, attendanceRes] = await Promise.all([
+                    fetch(`/api/teacher/students?classId=${selectedClassId}`, { credentials: "include" }),
+                    fetch(`/api/teacher/attendance?classId=${selectedClassId}&date=${date.toISOString()}`, { credentials: "include" })
+                ]);
+
+                if (studentsRes.ok) {
+                    const studentsResult = await studentsRes.json();
+                    const fetchedStudents: Student[] = studentsResult.data || [];
                     setStudents(fetchedStudents);
+
                     const initialAttendance: Record<string, AttendanceRecord> = {};
+
+                    // Default to present for all fetched students
                     fetchedStudents.forEach(s => {
                         initialAttendance[s.id] = { status: 'present', remarks: '' };
                     });
+
+                    // Merge with existing attendance from DB if any
+                    if (attendanceRes.ok) {
+                        const attendanceResult = await attendanceRes.json();
+                        const existingRecords: any[] = attendanceResult.data || [];
+
+                        existingRecords.forEach(rec => {
+                            if (initialAttendance[rec.studentId]) {
+                                initialAttendance[rec.studentId] = {
+                                    status: rec.status.toLowerCase() as AttendanceStatus,
+                                    remarks: rec.remarks || ''
+                                };
+                            }
+                        });
+                    }
+
                     setAttendance(initialAttendance);
                 } else {
                     toast.error("Failed to load student data");
@@ -255,7 +278,8 @@ export function AttendanceManager({ initialClasses }: AttendanceManagerProps) {
                                                         "h-9 text-xs font-bold",
                                                         attendance[student.id]?.status === "present" && "bg-green-50 text-green-700 border-green-200",
                                                         attendance[student.id]?.status === "absent" && "bg-red-50 text-red-700 border-red-200",
-                                                        attendance[student.id]?.status === "late" && "bg-amber-50 text-amber-700 border-amber-200"
+                                                        attendance[student.id]?.status === "late" && "bg-amber-50 text-amber-700 border-amber-200",
+                                                        attendance[student.id]?.status === "excused" && "bg-blue-50 text-blue-700 border-blue-200"
                                                     )}>
                                                         <SelectValue />
                                                     </SelectTrigger>
@@ -263,6 +287,7 @@ export function AttendanceManager({ initialClasses }: AttendanceManagerProps) {
                                                         <SelectItem value="present">Present</SelectItem>
                                                         <SelectItem value="absent">Absent</SelectItem>
                                                         <SelectItem value="late">Late</SelectItem>
+                                                        <SelectItem value="excused">Excused</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                             </TableCell>

@@ -17,12 +17,13 @@ const API_BASE = "/api";
 import { useSession } from "next-auth/react"
 import { STUDENT_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
-type AttendanceStatus = "present" | "absent" | "late" | "none";
+type AttendanceStatus = "present" | "absent" | "late" | "excused" | "none";
 
 const statusColors = {
   present: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
   absent: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
   late: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+  excused: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
   none: "",
 }
 
@@ -111,16 +112,18 @@ function calculateStats(calendar: { day: number; status: AttendanceStatus }[][])
   let present = 0
   let absent = 0
   let late = 0
+  let excused = 0
 
   calendar.forEach(week => {
     week.forEach(cell => {
       if (cell.status === "present") present++
       else if (cell.status === "absent") absent++
       else if (cell.status === "late") late++
+      else if (cell.status === "excused") excused++
     })
   })
 
-  return { present, absent, late }
+  return { present, absent, late, excused }
 }
 
 export default function AttendancePage() {
@@ -181,7 +184,7 @@ export default function AttendancePage() {
 
         {/* Summary Cards */}
         <AnimatedWrapper delay={0.1}>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <Card className="glass-panel overflow-hidden border-border/50">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -231,6 +234,24 @@ export default function AttendancePage() {
                   </div>
                   <div className="rounded-full bg-amber-100 p-3 dark:bg-amber-900/30">
                     <AlertCircle className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="glass-panel overflow-hidden border-border/50">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Excused</p>
+                    {loading ? (
+                      <Skeleton className="mt-2 h-8 w-16" />
+                    ) : (
+                      <p className="mt-2 text-3xl font-bold text-blue-600 dark:text-blue-400">{stats.excused}</p>
+                    )}
+                  </div>
+                  <div className="rounded-full bg-blue-100 p-3 dark:bg-blue-900/30">
+                    <ShieldCheck className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                   </div>
                 </div>
               </CardContent>
@@ -292,6 +313,10 @@ export default function AttendancePage() {
                       <div className="flex items-center gap-2">
                         <span className="h-3 w-3 rounded-sm bg-red-100 dark:bg-red-900/30" />
                         <span className="text-xs text-muted-foreground">Absent</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="h-3 w-3 rounded-sm bg-blue-100 dark:bg-blue-900/30" />
+                        <span className="text-xs text-muted-foreground">Excused</span>
                       </div>
                     </div>
                   </div>
