@@ -35,6 +35,18 @@ export function ChangePasswordForm({ user }: { user: any }) {
             return
         }
 
+        // Add numerical digit check
+        if (!/[0-9]/.test(formData.newPassword)) {
+            setError("Password must contain at least one numerical digit (0-9)")
+            return
+        }
+
+        // Add special character check
+        if (!/[!@#$%^&*]/.test(formData.newPassword)) {
+            setError("Password must contain at least one special character (!@#$%^&*)")
+            return
+        }
+
         setLoading(true)
 
         try {
@@ -49,13 +61,22 @@ export function ChangePasswordForm({ user }: { user: any }) {
 
             const data = await res.json()
             if (res.ok) {
-                setSuccess("Your password has been changed successfully.")
-                toast.success("Password updated successfully")
+                setSuccess("Your password has been changed successfully. Logging out...")
+                toast.success("Password updated successfully. Logging out...")
+
+                // Clear form
                 setFormData({
                     currentPassword: "",
                     newPassword: "",
                     confirmPassword: ""
                 })
+
+                // Logout after a short delay so user can see success
+                setTimeout(() => {
+                    import('next-auth/react').then(({ signOut }) => {
+                        signOut({ callbackUrl: '/portal/login' })
+                    })
+                }, 2000)
             } else {
                 setError(data.message || "Failed to change password")
             }
