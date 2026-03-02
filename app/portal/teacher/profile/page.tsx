@@ -3,11 +3,14 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { TEACHER_SIDEBAR } from "@/lib/navigation-config"
+import { redirect } from "next/navigation"
 
 export default async function TeacherProfilePage() {
   const session = await getServerSession(authOptions)
 
-  if (!session?.user || session.user.role !== "TEACHER") return null
+  if (!session?.user || session.user.role !== "TEACHER") {
+    redirect("/portal/login")
+  }
 
   let teacher: any = null;
   try {
@@ -46,12 +49,12 @@ export default async function TeacherProfilePage() {
   const teacherData = {
     name: teacher.name || "Teacher",
     email: teacher.email || "teacher@school.edu",
-    designation: teacher.profile?.gender || "Senior Faculty",
-    id: teacher.profile?.rollNumber || `T-${teacher.id.slice(0, 4)}`.toUpperCase(),
+    designation: "Senior Faculty Member",
+    id: teacher.profile?.rollNumber || `T-${teacher.id.toString().slice(0, 4)}`.toUpperCase(),
     status: teacher.status,
     dob: teacher.profile?.dateOfBirth ? new Date(teacher.profile.dateOfBirth).toLocaleDateString() : "Not Specified",
     gender: teacher.profile?.gender || "Not Specified",
-    qualifications: teacher.profile?.academicHistory ? String(teacher.profile.academicHistory) : "M.A. / M.Sc.",
+    qualifications: teacher.profile?.academicHistory ? (typeof teacher.profile.academicHistory === 'string' ? teacher.profile.academicHistory : "M.A. / M.Sc.") : "M.A. / M.Sc.",
     subjects: teacher.taughtClasses?.map((c: any) => c.subject).filter(Boolean).join(", ") || "General Academics",
     classes: teacher.taughtClasses?.map((c: any) => c.name).join(", ") || "None assigned",
     joiningDate: teacher.createdAt ? new Date(teacher.createdAt).toLocaleDateString() : "Not Specified",
