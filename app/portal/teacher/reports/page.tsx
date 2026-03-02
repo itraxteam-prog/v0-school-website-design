@@ -9,10 +9,11 @@ export default async function TeacherReportsPage() {
   if (!session?.user) return null
 
   let studentReports: any[] = []
+  let studentsData: any[] = [] // Declare studentsData here to be accessible later
 
   try {
     // Query students enrolled in classes taught by this teacher
-    const students = await prisma.user.findMany({
+    studentsData = await prisma.user.findMany({
       where: {
         role: "STUDENT",
         classes: { some: { teacherId: session.user.id } }
@@ -23,42 +24,25 @@ export default async function TeacherReportsPage() {
         classes: {
           where: { teacherId: session.user.id },
           select: {
+            id: true,
+            name: true,
             grades: {
               where: {
-                studentId: { not: undefined },
                 NOT: { term: { endsWith: "-draft" } }
               },
-              select: { marks: true, studentId: true }
+              select: { marks: true, term: true, classId: true }
             },
-            attendances: { where: { studentId: { not: undefined } }, select: { status: true, studentId: true } },
+            attendances: {
+              select: { status: true, date: true, classId: true }
+            },
           }
         }
       }
     })
 
-    if (students.length > 0) {
-      studentReports = students.map(s => {
-        const allGrades = s.classes.flatMap(c => c.grades.filter(g => g.studentId === s.id))
-        const allAttendances = s.classes.flatMap(c => c.attendances.filter(a => a.studentId === s.id))
-
-        const avgGrade = allGrades.length > 0
-          ? Math.round(allGrades.reduce((acc: number, g: any) => acc + g.marks, 0) / allGrades.length)
-          : 0
-
-        const attendanceCount = allAttendances.length
-        const presentCount = allAttendances.filter((a: any) => a.status === "present").length
-        const attendanceRate = attendanceCount > 0
-          ? Math.round((presentCount / attendanceCount) * 100)
-          : 100
-
-        return {
-          id: s.id,
-          name: s.name || "Unknown",
-          attendance: attendanceRate,
-          avgGrade: avgGrade,
-          status: avgGrade > 85 ? "Excellent" : (avgGrade > 70 ? "Good" : "Average")
-        }
-      })
+    if (studentsData.length > 0) {
+      // Assign raw data for client-side processing
+      studentReports = studentsData;
     } else {
       // Mock fallback
       studentReports = [
@@ -70,29 +54,70 @@ export default async function TeacherReportsPage() {
     console.error("Failed to fetch teacher reports data", error)
   }
 
-  // Baseline Mock Data for charts
-  const performanceData = [
-    { name: "Unit 1", avg: 85, top: 98 },
-    { name: "Unit 2", avg: 78, top: 95 },
-    { name: "Midterm", avg: 82, top: 100 },
-    { name: "Unit 3", avg: 86, top: 97 },
-    { name: "Current", avg: 84, top: 99 },
-  ];
+  // Calculate real performance overview from grades
+  const terms = ["term1", "term2", "term3"];
+  const performanceData = terms.map(t => {
+    const termGrades = studentReports.length > 0
+      ? studentsData.flatMap(s => s.classes.flatMap((c: any) => c.grades.filter((g: any) => g.term === t)))
+      : [];
 
-  const attendanceTrendData = [
-    { month: "Sep", rate: 94 },
-    { month: "Oct", rate: 92 },
-    { month: "Nov", rate: 89 },
-    { month: "Dec", rate: 85 },
-    { month: "Jan", rate: 91 },
-    { month: "Feb", rate: 95 },
-  ];
+    const avg = termGrades.length > 0
+      ? Math.round(termGrades.reduce((acc, g) => acc + g.marks, 0) / termGrades.length)
+      : 0;
+
+    const top = termGrades.length > 0
+      ? Math.max(...termGrades.map(g => g.marks))
+      : 0;
+
+    const termLabels: Record<string, string> = {
+      term1: "Term 1",
+      term2: "Term 2",
+      term3: "Term 3"
+    };
+
+    return { name: termLabels[t], avg, top };
+  }).filter(d => d.avg > 0 || d.top > 0);
+
+  // If no real data, provide default empty structures or basic labels
+  if (performanceData.length === 0) {
+    performanceData.push({ name: "Term 1", avg: 0, top: 0 });
+    performanceData.push({ name: "Term 2", avg: 0, top: 0 });
+  }
+
+  // Calculate real attendance trend by month
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const attendanceRecords = studentsData.flatMap(s => s.classes.flatMap((c: any) => c.attendances));
+
+  const attendanceTrendData = monthNames.map((month, index) => {
+    const monthRecords = attendanceRecords.filter(a => new Date(a.date).getMonth() === index);
+    const totalCount = monthRecords.length;
+    const presentCount = monthRecords.filter(a => a.status === "present").length;
+    const rate = totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
+
+    return { month, rate };
+  }).filter(d => d.rate > 0);
+
+  // Ensure we have at least some months for the chart to look okay
+  if (attendanceTrendData.length === 0) {
+    attendanceTrendData.push({ month: "Current", rate: 0 });
+  }
+
+  let teacherClasses: any[] = []
+  try {
+    teacherClasses = await prisma.class.findMany({
+      where: { teacherId: session.user.id },
+      select: { id: true, name: true, subject: true }
+    })
+  } catch (err) {
+    console.error("Failed to fetch classes for reports", err)
+  }
 
   return (
     <TeacherReportsManager
       initialPerformanceData={performanceData}
       initialAttendanceTrendData={attendanceTrendData}
       initialStudentReports={studentReports}
+      initialClasses={teacherClasses}
     />
   )
 }

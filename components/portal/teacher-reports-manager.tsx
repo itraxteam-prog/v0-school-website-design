@@ -37,20 +37,100 @@ interface TeacherReportsManagerProps {
     initialPerformanceData: any[];
     initialAttendanceTrendData: any[];
     initialStudentReports: any[];
+    initialClasses: any[];
 }
 
 export function TeacherReportsManager({
     initialPerformanceData,
     initialAttendanceTrendData,
-    initialStudentReports
+    initialStudentReports,
+    initialClasses
 }: TeacherReportsManagerProps) {
     const [loading, setLoading] = useState(false)
-    const [selectedTerm, setSelectedTerm] = useState("term2")
-    const [selectedClass, setSelectedClass] = useState("10a")
+    const [selectedTerm, setSelectedTerm] = useState("term1")
+    const [selectedClass, setSelectedClass] = useState(initialClasses[0]?.id || "")
     const [searchQuery, setSearchQuery] = useState("")
     const { data: session } = useSession()
 
-    const filteredStudents = initialStudentReports.filter((s) =>
+    const [calculatedData, setCalculatedData] = useState<{
+        students: any[],
+        performance: any[],
+        attendance: any[],
+        termAvg: number
+    }>({
+        students: [],
+        performance: initialPerformanceData,
+        attendance: initialAttendanceTrendData,
+        termAvg: 0
+    });
+
+    useEffect(() => {
+        if (!initialStudentReports || initialStudentReports.length === 0) return;
+
+        // 1. Filter Students and calculate their specific stats for selected class/term
+        const classStudents = initialStudentReports.filter(s =>
+            !selectedClass || s.classes.some((c: any) => c.id === selectedClass)
+        ).map(s => {
+            const studentClass = s.classes.find((c: any) => c.id === selectedClass) || s.classes[0];
+            const termGrades = studentClass?.grades.filter((g: any) => !selectedTerm || g.term === selectedTerm) || [];
+            const termAttendances = studentClass?.attendances || []; // Filter by term if date-term mapping exists, otherwise show overall for class
+
+            const avgGrade = termGrades.length > 0
+                ? Math.round(termGrades.reduce((acc: number, g: any) => acc + g.marks, 0) / termGrades.length)
+                : 0;
+
+            const attCount = termAttendances.length;
+            const presCount = termAttendances.filter((a: any) => a.status === "present").length;
+            const attRate = attCount > 0 ? Math.round((presCount / attCount) * 100) : 100;
+
+            return {
+                id: s.id,
+                name: s.name,
+                attendance: attRate,
+                avgGrade: avgGrade,
+                status: avgGrade > 85 ? "Excellent" : (avgGrade > 70 ? "Good" : "Average")
+            };
+        });
+
+        // 2. Filter charts based on class if needed (already calculated in page.tsx for overall, 
+        // but here we can refine if class is selected)
+        let perfData = initialPerformanceData;
+        let attData = initialAttendanceTrendData;
+
+        if (selectedClass) {
+            // Recalculate Performance Trend for this specific class
+            const terms = ["term1", "term2", "term3"];
+            perfData = terms.map(t => {
+                const classGrades = initialStudentReports.flatMap(s =>
+                    s.classes.filter((c: any) => c.id === selectedClass).flatMap((c: any) => c.grades.filter((g: any) => g.term === t))
+                );
+                const avg = classGrades.length > 0 ? Math.round(classGrades.reduce((a, b) => a + b.marks, 0) / classGrades.length) : 0;
+                const top = classGrades.length > 0 ? Math.max(...classGrades.map(g => g.marks)) : 0;
+                return { name: t === "term1" ? "Term 1" : t === "term2" ? "Term 2" : "Term 3", avg, top };
+            }).filter(d => d.avg > 0);
+
+            // Recalculate Attendance Trend for this specific class
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            attData = months.map((m, i) => {
+                const monthAtt = initialStudentReports.flatMap(s =>
+                    s.classes.filter((c: any) => c.id === selectedClass).flatMap((c: any) => c.attendances.filter((a: any) => new Date(a.date).getMonth() === i))
+                );
+                const rate = monthAtt.length > 0 ? Math.round((monthAtt.filter(a => a.status === "present").length / monthAtt.length) * 100) : 0;
+                return { month: m, rate };
+            }).filter(d => d.rate > 0);
+        }
+
+        const overallAvg = classStudents.length > 0 ? Math.round(classStudents.reduce((a, b) => a + b.avgGrade, 0) / classStudents.length) : 0;
+
+        setCalculatedData({
+            students: classStudents,
+            performance: perfData.length > 0 ? perfData : initialPerformanceData,
+            attendance: attData.length > 0 ? attData : initialAttendanceTrendData,
+            termAvg: overallAvg
+        });
+    }, [selectedClass, selectedTerm, initialStudentReports, initialPerformanceData, initialAttendanceTrendData]);
+
+    const filteredStudents = calculatedData.students.filter((s) =>
         s.name.toLowerCase().includes(searchQuery.toLowerCase())
     )
 
@@ -81,8 +161,17 @@ export function TeacherReportsManager({
                         <Button variant="outline" className="border-border hover:bg-muted text-sm flex items-center gap-2" onClick={handleExportCSV}>
                             <Download size={16} /> Export CSV
                         </Button>
-                        <Button className="bg-primary text-white hover:bg-primary/90 text-sm flex items-center gap-2" onClick={() => { toast.success("Saving PDF..."); window.open("/api/admin/reports/export", "_blank"); }}>
-                            <Download size={16} /> Save PDF
+                        <Button className="bg-primary text-white hover:bg-primary/90 text-sm flex items-center gap-2" onClick={() => {
+                            if (!selectedClass) {
+                                toast.error("Please select a class first");
+                                return;
+                            }
+                            const subjectId = initialClasses.find(c => c.id === selectedClass)?.subject?.toLowerCase().replace(/\s+/g, '-') || "general";
+                            const url = `/api/teacher/reports/export?classId=${selectedClass}&type=grades&term=${selectedTerm}&subjectId=${subjectId}`;
+                            toast.success("Generating PDF...");
+                            window.open(url, "_blank");
+                        }}>
+                            <Download size={16} /> Save PDF Report
                         </Button>
                     </div>
                 </div>
@@ -106,9 +195,9 @@ export function TeacherReportsManager({
                                 <Select value={selectedClass} onValueChange={setSelectedClass}>
                                     <SelectTrigger className="h-11 border-border bg-background/50"><SelectValue placeholder="Select Class" /></SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="10a">Grade 10-A</SelectItem>
-                                        <SelectItem value="10b">Grade 10-B</SelectItem>
-                                        <SelectItem value="9a">Grade 9-A</SelectItem>
+                                        {initialClasses.map(c => (
+                                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -129,7 +218,7 @@ export function TeacherReportsManager({
                             <CardTitle className="heading-3 flex items-center gap-2 text-lg"><TrendingUp size={20} className="text-primary" /> Performance Overview</CardTitle>
                         </CardHeader>
                         <CardContent className="pt-6">
-                            {loading ? <Skeleton className="h-[300px] w-full rounded-xl" /> : <div className="h-[300px] w-full"><TeacherPerformanceOverviewChart data={initialPerformanceData} /></div>}
+                            {loading ? <Skeleton className="h-[300px] w-full rounded-xl" /> : <div className="h-[300px] w-full"><TeacherPerformanceOverviewChart data={calculatedData.performance} /></div>}
                         </CardContent>
                     </Card>
 
@@ -138,7 +227,7 @@ export function TeacherReportsManager({
                             <CardTitle className="heading-3 flex items-center gap-2 text-lg"><Calendar size={20} className="text-primary" /> Attendance Trends</CardTitle>
                         </CardHeader>
                         <CardContent className="pt-6">
-                            {loading ? <Skeleton className="h-[300px] w-full rounded-xl" /> : <div className="h-[300px] w-full"><TeacherAttendanceTrendChart data={initialAttendanceTrendData} /></div>}
+                            {loading ? <Skeleton className="h-[300px] w-full rounded-xl" /> : <div className="h-[300px] w-full"><TeacherAttendanceTrendChart data={calculatedData.attendance} /></div>}
                         </CardContent>
                     </Card>
                 </div>
@@ -147,7 +236,7 @@ export function TeacherReportsManager({
                     <CardHeader className="border-b border-border/50 bg-muted/20 pb-4">
                         <div className="flex items-center justify-between">
                             <CardTitle className="heading-3 flex items-center gap-2"><Users size={20} className="text-primary" /> Detailed Student Report</CardTitle>
-                            <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5">Term Average: 84%</Badge>
+                            <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5">Class Average: {calculatedData.termAvg}%</Badge>
                         </div>
                     </CardHeader>
                     <CardContent className="p-0">
