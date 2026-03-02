@@ -64,24 +64,30 @@ export async function GET(req: NextRequest) {
                 );
             }
 
-            const grades = await prisma.grade.findMany({
+            let grades = await prisma.grade.findMany({
                 where: { classId, subjectId, term },
                 include: { student: { select: { name: true, email: true } } },
                 orderBy: { student: { name: "asc" } },
             });
 
+            // Fallback to drafts if no final grades
+            if (grades.length === 0) {
+                grades = await prisma.grade.findMany({
+                    where: { classId, subjectId, term: `${term}-draft` },
+                    include: { student: { select: { name: true, email: true } } },
+                    orderBy: { student: { name: "asc" } },
+                });
+            }
+
             gradeRows = grades.map((g) => {
                 const marks = g.marks;
                 let grade = "F";
                 if (marks >= 90) grade = "A+";
-                else if (marks >= 85) grade = "A";
-                else if (marks >= 80) grade = "A-";
-                else if (marks >= 75) grade = "B+";
+                else if (marks >= 80) grade = "A";
                 else if (marks >= 70) grade = "B";
-                else if (marks >= 65) grade = "B-";
-                else if (marks >= 60) grade = "C+";
-                else if (marks >= 55) grade = "C";
-                else if (marks >= 50) grade = "D";
+                else if (marks >= 60) grade = "C";
+                else if (marks >= 40) grade = "D";
+                else grade = "F";
                 return {
                     studentName: g.student?.name ?? g.student?.email ?? "Unknown",
                     marks,

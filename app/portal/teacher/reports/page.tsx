@@ -23,7 +23,13 @@ export default async function TeacherReportsPage() {
         classes: {
           where: { teacherId: session.user.id },
           select: {
-            grades: { where: { studentId: { not: undefined } }, select: { marks: true, studentId: true } },
+            grades: {
+              where: {
+                studentId: { not: undefined },
+                NOT: { term: { endsWith: "-draft" } }
+              },
+              select: { marks: true, studentId: true }
+            },
             attendances: { where: { studentId: { not: undefined } }, select: { status: true, studentId: true } },
           }
         }

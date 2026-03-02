@@ -17,7 +17,10 @@ export async function GET() {
         }
 
         const grades = await prisma.grade.findMany({
-            where: { studentId: session.user.id },
+            where: {
+                studentId: session.user.id,
+                NOT: { term: { endsWith: "-draft" } }
+            },
             include: { class: { select: { name: true, subject: true } } },
             orderBy: { class: { createdAt: "desc" } },
         })
@@ -26,14 +29,11 @@ export async function GET() {
             const score = g.marks
             let grade = "F"
             if (score >= 90) grade = "A+"
-            else if (score >= 85) grade = "A"
-            else if (score >= 80) grade = "A-"
-            else if (score >= 75) grade = "B+"
+            else if (score >= 80) grade = "A"
             else if (score >= 70) grade = "B"
-            else if (score >= 65) grade = "B-"
-            else if (score >= 60) grade = "C+"
-            else if (score >= 55) grade = "C"
-            else if (score >= 50) grade = "D"
+            else if (score >= 60) grade = "C"
+            else if (score >= 40) grade = "D"
+            else grade = "F"
 
             return {
                 id: g.id,

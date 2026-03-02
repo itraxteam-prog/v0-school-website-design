@@ -39,8 +39,18 @@ export async function GET(req: NextRequest) {
                 throw new Error("FORBIDDEN");
             }
 
-            return prisma.grade.findMany({
+            // Try to find final grades first
+            const finalGrades = await prisma.grade.findMany({
                 where: { classId, subjectId, term },
+            })
+
+            if (finalGrades.length > 0) {
+                return finalGrades;
+            }
+
+            // Fallback to draft grades
+            return prisma.grade.findMany({
+                where: { classId, subjectId, term: `${term}-draft` },
             })
         })(), 8000, "GET /api/teacher/grades");
 
@@ -71,27 +81,45 @@ export async function POST(req: NextRequest) {
                 throw new Error("FORBIDDEN");
             }
 
+            // Determine if this is a draft save or final submission
+            const isDraft = term.endsWith("-draft");
+            const cleanTerm = isDraft ? term.replace("-draft", "") : term;
+
             // Delete existing grades for this class/subject/term and recreate
-            await prisma.$transaction([
-                prisma.grade.deleteMany({ where: { classId, subjectId, term } }),
-                prisma.grade.createMany({
+            await prisma.$transaction(async (tx) => {
+                // If saving final, clean up both final and draft records
+                if (!isDraft) {
+                    await tx.grade.deleteMany({
+                        where: {
+                            classId,
+                            subjectId,
+                            OR: [{ term }, { term: `${term}-draft` }]
+                        }
+                    });
+                } else {
+                    // If saving draft, only clean up previous drafts
+                    await tx.grade.deleteMany({ where: { classId, subjectId, term } });
+                }
+
+                await tx.grade.createMany({
                     data: grades.map((g) => ({
                         studentId: g.studentId,
                         classId,
                         subjectId,
-                        term,
+                        term: term, // Use the provided term (with or without -draft)
                         marks: g.marks,
                     })),
-                }),
-                prisma.auditLog.create({
+                });
+
+                await tx.auditLog.create({
                     data: {
                         userId: session.user.id,
-                        action: "SAVE_GRADES",
+                        action: isDraft ? "SAVE_GRADE_DRAFT" : "SUBMIT_GRADES",
                         entity: "Grade",
                         metadata: { classId, subjectId, term, count: grades.length },
                     },
-                })
-            ]);
+                });
+            });
         })(), 8000, "POST /api/teacher/grades");
 
         return NextResponse.json({ success: true, message: "Grades saved successfully" })

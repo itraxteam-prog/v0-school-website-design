@@ -18,6 +18,9 @@ export default async function AdminReportsPage() {
       include: { profile: true }
     }),
     prisma.grade.findMany({
+      where: {
+        NOT: { term: { endsWith: "-draft" } }
+      },
       take: 100,
       include: { student: { include: { profile: true } } }
     }),
@@ -33,10 +36,10 @@ export default async function AdminReportsPage() {
   // Format student performance
   const studentPerformance = students.map(s => {
     const studentGrades = grades.filter(g => g.studentId === s.id);
-    const avgScore = studentGrades.length > 0 
-      ? Math.round(studentGrades.reduce((acc, g) => acc + g.marks, 0) / studentGrades.length) 
+    const avgScore = studentGrades.length > 0
+      ? Math.round(studentGrades.reduce((acc, g) => acc + g.marks, 0) / studentGrades.length)
       : 0;
-    
+
     return {
       rollNo: s.profile?.rollNumber || "N/A",
 
