@@ -14,7 +14,7 @@ export async function POST(req: Request) {
         }
 
         const data = await req.json();
-        const { name, ...profileData } = data;
+        const { name, ...rest } = data;
 
         // Update User name
         if (name) {
@@ -24,10 +24,34 @@ export async function POST(req: Request) {
             });
         }
 
-        // Handle date fields
-        const formattedProfile: any = { ...profileData };
-        if (profileData.dateOfBirth) formattedProfile.dateOfBirth = new Date(profileData.dateOfBirth);
-        if (profileData.admissionDate) formattedProfile.admissionDate = new Date(profileData.admissionDate);
+        // Filter valid profile fields from Prisma schema
+        const profileFields = [
+            'rollNumber', 'dateOfBirth', 'gender', 'bloodGroup', 'nationality',
+            'admissionDate', 'address', 'city', 'postalCode', 'phone',
+            'guardianName', 'guardianPhone', 'guardianEmail', 'guardianRelation', 'guardianOccupation',
+            'academicHistory'
+        ];
+
+        const formattedProfile: any = {};
+
+        // Loop through fields to ensure type safety and valid values
+        profileFields.forEach(field => {
+            if (rest[field] !== undefined) {
+                // Special handling for dates
+                if (field === 'dateOfBirth' || field === 'admissionDate') {
+                    if (rest[field]) {
+                        const date = new Date(rest[field]);
+                        if (!isNaN(date.getTime())) {
+                            formattedProfile[field] = date;
+                        }
+                    } else {
+                        formattedProfile[field] = null;
+                    }
+                } else {
+                    formattedProfile[field] = rest[field];
+                }
+            }
+        });
 
         // Update or Create Profile
         await prisma.profile.upsert({
@@ -41,8 +65,11 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ success: true });
     } catch (error: any) {
-        console.error("[POST /api/user/profile]", error);
-        return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
+        console.error("[POST /api/user/profile] Error updating profile:", error);
+        return NextResponse.json({
+            error: "Failed to update profile",
+            message: error.message
+        }, { status: 500 });
     }
 }
 
