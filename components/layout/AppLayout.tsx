@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext"
 import { Bell, ChevronRight, LogOut, Menu, Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
 import type { LucideIcon } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
 import { useTheme } from "next-themes"
@@ -30,6 +31,7 @@ export function AppLayout({ children, sidebarItems, userName, userRole, userImag
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [isSearchVisible, setIsSearchVisible] = useState(false)
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [settings, setSettings] = useState<any>(null)
   const pathname = usePathname()
   const { logout } = useAuth()
@@ -247,12 +249,65 @@ export function AppLayout({ children, sidebarItems, userName, userRole, userImag
               </Button>
             </div>
             {/* Notification */}
-            <Button variant="ghost" size="icon" className="relative h-9 w-9" aria-label="Notifications">
-              <Bell className="h-[18px] w-[18px]" />
-              <span className="absolute right-1.5 top-1.5 flex h-2 w-2 rounded-full bg-primary" />
-            </Button>
-            {/* Avatar */}
-            <div className="flex items-center gap-2">
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative h-9 w-9"
+                aria-label="Notifications"
+                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+              >
+                <Bell className="h-[18px] w-[18px]" />
+                <span className="absolute right-1.5 top-1.5 flex h-2 w-2 rounded-full bg-primary" />
+              </Button>
+
+              <AnimatePresence>
+                {isNotificationsOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setIsNotificationsOpen(false)}
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                      className="absolute right-0 top-full mt-2 z-20 w-80 rounded-xl border border-border bg-background shadow-xl overflow-hidden"
+                    >
+                      <div className="bg-muted/30 p-3 border-b border-border flex items-center justify-between">
+                        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Notifications</p>
+                        <Badge variant="secondary" className="text-[10px]">3 New</Badge>
+                      </div>
+                      <div className="max-h-80 overflow-y-auto">
+                        {[
+                          { title: "New Assignment Submission", time: "5 mins ago", desc: "Ahmed Khan submitted Math HW" },
+                          { title: "Meeting Reminder", time: "1 hour ago", desc: "Staff meeting in Conference Room B" },
+                          { title: "Policy Update", time: "Yesterday", desc: "New attendance policy for Spring 2026" },
+                        ].map((n, i) => (
+                          <div key={i} className="p-3 border-b border-border hover:bg-muted/50 transition-colors cursor-pointer group">
+                            <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{n.title}</p>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">{n.time}</p>
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{n.desc}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <Link href="#" className="block p-2 text-center text-xs font-semibold text-primary hover:bg-muted transition-colors">
+                        View All Notifications
+                      </Link>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Avatar / Profile */}
+            <Link
+              href={safePathname.startsWith('/portal/admin') ? '/portal/admin/profile' :
+                safePathname.startsWith('/portal/teacher') ? '/portal/teacher/profile' :
+                  '/portal/student/profile'}
+              className="flex items-center gap-2 hover:bg-muted/50 p-1 rounded-lg transition-colors"
+              title="View Profile"
+            >
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground shrink-0 overflow-hidden ring-2 ring-primary/20">
                 {userImage ? (
                   <img src={userImage} alt={userName} className="h-full w-full object-cover" />
@@ -263,10 +318,10 @@ export function AppLayout({ children, sidebarItems, userName, userRole, userImag
                 )}
               </div>
               <div className="hidden lg:block mr-2 text-left">
-                <p className="text-xs font-semibold text-foreground truncate max-w-[100px]">{userName}</p>
-                <p className="text-[10px] text-muted-foreground">{userRole}</p>
+                <p className="text-xs font-semibold text-foreground truncate max-w-[100px] leading-tight">{userName}</p>
+                <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">{userRole}</p>
               </div>
-            </div>
+            </Link>
 
             {/* Header Logout - Visible on desktop */}
             <Button
@@ -278,6 +333,7 @@ export function AppLayout({ children, sidebarItems, userName, userRole, userImag
             >
               <LogOut className="h-[18px] w-[18px]" />
             </Button>
+
           </div>
         </header>
 
