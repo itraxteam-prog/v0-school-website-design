@@ -29,6 +29,7 @@ export const ADMIN_SIDEBAR = [
     { href: "/portal/admin/users", label: "User Management", icon: Settings },
     { href: "/portal/admin/roles", label: "Roles & Permissions", icon: ShieldCheck },
     { href: "/portal/admin/school-settings", label: "School Settings", icon: Settings },
+    { href: "/portal/admin/profile", label: "My Profile", icon: User },
     { href: "/portal/admin/security", label: "Security", icon: ShieldCheck },
 ]
 

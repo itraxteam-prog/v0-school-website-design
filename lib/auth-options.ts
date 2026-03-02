@@ -116,7 +116,7 @@ export const authOptions: NextAuthOptions = {
             }
             return `${baseUrl}/portal`
         },
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger, session }) {
             // Preservation logic for user role across JWT updates
             if (user) {
                 token.id = user.id;
@@ -124,6 +124,11 @@ export const authOptions: NextAuthOptions = {
                 token.email = user.email;
                 token.status = user.status;
                 token.accountStatus = user.status;
+                token.name = user.name;
+            }
+
+            if (trigger === "update" && session?.name) {
+                token.name = session.name;
             }
 
             // Task 4: Invalidate ADMIN sessions after 8 hours

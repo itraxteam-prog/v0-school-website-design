@@ -1,7 +1,8 @@
-import { TeacherProfileView } from "@/components/portal/teacher-profile-view"
+import { ProfileView } from "@/components/portal/profile-view"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { TEACHER_SIDEBAR } from "@/lib/navigation-config"
 
 export default async function TeacherProfilePage() {
   const session = await getServerSession(authOptions)
@@ -26,13 +27,14 @@ export default async function TeacherProfilePage() {
     status: teacher.status,
     dob: teacher.profile?.dateOfBirth ? teacher.profile.dateOfBirth.toLocaleDateString() : "Not Specified",
     gender: teacher.profile?.gender || "Not Specified",
-    qualifications: teacher.profile?.academicHistory || "M.A. / M.Sc.",
+    qualifications: teacher.profile?.academicHistory?.toString() || "M.A. / M.Sc.",
     subjects: teacher.taughtClasses.map(c => c.subject).filter(Boolean).join(", ") || "General Academics",
     classes: teacher.taughtClasses.map(c => c.name).join(", ") || "None assigned",
     joiningDate: teacher.createdAt.toLocaleDateString(),
     phone: teacher.profile?.phone || "Not provided",
     address: teacher.profile?.address || "Not provided",
+    avatarUrl: teacher.image
   };
 
-  return <TeacherProfileView teacherData={teacherData} />
+  return <ProfileView data={teacherData} sidebarItems={TEACHER_SIDEBAR} userRole="teacher" />
 }
