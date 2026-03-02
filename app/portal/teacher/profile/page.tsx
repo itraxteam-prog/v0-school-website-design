@@ -1,16 +1,9 @@
 import { ProfileView } from "@/components/portal/profile-view"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { TEACHER_SIDEBAR } from "@/lib/navigation-config"
-import { redirect } from "next/navigation"
+import { requireRole } from "@/lib/auth-guard"
 
 export default async function TeacherProfilePage() {
-  const session = await getServerSession(authOptions)
-
-  if (!session?.user || session.user.role !== "TEACHER") {
-    redirect("/portal/login")
-  }
+  const session = await requireRole("TEACHER")
 
   let teacher: any = null;
   try {
@@ -26,7 +19,7 @@ export default async function TeacherProfilePage() {
   }
 
   if (!teacher) {
-    // Return a safe fallback UI or redirect
+    // Return a safe fallback UI
     const fallbackData = {
       name: session.user.name || "Teacher",
       email: session.user.email || "",
@@ -43,7 +36,7 @@ export default async function TeacherProfilePage() {
       address: "Not provided",
       avatarUrl: session.user.image
     };
-    return <ProfileView data={fallbackData} sidebarItems={TEACHER_SIDEBAR} userRole="teacher" />
+    return <ProfileView data={fallbackData} userRole="teacher" />
   }
 
   const teacherData = {
@@ -63,5 +56,6 @@ export default async function TeacherProfilePage() {
     avatarUrl: teacher.image
   };
 
-  return <ProfileView data={teacherData} sidebarItems={TEACHER_SIDEBAR} userRole="teacher" />
+  return <ProfileView data={teacherData} userRole="teacher" />
 }
+
