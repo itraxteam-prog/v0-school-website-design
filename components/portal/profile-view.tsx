@@ -155,7 +155,7 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
                                         </div>
                                     ) : (
                                         <div className="flex h-40 w-40 items-center justify-center rounded-full bg-burgundy-gradient text-white text-5xl font-bold shadow-2xl ring-4 ring-white/20">
-                                            {profileData.name.substring(0, 2).toUpperCase()}
+                                            {(profileData?.name || "User").substring(0, 2).toUpperCase()}
                                         </div>
                                     )}
                                     <input type="file" id="profile-photo" className="hidden" accept="image/*" onChange={handlePhotoUpload} />

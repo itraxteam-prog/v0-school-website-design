@@ -40,33 +40,60 @@ export default async function TeacherReportsPage() {
       }
     })
 
-    if (studentsData.length > 0) {
+    if (studentsData && studentsData.length > 0) {
       // Assign raw data for client-side processing
-      studentReports = studentsData;
+      studentReports = studentsData.map(s => ({
+        ...s,
+        classes: s.classes || []
+      }));
     } else {
-      // Mock fallback
+      // Mock fallback - MUST match the expected structure
       studentReports = [
-        { id: "S001", name: "Ahmed Khan", attendance: 95, avgGrade: 88, status: "Excellent" },
-        { id: "S002", name: "Sara Ali", attendance: 98, avgGrade: 94, status: "Excellent" },
+        {
+          id: "S001",
+          name: "Ahmed Khan",
+          classes: [
+            {
+              id: "C001",
+              name: "Grade 10-A",
+              grades: [{ marks: 88, term: "term1" }],
+              attendances: [{ status: "present", date: new Date().toISOString(), classId: "C001" }]
+            }
+          ]
+        },
+        {
+          id: "S002",
+          name: "Sara Ali",
+          classes: [
+            {
+              id: "C001",
+              name: "Grade 10-A",
+              grades: [{ marks: 94, term: "term1" }],
+              attendances: [{ status: "present", date: new Date().toISOString(), classId: "C001" }]
+            }
+          ]
+        },
       ];
     }
   } catch (error) {
     console.error("Failed to fetch teacher reports data", error)
+    // Ensure studentReports is at least an empty array or valid mock
+    studentReports = [];
   }
 
   // Calculate real performance overview from grades
   const terms = ["term1", "term2", "term3"];
   const performanceData = terms.map(t => {
     const termGrades = studentReports.length > 0
-      ? studentsData.flatMap(s => s.classes.flatMap((c: any) => c.grades.filter((g: any) => g.term === t)))
+      ? studentReports.flatMap(s => (s.classes || []).flatMap((c: any) => (c.grades || []).filter((g: any) => g.term === t)))
       : [];
 
     const avg = termGrades.length > 0
-      ? Math.round(termGrades.reduce((acc, g) => acc + g.marks, 0) / termGrades.length)
+      ? Math.round(termGrades.reduce((acc, g) => acc + (g.marks || 0), 0) / termGrades.length)
       : 0;
 
     const top = termGrades.length > 0
-      ? Math.max(...termGrades.map(g => g.marks))
+      ? Math.max(...termGrades.map(g => g.marks || 0))
       : 0;
 
     const termLabels: Record<string, string> = {
@@ -86,10 +113,10 @@ export default async function TeacherReportsPage() {
 
   // Calculate real attendance trend by month
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const attendanceRecords = studentsData.flatMap(s => s.classes.flatMap((c: any) => c.attendances));
+  const attendanceRecords = studentReports.flatMap(s => (s.classes || []).flatMap((c: any) => c.attendances || []));
 
   const attendanceTrendData = monthNames.map((month, index) => {
-    const monthRecords = attendanceRecords.filter(a => new Date(a.date).getMonth() === index);
+    const monthRecords = attendanceRecords.filter(a => a.date && new Date(a.date).getMonth() === index);
     const totalCount = monthRecords.length;
     const presentCount = monthRecords.filter(a => a.status === "present").length;
     const rate = totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
@@ -110,6 +137,7 @@ export default async function TeacherReportsPage() {
     })
   } catch (err) {
     console.error("Failed to fetch classes for reports", err)
+    teacherClasses = [];
   }
 
   return (

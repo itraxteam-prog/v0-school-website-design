@@ -68,15 +68,15 @@ export function TeacherReportsManager({
         if (!initialStudentReports || initialStudentReports.length === 0) return;
 
         // 1. Filter Students and calculate their specific stats for selected class/term
-        const classStudents = initialStudentReports.filter(s =>
-            !selectedClass || s.classes.some((c: any) => c.id === selectedClass)
+        const classStudents = (initialStudentReports || []).filter(s =>
+            !selectedClass || (s.classes || []).some((c: any) => c.id === selectedClass)
         ).map(s => {
-            const studentClass = s.classes.find((c: any) => c.id === selectedClass) || s.classes[0];
-            const termGrades = studentClass?.grades.filter((g: any) => !selectedTerm || g.term === selectedTerm) || [];
+            const studentClass = (s.classes || []).find((c: any) => c.id === selectedClass) || s.classes?.[0];
+            const termGrades = studentClass?.grades?.filter((g: any) => !selectedTerm || g.term === selectedTerm) || [];
             const termAttendances = studentClass?.attendances || []; // Filter by term if date-term mapping exists, otherwise show overall for class
 
             const avgGrade = termGrades.length > 0
-                ? Math.round(termGrades.reduce((acc: number, g: any) => acc + g.marks, 0) / termGrades.length)
+                ? Math.round(termGrades.reduce((acc: number, g: any) => acc + (g.marks || 0), 0) / termGrades.length)
                 : 0;
 
             const attCount = termAttendances.length;
