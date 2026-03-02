@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import speakeasy from "speakeasy";
 import { logAudit } from "@/lib/audit";
 
+export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
 export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions);

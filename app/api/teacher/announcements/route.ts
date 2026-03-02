@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 export const runtime = "nodejs";
 import { prisma } from "@/lib/prisma";
 import { requireRole, handleAuthError } from "@/lib/auth-guard";

@@ -4,6 +4,9 @@ import { authOptions } from "@/lib/auth-options";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 
+export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
+
 export async function POST() {
     try {
         const session = await getServerSession(authOptions);

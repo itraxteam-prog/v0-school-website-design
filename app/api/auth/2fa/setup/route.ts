@@ -5,6 +5,9 @@ import { prisma } from "@/lib/prisma";
 import speakeasy from "speakeasy";
 import QRCode from "qrcode";
 
+export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
+
 export async function POST() {
     try {
         const session = await getServerSession(authOptions);

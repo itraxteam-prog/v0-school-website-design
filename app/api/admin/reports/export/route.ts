@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+export const dynamic = 'force-dynamic';
 import { prisma } from "@/lib/prisma";
 import { createPdf } from "@/lib/pdf/createPdf";
 import { AdminAnalyticsPdf } from "@/lib/pdf/templates/AdminAnalyticsPdf";

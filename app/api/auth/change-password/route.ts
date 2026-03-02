@@ -5,6 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { hashPassword, verifyPassword } from "@/lib/utils/auth-crypto";
 import { logAudit } from "@/lib/audit";
 
+export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
+
 export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions);

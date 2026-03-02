@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 export const runtime = "nodejs";
 import { prisma } from "@/lib/prisma";
 import { requireRole, handleAuthError } from "@/lib/auth-guard";
@@ -11,7 +12,7 @@ export async function GET(req: Request) {
 
         const students = await prisma.user.findMany({
             where: { role: "STUDENT" },
-            include: { 
+            include: {
                 profile: true,
                 classes: { take: 1 }
             },

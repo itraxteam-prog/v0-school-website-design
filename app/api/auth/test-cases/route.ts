@@ -2,6 +2,7 @@ import { requireRole, handleAuthError } from "@/lib/auth-guard";
 import { NextResponse, NextRequest } from "next/server";
 import { logRequest } from "@/lib/logger";
 
+export const dynamic = 'force-dynamic';
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
