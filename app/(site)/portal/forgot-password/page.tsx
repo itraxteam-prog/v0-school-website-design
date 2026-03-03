@@ -92,7 +92,7 @@ export default function ForgotPasswordPage() {
                                                 <Input
                                                     id="email"
                                                     type="email"
-                                                    placeholder="name@school.edu"
+                                                    placeholder="email@example.com"
                                                     {...register("email")}
                                                     className="pl-10 h-11 bg-slate-50/50 border-slate-200 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                                                     required
