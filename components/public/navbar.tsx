@@ -91,42 +91,42 @@ export function Navbar() {
             {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </nav>
+      </header>
 
-        {/* Mobile Menu Overlay */}
-        {mobileOpen && (
-          <div className="fixed inset-0 top-[57px] z-40 bg-white lg:hidden">
-            <div className="flex flex-col gap-1 px-4 pt-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  prefetch={true}
-                  onClick={() => setMobileOpen(false)}
-                  className={`rounded-lg px-4 py-3 text-base font-medium transition-colors ${pathname === link.href
-                    ? "bg-primary/5 text-primary"
-                    : "text-foreground hover:bg-muted"
-                    }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4">
-                <Link href={portalHref} prefetch={true} onClick={() => setMobileOpen(false)}>
-                  <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground flex items-center justify-center gap-2">
-                    {user && <LayoutDashboard className="h-4 w-4" />}
-                    {portalLabel}
-                  </Button>
-                </Link>
-                <Link href="/admissions" prefetch={true} onClick={() => setMobileOpen(false)}>
-                  <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                    Apply Now
-                  </Button>
-                </Link>
-              </div>
+      {/* Mobile Menu Overlay */}
+      {mobileOpen && (
+        <div className="fixed inset-0 top-[57px] z-40 bg-white lg:hidden">
+          <div className="flex flex-col gap-1 px-4 pt-4">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                prefetch={true}
+                onClick={() => setMobileOpen(false)}
+                className={`rounded-lg px-4 py-3 text-base font-medium transition-colors ${pathname === link.href
+                  ? "bg-primary/5 text-primary"
+                  : "text-foreground hover:bg-muted"
+                  }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+            <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4">
+              <Link href={portalHref} prefetch={true} onClick={() => setMobileOpen(false)}>
+                <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground flex items-center justify-center gap-2">
+                  {user && <LayoutDashboard className="h-4 w-4" />}
+                  {portalLabel}
+                </Button>
+              </Link>
+              <Link href="/admissions" prefetch={true} onClick={() => setMobileOpen(false)}>
+                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+                  Apply Now
+                </Button>
+              </Link>
             </div>
           </div>
-        )}
-      </header>
+        </div>
+      )}
     </>
   )
 }
