@@ -30,7 +30,33 @@ async function handler(req: NextRequest, context: any) {
             );
         }
     }
-    return authHandler(req, context);
+
+    const response = await authHandler(req, context);
+
+    // Transform all Set-Cookie headers to be session-only (no Max-Age or Expires)
+    if (response.headers.has("Set-Cookie")) {
+        const setCookies = response.headers.getSetCookie();
+        const newHeaders = new Headers(response.headers);
+        newHeaders.delete("Set-Cookie");
+
+        setCookies.forEach((cookie: string) => {
+            const sessionOnlyCookie = cookie
+                .replace(/Max-Age=[^;]+;?/i, "")
+                .replace(/Expires=[^;]+;?/i, "")
+                .trim()
+                .replace(/;$/, ""); // Clean up trailing semicolon
+
+            newHeaders.append("Set-Cookie", sessionOnlyCookie);
+        });
+
+        return new NextResponse(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: newHeaders,
+        });
+    }
+
+    return response;
 }
 
 export { handler as GET, handler as POST };
