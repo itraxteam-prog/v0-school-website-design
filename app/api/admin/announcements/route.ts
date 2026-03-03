@@ -7,6 +7,7 @@ import { TargetRole } from "@prisma/client";
 import { assertAdmin } from "@/lib/assert-role";
 import { z } from "zod";
 import { rateLimit, getIP } from "@/lib/rate-limit";
+import { sendAnnouncementEmail } from "@/lib/email";
 
 const announcementSchema = z.object({
     title: z.string().min(1, "Title is required"),
@@ -66,6 +67,26 @@ export async function POST(req: Request) {
                 createdBy: session.user.id,
             },
         });
+
+        // Async Email Notification
+        (async () => {
+            try {
+                const users = await prisma.user.findMany({
+                    where: {
+                        status: "ACTIVE",
+                        ...(targetRole !== "ALL" ? { role: targetRole as any } : {})
+                    },
+                    select: { email: true }
+                });
+
+                const emails = users.map(u => u.email).filter(Boolean) as string[];
+                if (emails.length > 0) {
+                    sendAnnouncementEmail(emails, title, content);
+                }
+            } catch (err) {
+                console.error("Failed to trigger announcement emails:", err);
+            }
+        })();
 
         return NextResponse.json(announcement);
     } catch (error) {

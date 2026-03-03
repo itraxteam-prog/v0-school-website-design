@@ -18,17 +18,26 @@ const transporter = nodemailer.createTransport({
  */
 async function sendAsync(options: nodemailer.SendMailOptions) {
   try {
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: env.SMTP_FROM,
       ...options,
     });
-    logger.info({ to: options.to, subject: options.subject }, "Email sent successfully");
+    logger.info({
+      to: options.to,
+      subject: options.subject,
+      messageId: info.messageId
+    }, "Email sent successfully");
   } catch (error) {
     logger.error({
       error: error instanceof Error ? error.message : "Unknown error",
       to: options.to,
       subject: options.subject,
-      stack: error instanceof Error ? error.stack : undefined
+      stack: error instanceof Error ? error.stack : undefined,
+      smtp: {
+        host: env.SMTP_HOST,
+        port: env.SMTP_PORT,
+        user: env.SMTP_USER
+      }
     }, "Email delivery failed");
   }
 }
@@ -87,5 +96,35 @@ export function sendVerificationEmail(email: string, token: string) {
   `;
 
   sendEmail(email, "Verify your email", html);
+}
+
+/**
+ * Helper to send announcement notifications to multiple recipients.
+ */
+export function sendAnnouncementEmail(emails: string[], title: string, content: string) {
+  if (emails.length === 0) return;
+
+  const html = `
+    <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+      <h2 style="color: #1e293b;">New Announcement: ${title}</h2>
+      <div style="color: #475569; line-height: 1.6; margin: 20px 0;">
+        ${content.replace(/\n/g, '<br>')}
+      </div>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${env.NEXTAUTH_URL}/portal" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">View in Portal</a>
+      </div>
+      <p style="color: #64748b; font-size: 12px; border-top: 1px solid #f1f5f9; pt-4;">You are receiving this because an announcement was made on the school portal.</p>
+    </div>
+  `;
+
+  // Use BCC for privacy if sending to many, or send individually for reliability/tracking
+  // For simplicity and to ensure deliverability, we'll send to the list (BCC is usually better for bulk)
+  sendAsync({
+    bcc: emails,
+    subject: `New Announcement: ${title}`,
+    html
+  }).catch((err) => {
+    logger.fatal({ err }, "Unhandled promise rejection in announcement email sender");
+  });
 }
 
