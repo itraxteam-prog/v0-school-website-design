@@ -11,6 +11,7 @@ const PerformanceTrendChart = dynamic(() => import("@/components/portal/dashboar
 const SubjectComparisonChart = dynamic(() => import("@/components/portal/dashboard-charts").then(mod => mod.SubjectComparisonChart), { ssr: false });
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { formatName } from "@/lib/utils"
 
 import { STUDENT_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
@@ -34,7 +35,7 @@ export function StudentDashboardClient({ user }: StudentDashboardClientProps) {
             try {
                 const res = await fetch("/api/student/stats", { credentials: "include" });
                 if (!res.ok) throw new Error("Failed to fetch dashboard stats");
-                
+
                 const result = await res.json();
                 setData(result);
             } catch (error: any) {
@@ -62,7 +63,7 @@ export function StudentDashboardClient({ user }: StudentDashboardClientProps) {
                 {/* Welcome Section */}
                 <AnimatedWrapper direction="down">
                     <div className="flex flex-col gap-1">
-                        <h1 className="heading-1 text-burgundy-gradient">Welcome back, {user?.name?.split(' ')[0] || 'Student'}</h1>
+                        <h1 className="heading-1 text-burgundy-gradient">Welcome back, {formatName(user?.name?.split(' ')[0]) || 'Student'}</h1>
                         <p className="text-sm text-muted-foreground">Here is your academic overview for today.</p>
                     </div>
                 </AnimatedWrapper>

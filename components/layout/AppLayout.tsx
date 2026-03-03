@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import type { LucideIcon } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
 import { useTheme } from "next-themes"
+import { formatName } from "@/lib/utils"
 
 export interface SidebarItem {
   href: string
@@ -43,13 +44,16 @@ export function AppLayout({ children, sidebarItems, userName, userRole, userImag
       .then(data => {
         if (!data.error) {
           setSettings(data)
-          if (data?.portalPreferences?.darkMode !== undefined) {
+          // Only synchronize global theme for non-student/teacher roles (Admin)
+          // Students and Teachers use their local preference set in Security Settings
+          const upperRole = userRole?.toUpperCase();
+          if (upperRole !== "STUDENT" && upperRole !== "TEACHER" && data?.portalPreferences?.darkMode !== undefined) {
             setTheme(data.portalPreferences.darkMode ? "dark" : "light")
           }
         }
       })
       .catch(console.error)
-  }, [setTheme])
+  }, [setTheme, userRole])
 
   const handleLogout = async () => {
     await logout()
@@ -318,7 +322,7 @@ export function AppLayout({ children, sidebarItems, userName, userRole, userImag
                 )}
               </div>
               <div className="hidden lg:block mr-2 text-left">
-                <p className="text-xs font-semibold text-foreground truncate max-w-[100px] leading-tight">{userName}</p>
+                <p className="text-xs font-semibold text-foreground truncate max-w-[100px] leading-tight">{formatName(userName)}</p>
                 <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">{userRole}</p>
               </div>
             </Link>

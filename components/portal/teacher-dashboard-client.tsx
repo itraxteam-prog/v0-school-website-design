@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import dynamic from "next/dynamic"
 const ClassPerformanceChart = dynamic(() => import("@/components/portal/teacher-charts").then(mod => mod.ClassPerformanceChart), { ssr: false });
+import { formatName } from "@/lib/utils"
 
 import { TEACHER_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
@@ -115,7 +116,7 @@ export function TeacherDashboardClient({ user }: TeacherDashboardClientProps) {
                 {/* Welcome Section */}
                 <AnimatedWrapper direction="down">
                     <div className="flex flex-col gap-1">
-                        <h1 className="heading-1 text-burgundy-gradient">Welcome back, {user?.name?.split(' ')[1] || 'Teacher'}</h1>
+                        <h1 className="heading-1 text-burgundy-gradient">Welcome back, {formatName(user?.name?.split(' ')[1]) || 'Teacher'}</h1>
                         <p className="text-sm text-muted-foreground">Here is your teaching overview for today.</p>
                     </div>
                 </AnimatedWrapper>
