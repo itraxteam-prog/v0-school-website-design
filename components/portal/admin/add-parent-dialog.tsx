@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
-import { X, Loader2 } from "lucide-react"
+import { X, Loader2, Eye, EyeOff } from "lucide-react"
 import { toast } from "sonner"
 
 interface Student {
@@ -55,6 +55,7 @@ export function AddParentDialog({ open, onOpenChange, onSuccess, initialData }: 
     const [students, setStudents] = useState<Student[]>([])
     const [loading, setLoading] = useState(false)
     const [submitting, setSubmitting] = useState(false)
+    const [showPassword, setShowPassword] = useState(false)
 
     const isEdit = !!initialData
 
@@ -213,15 +214,30 @@ export function AddParentDialog({ open, onOpenChange, onSuccess, initialData }: 
                                 </Label>
                             </div>
                         </div>
-                        <Input
-                            id="parent-password"
-                            type="password"
-                            placeholder={autoGenerate ? "Will be auto-generated" : "Enter password"}
-                            value={autoGenerate ? "" : password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            disabled={autoGenerate}
-                            className="bg-background disabled:opacity-60"
-                        />
+                        <div className="relative">
+                            <Input
+                                id="parent-password"
+                                type={showPassword ? "text" : "password"}
+                                placeholder={autoGenerate ? "Will be auto-generated" : "Enter password"}
+                                value={autoGenerate ? "" : password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                disabled={autoGenerate}
+                                className="bg-background disabled:opacity-60 pr-10"
+                            />
+                            {!autoGenerate && (
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground touch-none"
+                                >
+                                    {showPassword ? (
+                                        <EyeOff className="h-4 w-4" />
+                                    ) : (
+                                        <Eye className="h-4 w-4" />
+                                    )}
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     {/* Link Children */}
