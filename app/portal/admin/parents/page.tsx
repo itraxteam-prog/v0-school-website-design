@@ -30,6 +30,7 @@ export default function AdminParentsPage() {
     const [parents, setParents] = useState<Parent[]>([])
     const [loading, setLoading] = useState(true)
     const [dialogOpen, setDialogOpen] = useState(false)
+    const [editingParent, setEditingParent] = useState<Parent | null>(null)
     const [isDeleting, setIsDeleting] = useState<string | null>(null)
 
     const fetchParents = async () => {
@@ -51,6 +52,11 @@ export default function AdminParentsPage() {
     useEffect(() => {
         fetchParents()
     }, [])
+
+    const handleEdit = (parent: Parent) => {
+        setEditingParent(parent)
+        setDialogOpen(true)
+    }
 
     const handleDelete = async (id: string) => {
         if (!confirm("Are you sure you want to delete this parent account? This will also remove the link to their children.")) return
@@ -75,6 +81,13 @@ export default function AdminParentsPage() {
         }
     }
 
+    const handleDialogChange = (open: boolean) => {
+        setDialogOpen(open)
+        if (!open) {
+            setEditingParent(null)
+        }
+    }
+
     return (
         <AppLayout sidebarItems={ADMIN_SIDEBAR} userName="Admin" userRole="Admin">
             <div className="flex flex-col gap-8 pb-8">
@@ -90,7 +103,10 @@ export default function AdminParentsPage() {
                         <Button
                             id="add-parent-btn"
                             className="gap-2 bg-primary text-white hover:bg-primary/90 w-fit"
-                            onClick={() => setDialogOpen(true)}
+                            onClick={() => {
+                                setEditingParent(null)
+                                setDialogOpen(true)
+                            }}
                         >
                             <PlusCircle className="h-4 w-4" />
                             Add Parent
@@ -167,6 +183,16 @@ export default function AdminParentsPage() {
                                                         <TableCell className="text-right">
                                                             <div className="flex items-center justify-end gap-2">
                                                                 <Button
+                                                                    id={`edit-parent-${parent.id}`}
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={() => handleEdit(parent)}
+                                                                    className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary"
+                                                                >
+                                                                    <Pencil className="h-3.5 w-3.5" />
+                                                                    <span className="sr-only">Edit</span>
+                                                                </Button>
+                                                                <Button
                                                                     id={`delete-parent-${parent.id}`}
                                                                     variant="ghost"
                                                                     size="sm"
@@ -203,8 +229,9 @@ export default function AdminParentsPage() {
 
             <AddParentDialog
                 open={dialogOpen}
-                onOpenChange={setDialogOpen}
+                onOpenChange={handleDialogChange}
                 onSuccess={fetchParents}
+                initialData={editingParent}
             />
         </AppLayout>
     )

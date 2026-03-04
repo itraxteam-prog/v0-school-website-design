@@ -19,6 +19,7 @@ function getRedirectPathByRole(role: string): string {
     case "ADMIN": return "/portal/admin";
     case "TEACHER": return "/portal/teacher";
     case "STUDENT": return "/portal/student";
+    case "PARENT": return "/portal/parent";
     default: return "/portal/login";
   }
 }

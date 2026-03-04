@@ -5,13 +5,17 @@ import { prisma } from "@/lib/prisma";
 import { assertAdmin } from "@/lib/assert-role";
 import { handleAuthError } from "@/lib/auth-guard";
 import { z } from "zod";
+import { hashPassword } from "@/lib/utils/auth-crypto";
 
 const updateParentSchema = z.object({
     name: z.string().min(1).optional(),
     email: z.string().email().optional(),
+    password: z.string().min(6).optional(),
     status: z.enum(["ACTIVE", "SUSPENDED"]).optional(),
     studentIds: z.array(z.string()).optional(),
 }).strict();
+
+
 
 export async function PATCH(
     req: NextRequest,
@@ -31,27 +35,32 @@ export async function PATCH(
             }, { status: 400 });
         }
 
-        const { name, email, status, studentIds } = validated.data;
+        const { name, email, password, status, studentIds } = validated.data;
+
+        const data: any = {};
+        if (name) data.name = name;
+        if (email) data.email = email;
+        if (status) data.status = status;
+        if (password) {
+            data.password = await hashPassword(password);
+        }
+
+        if (studentIds) {
+            data.parent = {
+                update: {
+                    children: {
+                        deleteMany: {},
+                        create: studentIds.map(studentId => ({
+                            student: { connect: { id: studentId } }
+                        }))
+                    }
+                }
+            };
+        }
 
         const updatedUser = await prisma.user.update({
             where: { id },
-            data: {
-                ...(name && { name }),
-                ...(email && { email }),
-                ...(status && { status }),
-                ...(studentIds && {
-                    parent: {
-                        update: {
-                            children: {
-                                deleteMany: {},
-                                create: studentIds.map(studentId => ({
-                                    student: { connect: { id: studentId } }
-                                }))
-                            }
-                        }
-                    }
-                })
-            }
+            data
         });
 
         return NextResponse.json(updatedUser);

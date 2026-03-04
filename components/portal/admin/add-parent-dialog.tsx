@@ -33,9 +33,19 @@ interface AddParentDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     onSuccess?: () => void
+    initialData?: {
+        id: string;
+        name: string;
+        email: string;
+        children: {
+            id: string;
+            name: string;
+            class: string;
+        }[];
+    } | null
 }
 
-export function AddParentDialog({ open, onOpenChange, onSuccess }: AddParentDialogProps) {
+export function AddParentDialog({ open, onOpenChange, onSuccess, initialData }: AddParentDialogProps) {
     const [parentName, setParentName] = useState("")
     const [parentEmail, setParentEmail] = useState("")
     const [password, setPassword] = useState("")
@@ -45,6 +55,8 @@ export function AddParentDialog({ open, onOpenChange, onSuccess }: AddParentDial
     const [students, setStudents] = useState<Student[]>([])
     const [loading, setLoading] = useState(false)
     const [submitting, setSubmitting] = useState(false)
+
+    const isEdit = !!initialData
 
     useEffect(() => {
         if (open) {
@@ -63,8 +75,22 @@ export function AddParentDialog({ open, onOpenChange, onSuccess }: AddParentDial
                 }
             }
             fetchStudents()
+
+            if (initialData) {
+                setParentName(initialData.name)
+                setParentEmail(initialData.email)
+                setLinkedChildren(initialData.children.map(c => ({
+                    id: c.id,
+                    name: c.name,
+                    className: c.class
+                })))
+                setAutoGenerate(false)
+                setPassword("") // Don't show old password
+            } else {
+                resetForm()
+            }
         }
-    }, [open])
+    }, [open, initialData])
 
     const handleAddChild = (studentId: string) => {
         const student = students.find(s => s.id === studentId)
@@ -83,7 +109,7 @@ export function AddParentDialog({ open, onOpenChange, onSuccess }: AddParentDial
     }
 
     const handleSubmit = async () => {
-        if (!parentName || !parentEmail || (!autoGenerate && !password)) {
+        if (!parentName || !parentEmail || (!isEdit && !autoGenerate && !password)) {
             toast.error("Please fill in all required fields")
             return
         }
@@ -97,25 +123,28 @@ export function AddParentDialog({ open, onOpenChange, onSuccess }: AddParentDial
 
         setSubmitting(true)
         try {
-            const res = await fetch("/api/admin/parents", {
-                method: "POST",
+            const url = isEdit ? `/api/admin/parents/${initialData.id}` : "/api/admin/parents"
+            const method = isEdit ? "PATCH" : "POST"
+
+            const res = await fetch(url, {
+                method,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     name: parentName,
                     email: parentEmail,
-                    password: finalPassword,
+                    ...(finalPassword && { password: finalPassword }),
                     studentIds: linkedChildren.map(c => c.id),
                 })
             })
 
             if (res.ok) {
-                toast.success("Parent account created successfully")
+                toast.success(isEdit ? "Parent account updated" : "Parent account created")
                 onSuccess?.()
                 onOpenChange(false)
                 resetForm()
             } else {
                 const data = await res.json()
-                toast.error(data.error || "Failed to create parent account")
+                toast.error(data.error || "Failed to save parent account")
             }
         } catch (error) {
             console.error("Submit error:", error)
@@ -140,7 +169,7 @@ export function AddParentDialog({ open, onOpenChange, onSuccess }: AddParentDial
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[480px] glass-panel">
                 <DialogHeader>
-                    <DialogTitle className="heading-3">Add New Parent</DialogTitle>
+                    <DialogTitle className="heading-3">{isEdit ? "Edit Parent" : "Add New Parent"}</DialogTitle>
                 </DialogHeader>
 
                 <div className="flex flex-col gap-5 py-2">
@@ -256,7 +285,7 @@ export function AddParentDialog({ open, onOpenChange, onSuccess }: AddParentDial
                         disabled={submitting}
                     >
                         {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Add Parent
+                        {isEdit ? "Save Changes" : "Add Parent"}
                     </Button>
                 </DialogFooter>
             </DialogContent>

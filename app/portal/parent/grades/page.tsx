@@ -31,7 +31,7 @@ interface Grade {
     marks: number;
     term: string;
     class: { name: string };
-    submission?: { assignment: { title: true } };
+    submission?: { assignment: { title: string } };
     createdAt: string;
 }
 
