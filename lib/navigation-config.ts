@@ -21,6 +21,7 @@ export const ADMIN_SIDEBAR = [
     { href: "/portal/admin", label: "Dashboard", icon: LayoutDashboard },
     { href: "/portal/admin/students", label: "Students", icon: GraduationCap },
     { href: "/portal/admin/teachers", label: "Teachers", icon: Users },
+    { href: "/portal/admin/parents", label: "Parents", icon: Users },
     { href: "/portal/admin/classes", label: "Classes", icon: School },
     { href: "/portal/admin/periods", label: "Periods", icon: Clock },
     { href: "/portal/admin/analytics", label: "Analytics", icon: BarChart3 },
