@@ -38,7 +38,7 @@ export async function middleware(request: NextRequest) {
       token?.role !== "ADMIN"
     ) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    if (pathname.startsWith("/api/secure") && !["ADMIN", "TEACHER"].includes(token?.role as string)) {
+    if (pathname.startsWith("/api/parent") && token?.role !== "PARENT") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -57,6 +57,9 @@ export async function middleware(request: NextRequest) {
     response = NextResponse.redirect(new URL(`/portal/${role}?error=AccessDenied`, request.url), 307);
   } else if (pathname.startsWith("/portal/student") && userRole !== "STUDENT") {
     const role = userRole?.toLowerCase() || "admin";
+    response = NextResponse.redirect(new URL(`/portal/${role}?error=AccessDenied`, request.url), 307);
+  } else if (pathname.startsWith("/portal/parent") && userRole !== "PARENT") {
+    const role = userRole?.toLowerCase() || "student";
     response = NextResponse.redirect(new URL(`/portal/${role}?error=AccessDenied`, request.url), 307);
   }
 

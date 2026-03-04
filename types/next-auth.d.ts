@@ -5,7 +5,7 @@ declare module "next-auth" {
     interface Session extends DefaultSession {
         user: {
             id: string;
-            role: "ADMIN" | "TEACHER" | "STUDENT";
+            role: "ADMIN" | "TEACHER" | "STUDENT" | "PARENT";
             accountStatus: "ACTIVE" | "SUSPENDED";
             status: "ACTIVE" | "SUSPENDED";
         } & DefaultSession["user"];
@@ -13,7 +13,7 @@ declare module "next-auth" {
 
     interface User {
         id: string;
-        role: "ADMIN" | "TEACHER" | "STUDENT";
+        role: "ADMIN" | "TEACHER" | "STUDENT" | "PARENT";
         accountStatus: "ACTIVE" | "SUSPENDED";
         status: "ACTIVE" | "SUSPENDED";
     }
@@ -22,7 +22,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
     interface JWT {
         id: string;
-        role: "ADMIN" | "TEACHER" | "STUDENT";
+        role: "ADMIN" | "TEACHER" | "STUDENT" | "PARENT";
         accountStatus: "ACTIVE" | "SUSPENDED";
         status: "ACTIVE" | "SUSPENDED";
     }

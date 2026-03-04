@@ -82,9 +82,8 @@ export async function GET(req: NextRequest) {
 
 
 export async function POST(req: NextRequest) {
-    await requireServerAuth([Role.ADMIN]);
     try {
-        await assertAdmin();
+        const session = await assertAdmin();
 
         const body = await req.json()
         const parsed = studentSchema.safeParse(body)
@@ -118,31 +117,11 @@ export async function POST(req: NextRequest) {
                         address: address,
                     }
                 },
-                ...(classId && classId !== "Unassigned" && classId !== "cls-001" && classId !== "cls-002" && classId !== "cls-003" && {
+                ...(classId && classId !== "Unassigned" && {
                     classes: { connect: { id: classId } }
                 })
-                // Note: The UI has hardcoded class IDs in StudentsManager.tsx like "cls-001".
-                // If those don't exist in DB, connect will fail.
-                // Let's check for specific ones or just try to connect if it looks like a real ID.
             },
         })
-
-        // If classId is one of the hardcoded ones, we might need to handle it differently or ensure they exist.
-        // For now, let's just make it robust.
-        if (classId && classId !== "Unassigned") {
-            try {
-                await prisma.user.update({
-                    where: { id: newStudent.id },
-                    data: {
-                        classes: {
-                            connect: { id: classId }
-                        }
-                    }
-                })
-            } catch (e) {
-                console.error("Failed to connect class:", e)
-            }
-        }
 
         return NextResponse.json({ data: newStudent }, { status: 201 })
     } catch (error: any) {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
     Dialog,
     DialogContent,
@@ -20,54 +20,121 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
-import { X } from "lucide-react"
+import { X, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
-const MOCK_STUDENTS = [
-    "Ahmed Ali",
-    "Sara Ali",
-    "Omar Zahra",
-    "Aisha Hassan",
-    "Bilal Mahmood",
-    "Zara Mahmood",
-    "Hina Qureshi",
-    "Tariq Raza",
-]
+interface Student {
+    id: string;
+    name: string;
+    className: string;
+}
 
 interface AddParentDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
+    onSuccess?: () => void
 }
 
-export function AddParentDialog({ open, onOpenChange }: AddParentDialogProps) {
+export function AddParentDialog({ open, onOpenChange, onSuccess }: AddParentDialogProps) {
     const [parentName, setParentName] = useState("")
     const [parentEmail, setParentEmail] = useState("")
     const [password, setPassword] = useState("")
-    const [autoGenerate, setAutoGenerate] = useState(false)
-    const [linkedChildren, setLinkedChildren] = useState<string[]>([])
-    const [selectedStudent, setSelectedStudent] = useState("")
+    const [autoGenerate, setAutoGenerate] = useState(true)
+    const [linkedChildren, setLinkedChildren] = useState<Student[]>([])
+    const [selectedStudentId, setSelectedStudentId] = useState("")
+    const [students, setStudents] = useState<Student[]>([])
+    const [loading, setLoading] = useState(false)
+    const [submitting, setSubmitting] = useState(false)
 
-    const handleAddChild = (student: string) => {
-        if (student && !linkedChildren.includes(student)) {
+    useEffect(() => {
+        if (open) {
+            const fetchStudents = async () => {
+                setLoading(true)
+                try {
+                    const res = await fetch("/api/admin/students?limit=100")
+                    if (res.ok) {
+                        const data = await res.json()
+                        setStudents(data.data)
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch students:", error)
+                } finally {
+                    setLoading(false)
+                }
+            }
+            fetchStudents()
+        }
+    }, [open])
+
+    const handleAddChild = (studentId: string) => {
+        const student = students.find(s => s.id === studentId)
+        if (student && !linkedChildren.find(c => c.id === studentId)) {
             setLinkedChildren((prev) => [...prev, student])
         }
-        setSelectedStudent("")
+        setSelectedStudentId("")
     }
 
-    const handleRemoveChild = (child: string) => {
-        setLinkedChildren((prev) => prev.filter((c) => c !== child))
+    const handleRemoveChild = (childId: string) => {
+        setLinkedChildren((prev) => prev.filter((c) => c.id !== childId))
     }
 
-    const handleSubmit = () => {
-        // No action yet — just closes modal as per plan
-        onOpenChange(false)
+    const generatePassword = () => {
+        return Math.random().toString(36).slice(-8)
+    }
+
+    const handleSubmit = async () => {
+        if (!parentName || !parentEmail || (!autoGenerate && !password)) {
+            toast.error("Please fill in all required fields")
+            return
+        }
+
+        if (linkedChildren.length === 0) {
+            toast.error("Please link at least one child")
+            return
+        }
+
+        const finalPassword = autoGenerate ? generatePassword() : password
+
+        setSubmitting(true)
+        try {
+            const res = await fetch("/api/admin/parents", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: parentName,
+                    email: parentEmail,
+                    password: finalPassword,
+                    studentIds: linkedChildren.map(c => c.id),
+                })
+            })
+
+            if (res.ok) {
+                toast.success("Parent account created successfully")
+                onSuccess?.()
+                onOpenChange(false)
+                resetForm()
+            } else {
+                const data = await res.json()
+                toast.error(data.error || "Failed to create parent account")
+            }
+        } catch (error) {
+            console.error("Submit error:", error)
+            toast.error("An error occurred")
+        } finally {
+            setSubmitting(false)
+        }
+    }
+
+    const resetForm = () => {
         setParentName("")
         setParentEmail("")
         setPassword("")
-        setAutoGenerate(false)
+        setAutoGenerate(true)
         setLinkedChildren([])
+        setSelectedStudentId("")
     }
 
-    const availableStudents = MOCK_STUDENTS.filter((s) => !linkedChildren.includes(s))
+    const availableStudents = students.filter((s) => !linkedChildren.find(c => c.id === s.id))
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -132,24 +199,25 @@ export function AddParentDialog({ open, onOpenChange }: AddParentDialogProps) {
                     <div className="flex flex-col gap-2">
                         <Label>Link Children</Label>
                         <Select
-                            value={selectedStudent}
+                            value={selectedStudentId}
                             onValueChange={(val) => {
                                 handleAddChild(val)
                             }}
+                            disabled={loading}
                         >
                             <SelectTrigger id="link-children-select" className="bg-background">
-                                <SelectValue placeholder="Select a student to link..." />
+                                <SelectValue placeholder={loading ? "Loading students..." : "Select a student to link..."} />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="max-h-[200px] overflow-y-auto">
                                 {availableStudents.length > 0 ? (
                                     availableStudents.map((s) => (
-                                        <SelectItem key={s} value={s}>
-                                            {s}
+                                        <SelectItem key={s.id} value={s.id}>
+                                            {s.name} ({s.className})
                                         </SelectItem>
                                     ))
                                 ) : (
                                     <div className="px-3 py-2 text-sm text-muted-foreground">
-                                        All students linked
+                                        {loading ? "Loading..." : "No students available"}
                                     </div>
                                 )}
                             </SelectContent>
@@ -159,13 +227,13 @@ export function AddParentDialog({ open, onOpenChange }: AddParentDialogProps) {
                             <div className="flex flex-wrap gap-2 mt-1">
                                 {linkedChildren.map((child) => (
                                     <Badge
-                                        key={child}
+                                        key={child.id}
                                         variant="outline"
                                         className="gap-1 border-primary/40 text-primary text-xs pr-1"
                                     >
-                                        {child}
+                                        {child.name}
                                         <button
-                                            onClick={() => handleRemoveChild(child)}
+                                            onClick={() => handleRemoveChild(child.id)}
                                             className="ml-1 rounded-full hover:bg-primary/10 p-0.5"
                                         >
                                             <X className="h-3 w-3" />
@@ -178,14 +246,16 @@ export function AddParentDialog({ open, onOpenChange }: AddParentDialogProps) {
                 </div>
 
                 <DialogFooter className="gap-2 mt-2">
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>
+                    <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
                         Cancel
                     </Button>
                     <Button
                         id="submit-add-parent"
                         className="bg-primary text-white hover:bg-primary/90"
                         onClick={handleSubmit}
+                        disabled={submitting}
                     >
+                        {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Add Parent
                     </Button>
                 </DialogFooter>

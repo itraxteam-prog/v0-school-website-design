@@ -64,11 +64,32 @@ model User {
   profile             Profile?
   grades              Grade[]
   submissions         Submission[]
+  parent              Parent?
 
   // Security
   two_factor_enabled      Boolean   @default(false)
   two_factor_secret       String?
   two_factor_backup_codes String?   @db.Text // JSON string of recovery codes
+
+  // Parent relations
+  linkedParents       ParentStudent[] @relation("StudentParents")
+}
+
+model Parent {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  children  ParentStudent[]
+  createdAt DateTime @default(now())
+}
+
+model ParentStudent {
+  parentId  String
+  studentId String
+  parent    Parent   @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  student   User     @relation("StudentParents", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@id([parentId, studentId])
 }
 
 model Profile {
@@ -179,11 +200,13 @@ model Announcement {
   targetRole  TargetRole @default(ALL)
   expiresAt   DateTime?
   
-  createdBy   String
-  author      User       @relation("AnnouncementAuthor", fields: [createdBy], references: [id])
+  createdBy     String
+  author        User      @relation("AnnouncementAuthor", fields: [createdBy], references: [id])
   
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  notifyParents Boolean   @default(false)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@index([createdBy])
   @@index([targetRole])
@@ -272,6 +295,7 @@ enum Role {
   ADMIN
   TEACHER
   STUDENT
+  PARENT
 }
 
 enum UserStatus {
