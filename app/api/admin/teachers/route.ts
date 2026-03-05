@@ -57,6 +57,7 @@ export async function GET(req: NextRequest) {
             name: t.name,
             email: t.email,
             status: t.status,
+            image: t.image,
             employeeId: t.profile?.rollNumber || "N/A",
             department: t.profile?.gender || "Faculty", // Using gender field as temporary store if department not in schema, but let's check schema again
             classIds: t.taughtClasses.map(c => c.id).join(', '),

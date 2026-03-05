@@ -301,7 +301,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                                     Add New Student
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="sm:max-w-[500px] glass-panel border-border/50">
+                            <DialogContent className="sm:max-w-[500px] glass-panel border-border/50 max-h-[90vh] overflow-y-auto">
                                 <DialogHeader>
                                     <DialogTitle className="heading-3">{editingStudent ? 'Edit Student' : 'Add Student'}</DialogTitle>
                                     <DialogDescription>

@@ -294,7 +294,7 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
                                     Add New Teacher
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="sm:max-w-[500px] glass-panel border-border/50">
+                            <DialogContent className="sm:max-w-[500px] glass-panel border-border/50 max-h-[90vh] overflow-y-auto">
                                 <DialogHeader>
                                     <DialogTitle className="heading-3">{editingTeacher ? 'Edit Teacher' : 'Add Teacher'}</DialogTitle>
                                     <DialogDescription>
