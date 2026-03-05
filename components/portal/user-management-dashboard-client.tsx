@@ -69,7 +69,7 @@ import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 const userSchema = z.object({
     fullName: z.string().min(2, { message: "Name must be at least 2 characters." }),
     email: z.string().email({ message: "Invalid email address." }),
-    role: z.enum(["ADMIN", "TEACHER", "STUDENT"]),
+    role: z.enum(["ADMIN", "TEACHER", "STUDENT", "PARENT"]),
     password: z.string()
         .min(8, { message: "Password must be at least 8 characters." })
         .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter." })
@@ -85,7 +85,7 @@ interface User {
     id: string;
     name: string;
     email: string;
-    role: "ADMIN" | "TEACHER" | "STUDENT";
+    role: "ADMIN" | "TEACHER" | "STUDENT" | "PARENT";
     status: "ACTIVE" | "SUSPENDED";
     createdAt?: string;
 }
@@ -371,6 +371,7 @@ export function UserManagementDashboardClient({ user: currentUser }: { user: any
                                     <SelectItem value="ADMIN">Admin</SelectItem>
                                     <SelectItem value="TEACHER">Teacher</SelectItem>
                                     <SelectItem value="STUDENT">Student</SelectItem>
+                                    <SelectItem value="PARENT">Parent</SelectItem>
                                 </SelectContent>
                             </Select>
                             <Select value={statusFilter} onValueChange={setStatusFilter}>
