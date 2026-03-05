@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useToast } from "@/components/ui/use-toast"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
     Table,
     TableBody,
@@ -54,6 +55,9 @@ import {
     Loader2,
     AlertCircle,
     RefreshCcw,
+    Upload,
+    X,
+    User,
 } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -69,12 +73,14 @@ const studentSchema = z.object({
     dob: z.string().min(1, { message: "Please select date of birth." }),
     guardianPhone: z.string().min(10, { message: "Invalid contact number." }),
     address: z.string().min(5, { message: "Address must be at least 5 characters." }),
+    imageUrl: z.string().optional(),
 })
 
 type StudentFormValues = z.infer<typeof studentSchema>
 
 interface Student extends StudentFormValues {
     id: string;
+    image?: string;
 }
 
 interface StudentsManagerProps {
@@ -90,6 +96,8 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingStudent, setEditingStudent] = useState<Student | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [imagePreview, setImagePreview] = useState<string | null>(null)
+    const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
     // Pagination State
     const [page, setPage] = useState(1)
@@ -109,6 +117,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
             dob: "",
             guardianPhone: "",
             address: "",
+            imageUrl: "",
         },
     })
 
@@ -139,7 +148,8 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                 classId: s.classId || "N/A",
                 dob: s.dob || s.profile?.dateOfBirth || "",
                 guardianPhone: s.guardianPhone || s.profile?.guardianPhone || "",
-                address: s.address || s.profile?.address || ""
+                address: s.address || s.profile?.address || "",
+                imageUrl: s.image || ""
             })))
 
             setTotalPages(result.pagination?.pages || 1)
@@ -159,6 +169,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
     useEffect(() => {
         if (editingStudent) {
             form.reset(editingStudent)
+            setImagePreview(editingStudent.imageUrl || null)
         } else {
             form.reset({
                 name: "",
@@ -167,14 +178,44 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                 dob: "",
                 guardianPhone: "",
                 address: "",
+                imageUrl: "",
             })
+            setImagePreview(null)
+            setSelectedFile(null)
         }
     }, [editingStudent, form])
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            setSelectedFile(file)
+            const reader = new FileReader()
+            reader.onloadend = () => {
+                setImagePreview(reader.result as string)
+            }
+            reader.readAsDataURL(file)
+        }
+    }
 
 
     const onSubmit = async (data: StudentFormValues) => {
         setIsSubmitting(true)
         try {
+            let finalImageUrl = data.imageUrl
+
+            // Upload image if selected
+            if (selectedFile) {
+                const formData = new FormData()
+                formData.append("file", selectedFile)
+                const uploadRes = await fetch("/api/upload", {
+                    method: "POST",
+                    body: formData,
+                })
+                if (!uploadRes.ok) throw new Error("Image upload failed")
+                const uploadData = await uploadRes.json()
+                finalImageUrl = uploadData.url
+            }
+
             const url = editingStudent ? `/api/admin/students/${editingStudent.id}` : "/api/admin/students"
             const method = editingStudent ? "PATCH" : "POST"
 
@@ -182,7 +223,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                 method,
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...data, email: `${data.rollNo.toLowerCase()}@school.edu` }) // Simulated email logic
+                body: JSON.stringify({ ...data, imageUrl: finalImageUrl, email: `${data.rollNo.toLowerCase()}@school.edu` }) // Simulated email logic
             })
 
             if (!res.ok) {
@@ -269,6 +310,33 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                                 </DialogHeader>
                                 <Form {...form}>
                                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                                        <div className="flex flex-col items-center gap-4 mb-6">
+                                            <div className="relative group">
+                                                <Avatar className="h-24 w-24 border-2 border-primary/20 group-hover:border-primary/50 transition-colors">
+                                                    <AvatarImage src={imagePreview || ""} />
+                                                    <AvatarFallback className="bg-primary/5 text-primary">
+                                                        <User className="h-10 w-10 text-primary/40" />
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <label
+                                                    htmlFor="image-upload"
+                                                    className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity"
+                                                >
+                                                    <Upload className="h-6 w-6 text-white" />
+                                                </label>
+                                                <input
+                                                    id="image-upload"
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={handleImageChange}
+                                                />
+                                            </div>
+                                            <div className="text-center">
+                                                <p className="text-sm font-medium">Profile Photo</p>
+                                                <p className="text-xs text-muted-foreground mt-1">PNG, JPG up to 5MB</p>
+                                            </div>
+                                        </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <FormField
                                                 control={form.control}
@@ -435,7 +503,8 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                                     <Table>
                                         <TableHeader className="bg-muted/30">
                                             <TableRow className="border-border/50 hover:bg-transparent">
-                                                <TableHead className="pl-6 font-semibold h-12 uppercase text-[10px] tracking-wider">Name</TableHead>
+                                                <TableHead className="pl-6 font-semibold h-12 uppercase text-[10px] tracking-wider w-[80px]">Photo</TableHead>
+                                                <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Name</TableHead>
                                                 <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Roll No</TableHead>
                                                 <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Class ID</TableHead>
                                                 <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">DOB</TableHead>
@@ -451,7 +520,15 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                                                         key={student.id}
                                                         className="border-border/50 transition-colors hover:bg-primary/5 group"
                                                     >
-                                                        <TableCell className="pl-6 font-semibold text-foreground py-4">{student.name}</TableCell>
+                                                        <TableCell className="pl-6 py-4">
+                                                            <Avatar className="h-10 w-10 border border-primary/10">
+                                                                <AvatarImage src={student.imageUrl} alt={student.name} />
+                                                                <AvatarFallback className="bg-primary/5 text-primary text-xs font-bold">
+                                                                    {student.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                        </TableCell>
+                                                        <TableCell className="font-semibold text-foreground py-4">{student.name}</TableCell>
                                                         <TableCell className="font-medium">
                                                             <span className="bg-primary/5 text-primary px-2 py-1 rounded text-xs font-bold">
                                                                 {student.rollNo}
@@ -492,7 +569,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                                                 ))
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
+                                                    <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
                                                         {searchTerm ? "No students found matching your search." : "No students registered yet."}
                                                     </TableCell>
                                                 </TableRow>

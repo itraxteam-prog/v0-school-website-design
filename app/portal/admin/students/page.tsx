@@ -12,12 +12,13 @@ export default async function AdminStudentsPage() {
         id: true,
         name: true,
         email: true,
+        image: true,
       }
     })
-    } catch (error) {
-        logger.error({ error }, "Failed to fetch students from database");
-        students = [];
-    }
+  } catch (error) {
+    logger.error({ error }, "Failed to fetch students from database");
+    students = [];
+  }
 
 
   return <StudentsManager initialStudents={students} />
