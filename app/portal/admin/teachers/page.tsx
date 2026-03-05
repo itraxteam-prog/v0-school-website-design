@@ -12,13 +12,13 @@ export default async function AdminTeachersPage() {
         id: true,
         name: true,
         email: true,
-        // Using any as these fields might not be in schema yet but are used in UI
+        image: true,
       }
     })
-    } catch (error) {
-        logger.error({ error }, "Failed to fetch teachers from database");
-        teachers = [];
-    }
+  } catch (error) {
+    logger.error({ error }, "Failed to fetch teachers from database");
+    teachers = [];
+  }
 
 
   return <TeachersManager initialTeachers={teachers} />

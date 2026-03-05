@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useToast } from "@/components/ui/use-toast"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
     Table,
     TableBody,
@@ -54,6 +55,8 @@ import {
     Loader2,
     AlertCircle,
     RefreshCcw,
+    Upload,
+    User,
 } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -67,13 +70,14 @@ const teacherSchema = z.object({
     employeeId: z.string().min(4, { message: "Employee ID must be at least 4 characters." }),
     department: z.string().min(1, { message: "Please enter department." }),
     classIds: z.string().min(1, { message: "Please enter assigned class IDs (comma separated)." }),
+    imageUrl: z.string().optional(),
 })
 
 type TeacherFormValues = z.infer<typeof teacherSchema>
 
 interface Teacher extends TeacherFormValues {
     id: string;
-    _id?: string;
+    image?: string;
 }
 
 interface TeachersManagerProps {
@@ -87,7 +91,8 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
         name: t.name || "",
         employeeId: t.employeeId || `T-${t.id.split('-')[0].toUpperCase()}`,
         department: t.department || "Faculty",
-        classIds: typeof t.classIds === 'string' ? t.classIds : (Array.isArray(t.classIds) ? t.classIds.join(', ') : "N/A")
+        classIds: typeof t.classIds === 'string' ? t.classIds : (Array.isArray(t.classIds) ? t.classIds.join(', ') : "N/A"),
+        imageUrl: t.image || ""
     })))
 
     const [loading, setLoading] = useState(false)
@@ -96,7 +101,9 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
-    
+    const [imagePreview, setImagePreview] = useState<string | null>(null)
+    const [selectedFile, setSelectedFile] = useState<File | null>(null)
+
     // Pagination State
     const [page, setPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
@@ -113,6 +120,7 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
             employeeId: "",
             department: "",
             classIds: "",
+            imageUrl: "",
         },
     })
 
@@ -124,15 +132,16 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
             const res = await fetch(url, { credentials: "include" })
             if (!res.ok) throw new Error("Failed to fetch teachers")
             const result = await res.json()
-            
+
             setTeachers(result.data.map((t: any) => ({
                 id: t.id,
                 name: t.name || "",
                 employeeId: t.profile?.rollNumber || `T-${t.id.split('-')[0].toUpperCase()}`,
                 department: t.department || "Faculty",
-                classIds: "N/A"
+                classIds: "N/A",
+                imageUrl: t.image || ""
             })))
-            
+
             setTotalPages(result.pagination?.pages || 1)
             setTotalTeachers(result.pagination?.total || result.data.length)
         } catch (err: any) {
@@ -154,19 +163,50 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
                 employeeId: editingTeacher.employeeId,
                 department: editingTeacher.department,
                 classIds: editingTeacher.classIds,
+                imageUrl: editingTeacher.imageUrl,
             })
+            setImagePreview(editingTeacher.imageUrl || null)
         } else {
             form.reset({
                 name: "",
                 employeeId: "",
                 department: "",
                 classIds: "",
+                imageUrl: "",
             })
+            setImagePreview(null)
+            setSelectedFile(null)
         }
     }, [editingTeacher, form])
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            setSelectedFile(file)
+            const reader = new FileReader()
+            reader.onloadend = () => {
+                setImagePreview(reader.result as string)
+            }
+            reader.readAsDataURL(file)
+        }
+    }
     const onSubmit = async (data: TeacherFormValues) => {
         setIsSubmitting(true)
         try {
+            let finalImageUrl = data.imageUrl
+
+            // Upload image if selected
+            if (selectedFile) {
+                const formData = new FormData()
+                formData.append("file", selectedFile)
+                const uploadRes = await fetch("/api/upload", {
+                    method: "POST",
+                    body: formData,
+                })
+                if (!uploadRes.ok) throw new Error("Image upload failed")
+                const uploadData = await uploadRes.json()
+                finalImageUrl = uploadData.url
+            }
 
             const url = editingTeacher ? `/api/admin/teachers/${editingTeacher.id}` : "/api/admin/teachers"
             const method = editingTeacher ? "PATCH" : "POST"
@@ -175,7 +215,7 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
                 method,
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...data, email: `${data.name.split(' ')[0].toLowerCase()}@school.edu` })
+                body: JSON.stringify({ ...data, imageUrl: finalImageUrl, email: `${data.name.split(' ')[0].toLowerCase()}@school.edu` })
             })
 
             if (!res.ok) {
@@ -263,6 +303,33 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
                                 </DialogHeader>
                                 <Form {...form}>
                                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                                        <div className="flex flex-col items-center gap-4 mb-6">
+                                            <div className="relative group">
+                                                <Avatar className="h-24 w-24 border-2 border-primary/20 group-hover:border-primary/50 transition-colors">
+                                                    <AvatarImage src={imagePreview || ""} />
+                                                    <AvatarFallback className="bg-primary/5 text-primary">
+                                                        <User className="h-10 w-10 text-primary/40" />
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <label
+                                                    htmlFor="teacher-image-upload"
+                                                    className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity"
+                                                >
+                                                    <Upload className="h-6 w-6 text-white" />
+                                                </label>
+                                                <input
+                                                    id="teacher-image-upload"
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={handleImageChange}
+                                                />
+                                            </div>
+                                            <div className="text-center">
+                                                <p className="text-sm font-medium">Profile Photo</p>
+                                                <p className="text-xs text-muted-foreground mt-1">PNG, JPG up to 5MB</p>
+                                            </div>
+                                        </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <FormField
                                                 control={form.control}
@@ -391,7 +458,8 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
                                     <Table>
                                         <TableHeader className="bg-muted/30">
                                             <TableRow className="border-border/50 hover:bg-transparent">
-                                                <TableHead className="pl-6 font-semibold h-12 uppercase text-[10px] tracking-wider">Name</TableHead>
+                                                <TableHead className="pl-6 font-semibold h-12 uppercase text-[10px] tracking-wider w-[80px]">Photo</TableHead>
+                                                <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Name</TableHead>
                                                 <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Employee ID</TableHead>
                                                 <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Department</TableHead>
                                                 <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Assigned Classes</TableHead>
@@ -405,7 +473,15 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
                                                         key={teacher.id}
                                                         className="border-border/50 transition-colors hover:bg-primary/5 group"
                                                     >
-                                                        <TableCell className="pl-6 font-semibold text-foreground py-4">{teacher.name}</TableCell>
+                                                        <TableCell className="pl-6 py-4">
+                                                            <Avatar className="h-10 w-10 border border-primary/10">
+                                                                <AvatarImage src={teacher.imageUrl} alt={teacher.name} />
+                                                                <AvatarFallback className="bg-primary/5 text-primary text-xs font-bold">
+                                                                    {teacher.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                        </TableCell>
+                                                        <TableCell className="font-semibold text-foreground py-4">{teacher.name}</TableCell>
                                                         <TableCell className="font-medium">
                                                             <span className="bg-primary/5 text-primary px-2 py-1 rounded text-xs font-bold">
                                                                 {teacher.employeeId}
@@ -452,7 +528,7 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
                                                 ))
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
+                                                    <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
                                                         {searchTerm ? "No teachers found matching your search." : "No faculty members registered yet."}
                                                     </TableCell>
                                                 </TableRow>
@@ -471,19 +547,19 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
                             Showing <span className="font-semibold text-foreground">{Math.min((page - 1) * limit + 1, totalTeachers)}-{Math.min(page * limit, totalTeachers)}</span> of <span className="font-semibold text-foreground">{totalTeachers}</span> faculty members
                         </p>
                         <div className="flex items-center gap-1">
-                            <Button 
-                                variant="outline" 
-                                size="icon" 
-                                className="h-9 w-9 glass-card" 
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-9 w-9 glass-card"
                                 disabled={page === 1}
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                             >
                                 <ChevronLeft size={16} />
                             </Button>
                             <Button variant="ghost" size="sm" className="h-9 w-9 bg-primary text-white hover:bg-primary/90 rounded-md">{page}</Button>
-                            <Button 
-                                variant="outline" 
-                                size="icon" 
+                            <Button
+                                variant="outline"
+                                size="icon"
                                 className="h-9 w-9 glass-card"
                                 disabled={page >= totalPages}
                                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}

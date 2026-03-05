@@ -14,6 +14,7 @@ const teacherSchema = z.object({
     employeeId: z.string().optional(),
     department: z.string().optional(),
     classIds: z.string().optional(),
+    imageUrl: z.string().optional(),
 }).strict()
 
 export async function GET(req: NextRequest) {
@@ -92,7 +93,7 @@ export async function POST(req: NextRequest) {
             }, { status: 400 })
         }
 
-        const { name, email, employeeId, department, classIds } = parsed.data
+        const { name, email, employeeId, department, classIds, imageUrl } = parsed.data
 
         // Check if user exists
         const existing = await prisma.user.findUnique({ where: { email } })
@@ -104,6 +105,7 @@ export async function POST(req: NextRequest) {
             data: {
                 name,
                 email,
+                image: imageUrl,
                 role: "TEACHER",
                 status: "ACTIVE",
                 profile: {
