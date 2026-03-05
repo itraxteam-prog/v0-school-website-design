@@ -16,6 +16,7 @@ const updateTeacherSchema = z.object({
     employeeId: z.string().optional(),
     department: z.string().optional(),
     classIds: z.string().optional(),
+    imageUrl: z.string().optional(),
 }).strict()
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
@@ -33,13 +34,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
             }, { status: 400 })
         }
 
-        const { name, email, employeeId, department, classIds } = parsed.data
+        const { name, email, employeeId, department, classIds, imageUrl } = parsed.data
 
         const updatedTeacher = await prisma.user.update({
             where: { id: params.id },
             data: {
                 name,
                 email,
+                ...(imageUrl !== undefined && { image: imageUrl }),
                 profile: {
                     upsert: {
                         create: {
