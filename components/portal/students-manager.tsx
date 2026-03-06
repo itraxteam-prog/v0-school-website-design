@@ -212,17 +212,27 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
         try {
             let finalImageUrl = data.imageUrl
 
-            // Upload image if selected
-            if (selectedFile) {
-                const formData = new FormData()
-                formData.append("file", selectedFile)
-                const uploadRes = await fetch("/api/upload", {
-                    method: "POST",
-                    body: formData,
-                })
-                if (!uploadRes.ok) throw new Error("Image upload failed")
-                const uploadData = await uploadRes.json()
-                finalImageUrl = uploadData.url
+            // Upload image if selected — fall back to base64 if Cloudinary fails
+            if (selectedFile && imagePreview) {
+                try {
+                    const formData = new FormData()
+                    formData.append("file", selectedFile)
+                    const uploadRes = await fetch("/api/upload", {
+                        method: "POST",
+                        body: formData,
+                    })
+                    if (uploadRes.ok) {
+                        const uploadData = await uploadRes.json()
+                        finalImageUrl = uploadData.url
+                    } else {
+                        // Cloudinary not available or error — use base64 preview directly
+                        finalImageUrl = imagePreview
+                    }
+                } catch (err) {
+                    console.error("Upload failed, falling back to base64", err)
+                    // Network error — use base64 preview directly
+                    finalImageUrl = imagePreview
+                }
             }
 
             const url = editingStudent ? `/api/admin/students/${editingStudent.id}` : "/api/admin/students"
