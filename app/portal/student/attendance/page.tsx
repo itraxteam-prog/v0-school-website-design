@@ -159,7 +159,12 @@ export default function AttendancePage() {
   const stats = calculateStats(currentCalendar)
 
   return (
-    <AppLayout sidebarItems={sidebarItems} userName={session?.user?.name || "Student"} userRole="student">
+    <AppLayout
+      sidebarItems={sidebarItems}
+      userName={session?.user?.name || "Student"}
+      userRole="student"
+      userImage={session?.user?.image || undefined}
+    >
       <div className="flex flex-col gap-8 pb-8">
 
         {/* Header Section */}

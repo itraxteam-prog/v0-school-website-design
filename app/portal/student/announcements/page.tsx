@@ -66,7 +66,7 @@ export default function AnnouncementsPage() {
 
       if (!annRes.ok) throw new Error("Failed to fetch announcements")
       const annData = await annRes.json()
-      
+
       const transformed = annData.map((a: any) => ({
         id: a.id,
         title: a.title,
@@ -126,7 +126,12 @@ export default function AnnouncementsPage() {
   }
 
   return (
-    <AppLayout sidebarItems={sidebarItems} userName={session?.user?.name || "Student"} userRole="student">
+    <AppLayout
+      sidebarItems={sidebarItems}
+      userName={session?.user?.name || "Student"}
+      userRole="student"
+      userImage={session?.user?.image || undefined}
+    >
       <div className="flex flex-col gap-8 pb-8">
         {/* Header */}
         <AnimatedWrapper direction="down">

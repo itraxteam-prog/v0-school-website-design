@@ -42,8 +42,15 @@ function StudentSearchContent() {
         r.description.toLowerCase().includes(initialQuery.toLowerCase())
     )
 
+    const { data: session } = useSession()
+
     return (
-        <AppLayout sidebarItems={sidebarItems} userName="Ahmed Khan" userRole="Student">
+        <AppLayout
+            sidebarItems={sidebarItems}
+            userName={session?.user?.name || "Student"}
+            userRole="student"
+            userImage={session?.user?.image || undefined}
+        >
             <div className="flex flex-col gap-8 pb-8">
                 <AnimatedWrapper direction="down">
                     <div className="flex flex-col gap-2">

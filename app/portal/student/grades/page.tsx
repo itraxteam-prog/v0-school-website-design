@@ -69,7 +69,12 @@ export default function GradesPage() {
   )
 
   return (
-    <AppLayout sidebarItems={sidebarItems} userName={session?.user?.name || "Student"} userRole="Student">
+    <AppLayout
+      sidebarItems={sidebarItems}
+      userName={session?.user?.name || "Student"}
+      userRole="student"
+      userImage={session?.user?.image || undefined}
+    >
       <div className="flex flex-col gap-8 pb-8">
 
         {/* Header Section */}

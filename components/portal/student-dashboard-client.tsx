@@ -57,7 +57,12 @@ export function StudentDashboardClient({ user }: StudentDashboardClientProps) {
 
 
     return (
-        <AppLayout sidebarItems={sidebarItems} userName={user?.name || "Student"} userRole="Student">
+        <AppLayout
+            sidebarItems={sidebarItems}
+            userName={user?.name || "Student"}
+            userRole="student"
+            userImage={user?.image || undefined}
+        >
             <div className="flex flex-col gap-8 pb-8">
 
                 {/* Welcome Section */}

@@ -122,7 +122,12 @@ export default function ProfilePage() {
 
 
   return (
-    <AppLayout sidebarItems={sidebarItems} userName={displayData.fullName} userRole="student">
+    <AppLayout
+      sidebarItems={sidebarItems}
+      userName={session?.user?.name || displayData.fullName}
+      userRole="student"
+      userImage={session?.user?.image || displayData.avatarUrl}
+    >
       <div className="flex flex-col gap-8 pb-8">
 
         {/* Header Section */}
@@ -145,7 +150,7 @@ export default function ProfilePage() {
               {isEditing && (
                 <Button
                   onClick={handleSave}
-                  className="gap-2 bg-green-600 hover:bg-green-700"
+                  className="gap-2 bg-primary text-white hover:bg-primary/90"
                   disabled={saving}
                 >
                   <Save className="h-4 w-4" />
