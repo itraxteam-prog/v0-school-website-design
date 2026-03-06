@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
             data: {
                 name,
                 email,
-                image: imageUrl,
+                image: imageUrl || null,
                 role: "TEACHER",
                 status: "ACTIVE",
                 profile: {

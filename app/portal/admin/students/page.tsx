@@ -13,6 +13,20 @@ export default async function AdminStudentsPage() {
         name: true,
         email: true,
         image: true,
+        profile: {
+          select: {
+            rollNumber: true,
+            dateOfBirth: true,
+            guardianPhone: true,
+            address: true,
+          }
+        },
+        classes: {
+          select: {
+            id: true,
+            name: true,
+          }
+        }
       }
     })
   } catch (error) {

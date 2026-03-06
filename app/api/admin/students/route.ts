@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
                 email,
                 role: "STUDENT",
                 status: "ACTIVE",
-                image: imageUrl,
+                image: imageUrl || null,
                 profile: {
                     create: {
                         rollNumber: rollNo,

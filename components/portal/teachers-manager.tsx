@@ -89,9 +89,9 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
     const [teachers, setTeachers] = useState<Teacher[]>(initialTeachers.map(t => ({
         id: t.id,
         name: t.name || "",
-        employeeId: t.employeeId || `T-${t.id.split('-')[0].toUpperCase()}`,
-        department: t.department || "Faculty",
-        classIds: typeof t.classIds === 'string' ? t.classIds : (Array.isArray(t.classIds) ? t.classIds.join(', ') : "N/A"),
+        employeeId: t.employeeId || t.profile?.rollNumber || `T-${t.id.split('-')[0].toUpperCase()}`,
+        department: t.department || t.profile?.gender || "Faculty",
+        classIds: t.classIds || (t.taughtClasses ? t.taughtClasses.map((c: any) => c.id).join(', ') : "N/A"),
         imageUrl: t.image || ""
     })))
 
@@ -136,9 +136,9 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
             setTeachers(result.data.map((t: any) => ({
                 id: t.id,
                 name: t.name || "",
-                employeeId: t.profile?.rollNumber || `T-${t.id.split('-')[0].toUpperCase()}`,
+                employeeId: t.employeeId || "",
                 department: t.department || "Faculty",
-                classIds: "N/A",
+                classIds: t.classIds || "N/A",
                 imageUrl: t.image || ""
             })))
 

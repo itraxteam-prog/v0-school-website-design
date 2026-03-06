@@ -88,7 +88,16 @@ interface StudentsManagerProps {
 }
 
 export function StudentsManager({ initialStudents }: StudentsManagerProps) {
-    const [students, setStudents] = useState<Student[]>([])
+    const [students, setStudents] = useState<Student[]>(initialStudents.map(s => ({
+        id: s.id,
+        name: s.name || "",
+        rollNo: s.rollNo || s.profile?.rollNumber || "",
+        classId: s.classId || (s.classes?.[0]?.id || (s.profile?.rollNumber ? "Unassigned" : "N/A")),
+        dob: s.dob || (s.profile?.dateOfBirth ? new Date(s.profile.dateOfBirth).toISOString().split('T')[0] : ""),
+        guardianPhone: s.guardianPhone || s.profile?.guardianPhone || "",
+        address: s.address || s.profile?.address || "",
+        imageUrl: s.image || ""
+    })))
     const [classes, setClasses] = useState<{ id: string, name: string }[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -144,11 +153,11 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
             setStudents(result.data.map((s: any) => ({
                 id: s.id,
                 name: s.name || "",
-                rollNo: s.profile?.rollNumber || s.rollNo || "",
+                rollNo: s.rollNo || "",
                 classId: s.classId || "N/A",
-                dob: s.dob || s.profile?.dateOfBirth || "",
-                guardianPhone: s.guardianPhone || s.profile?.guardianPhone || "",
-                address: s.address || s.profile?.address || "",
+                dob: s.dob || "",
+                guardianPhone: s.guardianPhone || "",
+                address: s.address || "",
                 imageUrl: s.image || ""
             })))
 
