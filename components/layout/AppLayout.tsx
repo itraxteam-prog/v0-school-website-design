@@ -13,6 +13,7 @@ import type { LucideIcon } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
 import { useTheme } from "next-themes"
 import { formatName } from "@/lib/utils"
+import { useSession } from "next-auth/react"
 
 export interface SidebarItem {
   href: string
@@ -28,7 +29,13 @@ interface AppLayoutProps {
   userImage?: string
 }
 
-export function AppLayout({ children, sidebarItems, userName, userRole, userImage }: AppLayoutProps) {
+export function AppLayout({ children, sidebarItems, userName: propUserName, userRole: propUserRole, userImage: propUserImage }: AppLayoutProps) {
+  const { data: session } = useSession()
+
+  // Prefer live session data, fallback to props for initial/server-side state
+  const userName = session?.user?.name || propUserName || "User"
+  const userImage = session?.user?.image || propUserImage
+  const userRole = (session?.user?.role || propUserRole || "Member").toLowerCase()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [isSearchVisible, setIsSearchVisible] = useState(false)
