@@ -110,7 +110,12 @@ export function TeacherDashboardClient({ user }: TeacherDashboardClientProps) {
     }, [])
 
     return (
-        <AppLayout sidebarItems={sidebarItems} userName={user?.name || "Teacher"} userRole="teacher">
+        <AppLayout
+            sidebarItems={sidebarItems}
+            userName={user?.name || "Teacher"}
+            userRole="teacher"
+            userImage={user?.image || undefined}
+        >
             <div className="flex flex-col gap-8 pb-8">
 
                 {/* Welcome Section */}

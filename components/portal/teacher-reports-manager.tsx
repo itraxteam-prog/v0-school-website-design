@@ -150,7 +150,12 @@ export function TeacherReportsManager({
     }
 
     return (
-        <AppLayout sidebarItems={sidebarItems} userName={session?.user?.name || "Teacher"} userRole="teacher">
+        <AppLayout
+            sidebarItems={sidebarItems}
+            userName={session?.user?.name || "Teacher"}
+            userRole="teacher"
+            userImage={session?.user?.image || undefined}
+        >
             <div className="flex flex-col gap-8 pb-8">
                 <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                     <div>

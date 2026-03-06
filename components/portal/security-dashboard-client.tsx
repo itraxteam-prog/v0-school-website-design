@@ -38,6 +38,7 @@ export function SecurityDashboardClient({ user }: { user: any }) {
             sidebarItems={getSidebarItems()}
             userName={safeUserName}
             userRole={safeUserRole}
+            userImage={user?.image || undefined}
         >
             <div className="flex flex-col gap-6 pb-8">
                 <div className="flex flex-col gap-1">

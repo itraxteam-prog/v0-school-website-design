@@ -20,24 +20,22 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-
-const sidebarItems = [
-    { href: "/portal/teacher", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/portal/teacher/classes", label: "My Classes", icon: Users },
-    { href: "/portal/teacher/attendance", label: "Attendance", icon: CalendarCheck },
-    { href: "/portal/teacher/gradebook", label: "Gradebook", icon: BookMarked },
-    { href: "/portal/teacher/reports", label: "Reports", icon: FileBarChart },
-    { href: "/portal/teacher/profile", label: "Profile", icon: User },
-    { href: "/portal/security", label: "Security", icon: ShieldCheck },
-]
+import { useSession } from "next-auth/react"
+import { TEACHER_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
 interface ClassesViewProps {
     initialClasses: any[];
 }
 
 export function ClassesView({ initialClasses }: ClassesViewProps) {
+    const { data: session } = useSession()
     return (
-        <AppLayout sidebarItems={sidebarItems} userName="Mr. Usman Sheikh" userRole="teacher">
+        <AppLayout
+            sidebarItems={sidebarItems}
+            userName={session?.user?.name || "Teacher"}
+            userRole="teacher"
+            userImage={session?.user?.image || undefined}
+        >
             <div className="flex flex-col gap-8 pb-8">
                 <div className="flex flex-col gap-1">
                     <h1 className="heading-2 text-burgundy-gradient">My Classes</h1>

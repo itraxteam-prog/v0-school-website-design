@@ -44,6 +44,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { AppLayout } from "@/components/layout/app-layout"
+import { useSession } from "next-auth/react"
 import { TEACHER_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
 const assignmentSchema = z.object({
@@ -145,8 +146,15 @@ export function AssignmentsManager({ initialClasses }: AssignmentsManagerProps) 
         a.class?.name.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
+    const { data: session } = useSession()
+
     return (
-        <AppLayout sidebarItems={sidebarItems} userName="Teacher" userRole="teacher">
+        <AppLayout
+            sidebarItems={sidebarItems}
+            userName={session?.user?.name || "Teacher"}
+            userRole="teacher"
+            userImage={session?.user?.image || undefined}
+        >
             <div className="flex flex-col gap-8 pb-8">
                 <AnimatedWrapper direction="down">
                     <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">

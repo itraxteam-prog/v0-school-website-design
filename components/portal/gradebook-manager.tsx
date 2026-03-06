@@ -174,7 +174,12 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
     )
 
     return (
-        <AppLayout sidebarItems={sidebarItems} userName={session?.user?.name || "Teacher"} userRole="teacher">
+        <AppLayout
+            sidebarItems={sidebarItems}
+            userName={session?.user?.name || "Teacher"}
+            userRole="teacher"
+            userImage={session?.user?.image || undefined}
+        >
             <div className="flex flex-col gap-6 pb-24 lg:pb-8">
                 <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                     <div>
