@@ -357,6 +357,15 @@ export function TeacherDashboardClient({ user }: TeacherDashboardClientProps) {
                                             No recent announcements.
                                         </div>
                                     )}
+                                    {data?.announcements?.length > 0 && (
+                                        <Button
+                                            variant="ghost"
+                                            className="w-full text-xs text-primary font-bold hover:bg-primary/10 mt-1"
+                                            onClick={() => router.push('/portal/teacher/announcements')}
+                                        >
+                                            View All Announcements
+                                        </Button>
+                                    )}
                                 </CardContent>
                             </Card>
                         </AnimatedWrapper>

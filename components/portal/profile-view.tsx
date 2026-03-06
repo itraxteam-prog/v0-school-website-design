@@ -121,7 +121,7 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
             sidebarItems={finalSidebarItems}
             userName={session?.user?.name || profileData.name}
             userRole={userRole}
-            userImage={session?.user?.image || profileData.avatarUrl}
+            userImage={profileData.avatarUrl || session?.user?.image}
         >
             <div className="flex flex-col gap-8 pb-8">
                 <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
@@ -278,7 +278,7 @@ function InfoItem({ label, value, fullWidth = false, isEditing = false, onChange
             <span className="text-xs font-bold text-muted-foreground uppercase">{label}</span>
             {isEditing && onChange ? (
                 <input
-                    className="rounded-lg border bg-background px-3.5 py-2.5 text-sm font-medium focus:outline-primary"
+                    className="rounded-lg border bg-background px-3.5 py-2.5 text-sm font-medium focus:outline-primary w-full"
                     value={val || ""}
                     onChange={(e) => onChange(e.target.value)}
                 />

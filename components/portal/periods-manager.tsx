@@ -275,7 +275,7 @@ export function PeriodsManager({ initialPeriods, initialClasses, initialTeachers
                                     Add New Period
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="sm:max-w-[500px] glass-panel border-border/50">
+                            <DialogContent className="sm:max-w-[450px] glass-panel border-border/50 max-h-[90vh] overflow-y-auto">
                                 <DialogHeader>
                                     <DialogTitle className="heading-3">{editingPeriod ? 'Edit Period' : 'Add Period'}</DialogTitle>
                                     <DialogDescription>
