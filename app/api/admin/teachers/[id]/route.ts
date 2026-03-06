@@ -14,8 +14,14 @@ const updateTeacherSchema = z.object({
     name: z.string().min(2).optional(),
     email: z.string().email().optional(),
     employeeId: z.string().optional(),
-    department: z.string().optional(),
+    subjects: z.string().optional(),
     classIds: z.string().optional(),
+    dob: z.string().optional(),
+    gender: z.string().optional(),
+    qualification: z.string().optional(),
+    joiningDate: z.string().optional(),
+    phone: z.string().optional(),
+    address: z.string().optional(),
     imageUrl: z.string().optional(),
 }).strict()
 
@@ -34,7 +40,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
             }, { status: 400 })
         }
 
-        const { name, email, employeeId, department, classIds, imageUrl } = parsed.data
+        const {
+            name, email, employeeId, subjects, classIds, dob, gender,
+            qualification, joiningDate, phone, address, imageUrl
+        } = parsed.data
 
         const updatedTeacher = await prisma.user.update({
             where: { id: params.id },
@@ -46,11 +55,21 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
                     upsert: {
                         create: {
                             rollNumber: employeeId,
-                            gender: department,
+                            dateOfBirth: dob ? new Date(dob) : null,
+                            gender: gender || null,
+                            admissionDate: joiningDate ? new Date(joiningDate) : null,
+                            phone: phone || null,
+                            address: address || null,
+                            academicHistory: { subjects, qualification }
                         },
                         update: {
                             rollNumber: employeeId,
-                            gender: department,
+                            dateOfBirth: dob ? new Date(dob) : null,
+                            gender: gender || null,
+                            admissionDate: joiningDate ? new Date(joiningDate) : null,
+                            phone: phone || null,
+                            address: address || null,
+                            academicHistory: { subjects, qualification }
                         }
                     }
                 }

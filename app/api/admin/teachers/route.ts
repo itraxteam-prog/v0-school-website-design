@@ -12,8 +12,14 @@ const teacherSchema = z.object({
     name: z.string().min(2),
     email: z.string().email(),
     employeeId: z.string().optional(),
-    department: z.string().optional(),
+    subjects: z.string().optional(),
     classIds: z.string().optional(),
+    dob: z.string().optional(),
+    gender: z.string().optional(),
+    qualification: z.string().optional(),
+    joiningDate: z.string().optional(),
+    phone: z.string().optional(),
+    address: z.string().optional(),
     imageUrl: z.string().optional(),
 }).strict()
 
@@ -52,17 +58,26 @@ export async function GET(req: NextRequest) {
             prisma.user.count({ where })
         ])
 
-        const formatted = teachers.map(t => ({
-            id: t.id,
-            name: t.name,
-            email: t.email,
-            status: t.status,
-            image: t.image,
-            employeeId: t.profile?.rollNumber || "N/A",
-            department: t.profile?.gender || "Faculty", // Using gender field as temporary store if department not in schema, but let's check schema again
-            classIds: t.taughtClasses.map(c => c.id).join(', '),
-            createdAt: t.createdAt,
-        }))
+        const formatted = teachers.map(t => {
+            const academic = t.profile?.academicHistory as any || {};
+            return {
+                id: t.id,
+                name: t.name,
+                email: t.email,
+                status: t.status,
+                image: t.image,
+                employeeId: t.profile?.rollNumber || "N/A",
+                subjects: academic.subjects || t.profile?.gender || "Faculty", // Fallback to gender if migrating
+                classIds: t.taughtClasses.map(c => c.id).join(', '),
+                dob: t.profile?.dateOfBirth ? t.profile.dateOfBirth.toISOString().split('T')[0] : "",
+                gender: t.profile?.gender || "",
+                qualification: academic.qualification || "",
+                joiningDate: t.profile?.admissionDate ? t.profile.admissionDate.toISOString().split('T')[0] : "",
+                phone: t.profile?.phone || "",
+                address: t.profile?.address || "",
+                createdAt: t.createdAt,
+            }
+        })
 
         return NextResponse.json({
             data: formatted,
@@ -94,7 +109,10 @@ export async function POST(req: NextRequest) {
             }, { status: 400 })
         }
 
-        const { name, email, employeeId, department, classIds, imageUrl } = parsed.data
+        const {
+            name, email, employeeId, subjects, classIds, dob, gender,
+            qualification, joiningDate, phone, address, imageUrl
+        } = parsed.data
 
         // Check if user exists
         const existing = await prisma.user.findUnique({ where: { email } })
@@ -112,8 +130,12 @@ export async function POST(req: NextRequest) {
                 profile: {
                     create: {
                         rollNumber: employeeId,
-                        // We don't have a 'department' field in Profile, so we might skip it or use a generic field
-                        gender: department, // Hack: using gender to store department if no other field is suitable
+                        dateOfBirth: dob ? new Date(dob) : null,
+                        gender: gender || null,
+                        admissionDate: joiningDate ? new Date(joiningDate) : null, // Using admissionDate for Joining Date
+                        phone: phone || null,
+                        address: address || null,
+                        academicHistory: { subjects, qualification }
                     }
                 }
             },

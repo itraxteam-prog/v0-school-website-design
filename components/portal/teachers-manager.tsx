@@ -68,8 +68,14 @@ import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 const teacherSchema = z.object({
     name: z.string().min(2, { message: "Name must be at least 2 characters." }),
     employeeId: z.string().min(4, { message: "Employee ID must be at least 4 characters." }),
-    department: z.string().min(1, { message: "Please enter department." }),
+    subjects: z.string().min(1, { message: "Please enter subject(s)." }),
     classIds: z.string().min(1, { message: "Please enter assigned class IDs (comma separated)." }),
+    dob: z.string().optional(),
+    gender: z.string().optional(),
+    qualification: z.string().optional(),
+    joiningDate: z.string().optional(),
+    phone: z.string().optional(),
+    address: z.string().optional(),
     imageUrl: z.string().optional(),
 })
 
@@ -90,8 +96,14 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
         id: t.id,
         name: t.name || "",
         employeeId: t.employeeId || t.profile?.rollNumber || `T-${t.id.split('-')[0].toUpperCase()}`,
-        department: t.department || t.profile?.gender || "Faculty",
+        subjects: t.subjects || (t.profile?.academicHistory as any)?.subjects || t.profile?.gender || "Faculty",
         classIds: t.classIds || (t.taughtClasses ? t.taughtClasses.map((c: any) => c.id).join(', ') : "N/A"),
+        dob: t.dob || (t.profile?.dateOfBirth ? new Date(t.profile.dateOfBirth).toISOString().split('T')[0] : ""),
+        gender: t.gender || t.profile?.gender || "",
+        qualification: t.qualification || (t.profile?.academicHistory as any)?.qualification || "",
+        joiningDate: t.joiningDate || (t.profile?.admissionDate ? new Date(t.profile.admissionDate).toISOString().split('T')[0] : ""),
+        phone: t.phone || t.profile?.phone || "",
+        address: t.address || t.profile?.address || "",
         imageUrl: t.image || ""
     })))
 
@@ -118,8 +130,14 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
         defaultValues: {
             name: "",
             employeeId: "",
-            department: "",
+            subjects: "",
             classIds: "",
+            dob: "",
+            gender: "",
+            qualification: "",
+            joiningDate: "",
+            phone: "",
+            address: "",
             imageUrl: "",
         },
     })
@@ -137,8 +155,14 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
                 id: t.id,
                 name: t.name || "",
                 employeeId: t.employeeId || "",
-                department: t.department || "Faculty",
+                subjects: t.subjects || "Faculty",
                 classIds: t.classIds || "N/A",
+                dob: t.dob || "",
+                gender: t.gender || "",
+                qualification: t.qualification || "",
+                joiningDate: t.joiningDate || "",
+                phone: t.phone || "",
+                address: t.address || "",
                 imageUrl: t.image || ""
             })))
 
@@ -161,8 +185,14 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
             form.reset({
                 name: editingTeacher.name,
                 employeeId: editingTeacher.employeeId,
-                department: editingTeacher.department,
+                subjects: editingTeacher.subjects,
                 classIds: editingTeacher.classIds,
+                dob: editingTeacher.dob,
+                gender: editingTeacher.gender,
+                qualification: editingTeacher.qualification,
+                joiningDate: editingTeacher.joiningDate,
+                phone: editingTeacher.phone,
+                address: editingTeacher.address,
                 imageUrl: editingTeacher.imageUrl,
             })
             setImagePreview(editingTeacher.imageUrl || null)
@@ -170,8 +200,14 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
             form.reset({
                 name: "",
                 employeeId: "",
-                department: "",
+                subjects: "",
                 classIds: "",
+                dob: "",
+                gender: "",
+                qualification: "",
+                joiningDate: "",
+                phone: "",
+                address: "",
                 imageUrl: "",
             })
             setImagePreview(null)
@@ -295,7 +331,7 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
     const filteredTeachers = (teachers || []).filter(teacher =>
         teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         teacher.employeeId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        teacher.department.toLowerCase().includes(searchTerm.toLowerCase())
+        teacher.subjects.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
     return (
@@ -354,59 +390,166 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
                                                 <p className="text-xs text-muted-foreground mt-1">PNG, JPG up to 5MB</p>
                                             </div>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <FormField
-                                                control={form.control}
-                                                name="name"
-                                                render={({ field }) => (
-                                                    <FormItem className="col-span-2">
-                                                        <FormLabel>Full Name</FormLabel>
-                                                        <FormControl>
-                                                            <Input placeholder="Dr. Sarah Johnson" {...field} className="glass-card" />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                            <FormField
-                                                control={form.control}
-                                                name="employeeId"
-                                                render={({ field }) => (
-                                                    <FormItem className="col-span-2">
-                                                        <FormLabel>Employee ID</FormLabel>
-                                                        <FormControl>
-                                                            <Input placeholder="T-2024-XXXX" {...field} className="glass-card" />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                            <FormField
-                                                control={form.control}
-                                                name="department"
-                                                render={({ field }) => (
-                                                    <FormItem className="col-span-2">
-                                                        <FormLabel>Department</FormLabel>
-                                                        <FormControl>
-                                                            <Input placeholder="Mathematics, Physics" {...field} className="glass-card" />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                            <FormField
-                                                control={form.control}
-                                                name="classIds"
-                                                render={({ field }) => (
-                                                    <FormItem className="col-span-2">
-                                                        <FormLabel>Assigned Class IDs</FormLabel>
-                                                        <FormControl>
-                                                            <Input placeholder="cls-001, cls-002" {...field} className="glass-card" />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
+                                        <div className="space-y-6">
+                                            {/* Section 1: Basic Info */}
+                                            <div className="space-y-4">
+                                                <h4 className="text-sm font-semibold text-primary/80 border-b border-primary/10 pb-1">Basic Information</h4>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <FormField
+                                                        control={form.control}
+                                                        name="name"
+                                                        render={({ field }) => (
+                                                            <FormItem className="col-span-2">
+                                                                <FormLabel>Full Name</FormLabel>
+                                                                <FormControl>
+                                                                    <Input placeholder="Dr. Sarah Johnson" {...field} className="glass-card" />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <FormField
+                                                        control={form.control}
+                                                        name="employeeId"
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Employee ID</FormLabel>
+                                                                <FormControl>
+                                                                    <Input placeholder="T-2024-XXXX" {...field} className="glass-card" />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <FormField
+                                                        control={form.control}
+                                                        name="gender"
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Gender</FormLabel>
+                                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                                    <FormControl>
+                                                                        <SelectTrigger className="glass-card">
+                                                                            <SelectValue placeholder="Select" />
+                                                                        </SelectTrigger>
+                                                                    </FormControl>
+                                                                    <SelectContent>
+                                                                        <SelectItem value="Male">Male</SelectItem>
+                                                                        <SelectItem value="Female">Female</SelectItem>
+                                                                        <SelectItem value="Other">Other</SelectItem>
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <FormField
+                                                        control={form.control}
+                                                        name="dob"
+                                                        render={({ field }) => (
+                                                            <FormItem className="col-span-2">
+                                                                <FormLabel>Date of Birth</FormLabel>
+                                                                <FormControl>
+                                                                    <Input type="date" {...field} className="glass-card" />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Section 2: Professional Info */}
+                                            <div className="space-y-4">
+                                                <h4 className="text-sm font-semibold text-primary/80 border-b border-primary/10 pb-1">Professional Details</h4>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <FormField
+                                                        control={form.control}
+                                                        name="subjects"
+                                                        render={({ field }) => (
+                                                            <FormItem className="col-span-2">
+                                                                <FormLabel>Subject(s)</FormLabel>
+                                                                <FormControl>
+                                                                    <Input placeholder="Mathematics, Physics" {...field} className="glass-card" />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <FormField
+                                                        control={form.control}
+                                                        name="qualification"
+                                                        render={({ field }) => (
+                                                            <FormItem className="col-span-2">
+                                                                <FormLabel>Qualification</FormLabel>
+                                                                <FormControl>
+                                                                    <Input placeholder="Ph.D in Mathematics" {...field} className="glass-card" />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <FormField
+                                                        control={form.control}
+                                                        name="classIds"
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Assigned Class IDs</FormLabel>
+                                                                <FormControl>
+                                                                    <Input placeholder="cls-001, cls-002" {...field} className="glass-card" />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <FormField
+                                                        control={form.control}
+                                                        name="joiningDate"
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Joining Date</FormLabel>
+                                                                <FormControl>
+                                                                    <Input type="date" {...field} className="glass-card" />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Section 3: Contact Info */}
+                                            <div className="space-y-4">
+                                                <h4 className="text-sm font-semibold text-primary/80 border-b border-primary/10 pb-1">Contact Details</h4>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <FormField
+                                                        control={form.control}
+                                                        name="phone"
+                                                        render={({ field }) => (
+                                                            <FormItem className="col-span-2">
+                                                                <FormLabel>Phone Number</FormLabel>
+                                                                <FormControl>
+                                                                    <Input placeholder="+1 (555) 000-0000" {...field} className="glass-card" />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <FormField
+                                                        control={form.control}
+                                                        name="address"
+                                                        render={({ field }) => (
+                                                            <FormItem className="col-span-2">
+                                                                <FormLabel>Address</FormLabel>
+                                                                <FormControl>
+                                                                    <Input placeholder="123 Street, City" {...field} className="glass-card" />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
                                         <DialogFooter className="pt-4">
                                             <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
@@ -485,7 +628,7 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
                                                 <TableHead className="pl-6 font-semibold h-12 uppercase text-[10px] tracking-wider w-[80px]">Photo</TableHead>
                                                 <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Name</TableHead>
                                                 <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Employee ID</TableHead>
-                                                <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Department</TableHead>
+                                                <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Subject(s)</TableHead>
                                                 <TableHead className="font-semibold h-12 uppercase text-[10px] tracking-wider">Assigned Classes</TableHead>
                                                 <TableHead className="pr-6 text-right font-semibold h-12 uppercase text-[10px] tracking-wider">Actions</TableHead>
                                             </TableRow>
@@ -511,7 +654,7 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
                                                                 {teacher.employeeId}
                                                             </span>
                                                         </TableCell>
-                                                        <TableCell className="py-4 text-muted-foreground font-medium">{teacher.department}</TableCell>
+                                                        <TableCell className="py-4 text-muted-foreground font-medium">{teacher.subjects}</TableCell>
                                                         <TableCell className="py-4 text-muted-foreground">
                                                             <div className="flex flex-wrap gap-1">
                                                                 {teacher.classIds.split(',').map((cls, idx) => (

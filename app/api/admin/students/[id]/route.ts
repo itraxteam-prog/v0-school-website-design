@@ -15,7 +15,18 @@ const updateStudentSchema = z.object({
     rollNo: z.string().min(1).optional(),
     classId: z.string().optional(),
     dob: z.string().optional(),
+    gender: z.string().optional(),
+    bloodGroup: z.string().optional(),
+    nationality: z.string().optional(),
+    admissionDate: z.string().optional(),
+    phone: z.string().optional(),
+    city: z.string().optional(),
+    postalCode: z.string().optional(),
+    guardianName: z.string().optional(),
     guardianPhone: z.string().optional(),
+    guardianEmail: z.string().optional(),
+    guardianRelation: z.string().optional(),
+    guardianOccupation: z.string().optional(),
     address: z.string().optional(),
     imageUrl: z.string().optional(),
 }).strict()
@@ -35,7 +46,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
             }, { status: 400 })
         }
 
-        const { name, email, rollNo, classId, dob, guardianPhone, address, imageUrl } = parsed.data
+        const {
+            name, email, rollNo, classId, dob, gender, bloodGroup, nationality, admissionDate,
+            phone, city, postalCode, guardianName, guardianPhone, guardianEmail,
+            guardianRelation, guardianOccupation, address, imageUrl
+        } = parsed.data
 
         const updatedStudent = await prisma.user.update({
             where: { id: params.id },
@@ -48,14 +63,36 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
                         create: {
                             rollNumber: rollNo,
                             dateOfBirth: dob ? new Date(dob) : null,
-                            guardianPhone: guardianPhone,
-                            address: address,
+                            gender: gender || null,
+                            bloodGroup: bloodGroup || null,
+                            nationality: nationality || null,
+                            admissionDate: admissionDate ? new Date(admissionDate) : null,
+                            phone: phone || null,
+                            city: city || null,
+                            postalCode: postalCode || null,
+                            guardianName: guardianName || null,
+                            guardianPhone: guardianPhone || null,
+                            guardianEmail: guardianEmail || null,
+                            guardianRelation: guardianRelation || null,
+                            guardianOccupation: guardianOccupation || null,
+                            address: address || null,
                         },
                         update: {
                             rollNumber: rollNo,
                             dateOfBirth: dob ? new Date(dob) : null,
-                            guardianPhone: guardianPhone,
-                            address: address,
+                            gender: gender || null,
+                            bloodGroup: bloodGroup || null,
+                            nationality: nationality || null,
+                            admissionDate: admissionDate ? new Date(admissionDate) : null,
+                            phone: phone || null,
+                            city: city || null,
+                            postalCode: postalCode || null,
+                            guardianName: guardianName || null,
+                            guardianPhone: guardianPhone || null,
+                            guardianEmail: guardianEmail || null,
+                            guardianRelation: guardianRelation || null,
+                            guardianOccupation: guardianOccupation || null,
+                            address: address || null,
                         }
                     }
                 },

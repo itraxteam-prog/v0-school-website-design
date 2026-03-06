@@ -14,7 +14,18 @@ const studentSchema = z.object({
     rollNo: z.string().min(1),
     classId: z.string().optional(),
     dob: z.string().optional(),
+    gender: z.string().optional(),
+    bloodGroup: z.string().optional(),
+    nationality: z.string().optional(),
+    admissionDate: z.string().optional(),
+    phone: z.string().optional(),
+    city: z.string().optional(),
+    postalCode: z.string().optional(),
+    guardianName: z.string().optional(),
     guardianPhone: z.string().optional(),
+    guardianEmail: z.string().optional(),
+    guardianRelation: z.string().optional(),
+    guardianOccupation: z.string().optional(),
     address: z.string().optional(),
     imageUrl: z.string().optional(),
 }).strict()
@@ -63,7 +74,18 @@ export async function GET(req: NextRequest) {
             classId: s.classes[0]?.id || "Unassigned",
             className: s.classes[0]?.name || "Unassigned",
             dob: s.profile?.dateOfBirth ? s.profile.dateOfBirth.toISOString().split('T')[0] : "",
+            gender: s.profile?.gender || "",
+            bloodGroup: s.profile?.bloodGroup || "",
+            nationality: s.profile?.nationality || "",
+            admissionDate: s.profile?.admissionDate ? s.profile.admissionDate.toISOString().split('T')[0] : "",
+            phone: s.profile?.phone || "",
+            city: s.profile?.city || "",
+            postalCode: s.profile?.postalCode || "",
+            guardianName: s.profile?.guardianName || "",
             guardianPhone: s.profile?.guardianPhone || "",
+            guardianEmail: s.profile?.guardianEmail || "",
+            guardianRelation: s.profile?.guardianRelation || "",
+            guardianOccupation: s.profile?.guardianOccupation || "",
             address: s.profile?.address || "",
             status: s.status,
         }))
@@ -97,7 +119,11 @@ export async function POST(req: NextRequest) {
             }, { status: 400 })
         }
 
-        const { name, email, rollNo, classId, dob, guardianPhone, address, imageUrl } = parsed.data
+        const {
+            name, email, rollNo, classId, dob, gender, bloodGroup, nationality, admissionDate,
+            phone, city, postalCode, guardianName, guardianPhone, guardianEmail,
+            guardianRelation, guardianOccupation, address, imageUrl
+        } = parsed.data
 
         // 1. Check if email exists
         const emailExists = await prisma.user.findUnique({ where: { email } })
@@ -124,7 +150,18 @@ export async function POST(req: NextRequest) {
                     create: {
                         rollNumber: rollNo,
                         dateOfBirth: dob ? new Date(dob) : null,
+                        gender: gender || null,
+                        bloodGroup: bloodGroup || null,
+                        nationality: nationality || null,
+                        admissionDate: admissionDate ? new Date(admissionDate) : null,
+                        phone: phone || null,
+                        city: city || null,
+                        postalCode: postalCode || null,
+                        guardianName: guardianName || null,
                         guardianPhone: guardianPhone || null,
+                        guardianEmail: guardianEmail || null,
+                        guardianRelation: guardianRelation || null,
+                        guardianOccupation: guardianOccupation || null,
                         address: address || null,
                     }
                 },

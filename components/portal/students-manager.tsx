@@ -71,7 +71,18 @@ const studentSchema = z.object({
     rollNo: z.string().min(1, { message: "Roll number is required." }),
     classId: z.string().min(1, { message: "Please select a class." }),
     dob: z.string().min(1, { message: "Please select date of birth." }),
+    gender: z.string().optional(),
+    bloodGroup: z.string().optional(),
+    nationality: z.string().optional(),
+    admissionDate: z.string().optional(),
+    phone: z.string().optional(),
+    city: z.string().optional(),
+    postalCode: z.string().optional(),
+    guardianName: z.string().optional(),
     guardianPhone: z.string().min(10, { message: "Invalid contact number." }),
+    guardianEmail: z.string().optional(),
+    guardianRelation: z.string().optional(),
+    guardianOccupation: z.string().optional(),
     address: z.string().min(5, { message: "Address must be at least 5 characters." }),
     imageUrl: z.string().optional(),
 })
@@ -94,7 +105,18 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
         rollNo: s.rollNo || s.profile?.rollNumber || "",
         classId: s.classId || (s.classes?.[0]?.id || (s.profile?.rollNumber ? "Unassigned" : "N/A")),
         dob: s.dob || (s.profile?.dateOfBirth ? new Date(s.profile.dateOfBirth).toISOString().split('T')[0] : ""),
+        gender: s.gender || s.profile?.gender || "",
+        bloodGroup: s.bloodGroup || s.profile?.bloodGroup || "",
+        nationality: s.nationality || s.profile?.nationality || "",
+        admissionDate: s.admissionDate || (s.profile?.admissionDate ? new Date(s.profile.admissionDate).toISOString().split('T')[0] : ""),
+        phone: s.phone || s.profile?.phone || "",
+        city: s.city || s.profile?.city || "",
+        postalCode: s.postalCode || s.profile?.postalCode || "",
+        guardianName: s.guardianName || s.profile?.guardianName || "",
         guardianPhone: s.guardianPhone || s.profile?.guardianPhone || "",
+        guardianEmail: s.guardianEmail || s.profile?.guardianEmail || "",
+        guardianRelation: s.guardianRelation || s.profile?.guardianRelation || "",
+        guardianOccupation: s.guardianOccupation || s.profile?.guardianOccupation || "",
         address: s.address || s.profile?.address || "",
         imageUrl: s.image || ""
     })))
@@ -124,7 +146,18 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
             rollNo: "",
             classId: "",
             dob: "",
+            gender: "",
+            bloodGroup: "",
+            nationality: "",
+            admissionDate: "",
+            phone: "",
+            city: "",
+            postalCode: "",
+            guardianName: "",
             guardianPhone: "",
+            guardianEmail: "",
+            guardianRelation: "",
+            guardianOccupation: "",
             address: "",
             imageUrl: "",
         },
@@ -156,9 +189,20 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                 rollNo: s.rollNo || "",
                 classId: s.classId || "N/A",
                 dob: s.dob || "",
+                gender: s.gender || "",
+                bloodGroup: s.bloodGroup || "",
+                nationality: s.nationality || "",
+                admissionDate: s.admissionDate || "",
+                phone: s.phone || "",
+                city: s.city || "",
+                postalCode: s.postalCode || "",
+                guardianName: s.guardianName || "",
                 guardianPhone: s.guardianPhone || "",
+                guardianEmail: s.guardianEmail || "",
+                guardianRelation: s.guardianRelation || "",
+                guardianOccupation: s.guardianOccupation || "",
                 address: s.address || "",
-                imageUrl: s.image || ""
+                imageUrl: s.imageUrl || ""
             })))
 
             setTotalPages(result.pagination?.pages || 1)
@@ -185,7 +229,18 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                 rollNo: "",
                 classId: "",
                 dob: "",
+                gender: "",
+                bloodGroup: "",
+                nationality: "",
+                admissionDate: "",
+                phone: "",
+                city: "",
+                postalCode: "",
+                guardianName: "",
                 guardianPhone: "",
+                guardianEmail: "",
+                guardianRelation: "",
+                guardianOccupation: "",
                 address: "",
                 imageUrl: "",
             })
@@ -376,6 +431,12 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                                                     </FormItem>
                                                 )}
                                             />
+
+                                            {/* Basic Info Section */}
+                                            <div className="col-span-2 mt-2">
+                                                <h4 className="text-sm font-semibold text-primary mb-2 border-b border-primary/10 pb-1">Basic Information</h4>
+                                            </div>
+
                                             <FormField
                                                 control={form.control}
                                                 name="rollNo"
@@ -429,6 +490,157 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                                             />
                                             <FormField
                                                 control={form.control}
+                                                name="gender"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Gender</FormLabel>
+                                                        <Select onValueChange={field.onChange} value={field.value}>
+                                                            <FormControl>
+                                                                <SelectTrigger className="glass-card">
+                                                                    <SelectValue placeholder="Select gender" />
+                                                                </SelectTrigger>
+                                                            </FormControl>
+                                                            <SelectContent className="glass-panel">
+                                                                <SelectItem value="Male">Male</SelectItem>
+                                                                <SelectItem value="Female">Female</SelectItem>
+                                                                <SelectItem value="Other">Other</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="bloodGroup"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Blood Group</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="e.g. A+" {...field} className="glass-card" />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="nationality"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Nationality</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="Country" {...field} className="glass-card" />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="admissionDate"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Admission Date</FormLabel>
+                                                        <FormControl>
+                                                            <Input type="date" {...field} className="glass-card" />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+
+                                            {/* Contact Info Section */}
+                                            <div className="col-span-2 mt-2">
+                                                <h4 className="text-sm font-semibold text-primary mb-2 border-b border-primary/10 pb-1">Contact Details</h4>
+                                            </div>
+
+                                            <FormField
+                                                control={form.control}
+                                                name="phone"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Student Phone</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="+92 XXX XXXXXXX" {...field} className="glass-card" />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="city"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>City</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="City" {...field} className="glass-card" />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="postalCode"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Postal Code</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="Code" {...field} className="glass-card" />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="address"
+                                                render={({ field }) => (
+                                                    <FormItem className="col-span-2">
+                                                        <FormLabel>Home Address</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="123 Street, Area" {...field} className="glass-card" />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+
+                                            {/* Guardian Info Section */}
+                                            <div className="col-span-2 mt-2">
+                                                <h4 className="text-sm font-semibold text-primary mb-2 border-b border-primary/10 pb-1">Guardian Information</h4>
+                                            </div>
+
+                                            <FormField
+                                                control={form.control}
+                                                name="guardianName"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Guardian Name</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="Name" {...field} className="glass-card" />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="guardianRelation"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Relation</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="e.g. Father" {...field} className="glass-card" />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
                                                 name="guardianPhone"
                                                 render={({ field }) => (
                                                     <FormItem>
@@ -442,12 +654,25 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                                             />
                                             <FormField
                                                 control={form.control}
-                                                name="address"
+                                                name="guardianEmail"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Guardian Email</FormLabel>
+                                                        <FormControl>
+                                                            <Input type="email" placeholder="email@example.com" {...field} className="glass-card" />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="guardianOccupation"
                                                 render={({ field }) => (
                                                     <FormItem className="col-span-2">
-                                                        <FormLabel>Address</FormLabel>
+                                                        <FormLabel>Guardian Occupation</FormLabel>
                                                         <FormControl>
-                                                            <Input placeholder="123 Street, City" {...field} className="glass-card" />
+                                                            <Input placeholder="Occupation" {...field} className="glass-card" />
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>

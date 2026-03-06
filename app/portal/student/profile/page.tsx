@@ -35,12 +35,9 @@ import { Input } from "@/components/ui/input"
 
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
-  const [isEditing, setIsEditing] = useState(false)
   const [profileData, setProfileData] = useState<any>(null)
-  const [formData, setFormData] = useState<any>({})
   const [error, setError] = useState<string | null>(null)
-  const [saving, setSaving] = useState(false)
-  const { data: session, update } = useSession()
+  const { data: session } = useSession()
   const { toast } = useToast()
 
 
@@ -52,22 +49,6 @@ export default function ProfilePage() {
         if (!res.ok) throw new Error("Failed to load profile")
         const data = await res.json()
         setProfileData(data)
-        setFormData({
-          fullName: data.fullName,
-          dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth).toISOString().split('T')[0] : "",
-          gender: data.gender || "",
-          bloodGroup: data.bloodGroup || "",
-          nationality: data.nationality || "",
-          phone: data.phone || "",
-          address: data.address || "",
-          city: data.city || "",
-          postalCode: data.postalCode || "",
-          guardianName: data.guardianName || "",
-          guardianRelation: data.guardianRelation || "",
-          guardianPhone: data.guardianPhone || "",
-          guardianEmail: data.guardianEmail || "",
-          guardianOccupation: data.guardianOccupation || ""
-        })
       } catch (err: any) {
         setError(err.message)
       } finally {
@@ -77,38 +58,7 @@ export default function ProfilePage() {
     fetchProfile()
   }, [])
 
-  const handleSave = async () => {
-    setSaving(true)
-    try {
-      const res = await fetch("/api/user/profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.fullName,
-          ...formData
-        })
-      })
 
-      if (!res.ok) throw new Error("Failed to update profile")
-
-      setProfileData((prev: any) => ({ ...prev, ...formData }))
-      setIsEditing(false)
-      toast({ title: "Profile updated", description: "Your changes have been saved successfully." })
-
-      if (formData.fullName !== session?.user?.name) {
-        update({ name: formData.fullName })
-      }
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" })
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev: any) => ({ ...prev, [name]: value }))
-  }
 
   const displayData = profileData || {
     fullName: session?.user?.name || "Loading...",
@@ -138,25 +88,6 @@ export default function ProfilePage() {
               <p className="text-sm text-muted-foreground">View and manage your personal information.</p>
             </div>
             <div className="flex gap-2">
-              <Button
-                onClick={() => setIsEditing(!isEditing)}
-                variant={isEditing ? "outline" : "default"}
-                className="gap-2"
-                disabled={loading || saving}
-              >
-                <Edit className="h-4 w-4" />
-                {isEditing ? "Cancel" : "Edit Profile"}
-              </Button>
-              {isEditing && (
-                <Button
-                  onClick={handleSave}
-                  className="gap-2 bg-primary text-white hover:bg-primary/90"
-                  disabled={saving}
-                >
-                  <Save className="h-4 w-4" />
-                  Save Changes
-                </Button>
-              )}
             </div>
           </div>
         </AnimatedWrapper>
@@ -196,44 +127,7 @@ export default function ProfilePage() {
                         Roll No: {displayData.rollNumber}
                       </p>
                     </div>
-                    <input
-                      type="file"
-                      id="photo-upload"
-                      className="hidden"
-                      accept="image/*"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
 
-                        const formData = new FormData();
-                        formData.append("file", file);
-
-                        try {
-                          toast({ title: "Uploading...", description: "Please wait while we process your photo." });
-                          const res = await fetch("/api/user/photo", {
-                            method: "POST",
-                            body: formData,
-                          });
-
-                          if (!res.ok) throw new Error("Upload failed");
-                          const result = await res.json();
-
-                          setProfileData((prev: any) => ({ ...prev, avatarUrl: result.url }));
-                          update({ image: result.url });
-                          toast({ title: "Success", description: "Profile photo updated successfully." });
-                        } catch (err) {
-                          toast({ title: "Error", description: "Failed to upload photo.", variant: "destructive" });
-                        }
-                      }}
-                    />
-                    <Button
-                      variant="outline"
-                      className="w-full gap-2 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
-                      onClick={() => document.getElementById('photo-upload')?.click()}
-                    >
-                      <UserCircle className="h-4 w-4" />
-                      Change Photo
-                    </Button>
 
                   </>
                 )}
@@ -267,84 +161,36 @@ export default function ProfilePage() {
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Full Name</label>
-                        {isEditing ? (
-                          <Input
-                            name="fullName"
-                            value={formData.fullName}
-                            onChange={handleInputChange}
-                            className="h-10"
-                          />
-                        ) : (
-                          <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                            <User className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">{displayData.fullName || "N/A"}</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">{displayData.fullName || "N/A"}</span>
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Date of Birth</label>
-                        {isEditing ? (
-                          <Input
-                            name="dateOfBirth"
-                            type="date"
-                            value={formData.dateOfBirth}
-                            onChange={handleInputChange}
-                            className="h-10"
-                          />
-                        ) : (
-                          <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">{displayData.dateOfBirth ? new Date(displayData.dateOfBirth).toLocaleDateString() : "N/A"}</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">{displayData.dateOfBirth ? new Date(displayData.dateOfBirth).toLocaleDateString() : "N/A"}</span>
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Gender</label>
-                        {isEditing ? (
-                          <Input
-                            name="gender"
-                            value={formData.gender}
-                            onChange={handleInputChange}
-                            placeholder="Male/Female/Other"
-                            className="h-10"
-                          />
-                        ) : (
-                          <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                            <Users className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">{displayData.gender || "N/A"}</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">{displayData.gender || "N/A"}</span>
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Blood Group</label>
-                        {isEditing ? (
-                          <Input
-                            name="bloodGroup"
-                            value={formData.bloodGroup}
-                            onChange={handleInputChange}
-                            placeholder="e.g. A+"
-                            className="h-10"
-                          />
-                        ) : (
-                          <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                            <span className="text-sm">{displayData.bloodGroup || "N/A"}</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
+                          <span className="text-sm">{displayData.bloodGroup || "N/A"}</span>
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Nationality</label>
-                        {isEditing ? (
-                          <Input
-                            name="nationality"
-                            value={formData.nationality}
-                            onChange={handleInputChange}
-                            className="h-10"
-                          />
-                        ) : (
-                          <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                            <span className="text-sm">{displayData.nationality || "N/A"}</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
+                          <span className="text-sm">{displayData.nationality || "N/A"}</span>
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Admission Date</label>
@@ -405,16 +251,7 @@ export default function ProfilePage() {
                           </div>
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-muted-foreground">Enrolled Subjects</label>
-                        <div className="flex flex-wrap gap-2 rounded-lg border border-border bg-muted/30 p-3">
-                          {displayData.subjects && displayData.subjects.length > 0 ? displayData.subjects.map((subject: string) => (
-                            <Badge key={subject} variant="secondary" className="font-normal">
-                              {subject}
-                            </Badge>
-                          )) : <span className="text-xs text-muted-foreground italic">No subjects enrolled</span>}
-                        </div>
-                      </div>
+
                     </div>
                   )}
                 </CardContent>
@@ -451,65 +288,29 @@ export default function ProfilePage() {
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Phone Number</label>
-                        {isEditing ? (
-                          <Input
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleInputChange}
-                            className="h-10"
-                          />
-                        ) : (
-                          <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                            <Phone className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">{displayData.phone || "N/A"}</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
+                          <Phone className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">{displayData.phone || "N/A"}</span>
+                        </div>
                       </div>
                       <div className="space-y-2 sm:col-span-2">
                         <label className="text-sm font-medium text-muted-foreground">Address</label>
-                        {isEditing ? (
-                          <Input
-                            name="address"
-                            value={formData.address}
-                            onChange={handleInputChange}
-                            className="h-10"
-                          />
-                        ) : (
-                          <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                            <MapPin className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">{displayData.address || "N/A"}</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">{displayData.address || "N/A"}</span>
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">City</label>
-                        {isEditing ? (
-                          <Input
-                            name="city"
-                            value={formData.city}
-                            onChange={handleInputChange}
-                            className="h-10"
-                          />
-                        ) : (
-                          <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                            <span className="text-sm">{displayData.city || "N/A"}</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
+                          <span className="text-sm">{displayData.city || "N/A"}</span>
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Postal Code</label>
-                        {isEditing ? (
-                          <Input
-                            name="postalCode"
-                            value={formData.postalCode}
-                            onChange={handleInputChange}
-                            className="h-10"
-                          />
-                        ) : (
-                          <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                            <span className="text-sm">{displayData.postalCode || "N/A"}</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
+                          <span className="text-sm">{displayData.postalCode || "N/A"}</span>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -540,81 +341,36 @@ export default function ProfilePage() {
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Guardian Name</label>
-                        {isEditing ? (
-                          <Input
-                            name="guardianName"
-                            value={formData.guardianName}
-                            onChange={handleInputChange}
-                            className="h-10"
-                          />
-                        ) : (
-                          <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                            <User className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">{displayData.guardianName || "N/A"}</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">{displayData.guardianName || "N/A"}</span>
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Relation</label>
-                        {isEditing ? (
-                          <Input
-                            name="guardianRelation"
-                            value={formData.guardianRelation}
-                            onChange={handleInputChange}
-                            className="h-10"
-                          />
-                        ) : (
-                          <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                            <span className="text-sm">{displayData.guardianRelation || "N/A"}</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
+                          <span className="text-sm">{displayData.guardianRelation || "N/A"}</span>
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Guardian Phone</label>
-                        {isEditing ? (
-                          <Input
-                            name="guardianPhone"
-                            value={formData.guardianPhone}
-                            onChange={handleInputChange}
-                            className="h-10"
-                          />
-                        ) : (
-                          <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                            <Phone className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">{displayData.guardianPhone || "N/A"}</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
+                          <Phone className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">{displayData.guardianPhone || "N/A"}</span>
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Guardian Email</label>
-                        {isEditing ? (
-                          <Input
-                            name="guardianEmail"
-                            value={formData.guardianEmail}
-                            onChange={handleInputChange}
-                            className="h-10"
-                          />
-                        ) : (
-                          <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                            <Mail className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">{displayData.guardianEmail || "N/A"}</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
+                          <Mail className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">{displayData.guardianEmail || "N/A"}</span>
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">Occupation</label>
-                        {isEditing ? (
-                          <Input
-                            name="guardianOccupation"
-                            value={formData.guardianOccupation}
-                            onChange={handleInputChange}
-                            className="h-10"
-                          />
-                        ) : (
-                          <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                            <span className="text-sm">{displayData.guardianOccupation || "N/A"}</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
+                          <span className="text-sm">{displayData.guardianOccupation || "N/A"}</span>
+                        </div>
                       </div>
                     </div>
                   )}
