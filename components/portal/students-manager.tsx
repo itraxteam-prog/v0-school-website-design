@@ -68,6 +68,7 @@ import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
 const studentSchema = z.object({
     name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+    email: z.string().email({ message: "Invalid email address." }),
     rollNo: z.string().min(1, { message: "Roll number is required." }),
     classId: z.string().min(1, { message: "Please select a class." }),
     dob: z.string().min(1, { message: "Please select date of birth." }),
@@ -102,6 +103,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
     const [students, setStudents] = useState<Student[]>(initialStudents.map(s => ({
         id: s.id,
         name: s.name || "",
+        email: s.email || "",
         rollNo: s.rollNo || s.profile?.rollNumber || "",
         classId: s.classId || (s.classes?.[0]?.id || (s.profile?.rollNumber ? "Unassigned" : "N/A")),
         dob: s.dob || (s.profile?.dateOfBirth ? new Date(s.profile.dateOfBirth).toISOString().split('T')[0] : ""),
@@ -143,6 +145,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
         resolver: zodResolver(studentSchema),
         defaultValues: {
             name: "",
+            email: "",
             rollNo: "",
             classId: "",
             dob: "",
@@ -186,6 +189,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
             setStudents(result.data.map((s: any) => ({
                 id: s.id,
                 name: s.name || "",
+                email: s.email || "",
                 rollNo: s.rollNo || "",
                 classId: s.classId || "N/A",
                 dob: s.dob || "",
@@ -226,6 +230,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
         } else {
             form.reset({
                 name: "",
+                email: "",
                 rollNo: "",
                 classId: "",
                 dob: "",
@@ -293,7 +298,6 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
             const url = editingStudent ? `/api/admin/students/${editingStudent.id}` : "/api/admin/students"
             const method = editingStudent ? "PATCH" : "POST"
 
-            const cleanRoll = data.rollNo.replace(/\s+/g, '').toLowerCase()
             const res = await fetch(url, {
                 method,
                 credentials: "include",
@@ -301,7 +305,6 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                 body: JSON.stringify({
                     ...data,
                     imageUrl: finalImageUrl,
-                    email: `${cleanRoll}@school.edu`
                 })
             })
 
@@ -555,6 +558,19 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                                                 <h4 className="text-sm font-semibold text-primary mb-2 border-b border-primary/10 pb-1">Contact Details</h4>
                                             </div>
 
+                                            <FormField
+                                                control={form.control}
+                                                name="email"
+                                                render={({ field }) => (
+                                                    <FormItem className="col-span-2">
+                                                        <FormLabel>Student Email</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="student@school.edu" {...field} className="glass-card" />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
                                             <FormField
                                                 control={form.control}
                                                 name="phone"

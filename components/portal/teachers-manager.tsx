@@ -67,6 +67,7 @@ import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
 const teacherSchema = z.object({
     name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+    email: z.string().email({ message: "Invalid email address." }),
     employeeId: z.string().min(4, { message: "Employee ID must be at least 4 characters." }),
     subjects: z.string().min(1, { message: "Please enter subject(s)." }),
     classIds: z.string().min(1, { message: "Please enter assigned class IDs (comma separated)." }),
@@ -84,6 +85,7 @@ type TeacherFormValues = z.infer<typeof teacherSchema>
 interface Teacher extends TeacherFormValues {
     id: string;
     image?: string;
+    email: string;
 }
 
 interface TeachersManagerProps {
@@ -95,6 +97,7 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
     const [teachers, setTeachers] = useState<Teacher[]>(initialTeachers.map(t => ({
         id: t.id,
         name: t.name || "",
+        email: t.email || "",
         employeeId: t.employeeId || t.profile?.rollNumber || `T-${t.id.split('-')[0].toUpperCase()}`,
         subjects: t.subjects || (t.profile?.academicHistory as any)?.subjects || t.profile?.gender || "Faculty",
         classIds: t.classIds || (t.taughtClasses ? t.taughtClasses.map((c: any) => c.id).join(', ') : "N/A"),
@@ -129,6 +132,7 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
         resolver: zodResolver(teacherSchema),
         defaultValues: {
             name: "",
+            email: "",
             employeeId: "",
             subjects: "",
             classIds: "",
@@ -154,6 +158,7 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
             setTeachers(result.data.map((t: any) => ({
                 id: t.id,
                 name: t.name || "",
+                email: t.email || "",
                 employeeId: t.employeeId || "",
                 subjects: t.subjects || "Faculty",
                 classIds: t.classIds || "N/A",
@@ -184,6 +189,7 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
         if (editingTeacher) {
             form.reset({
                 name: editingTeacher.name,
+                email: editingTeacher.email,
                 employeeId: editingTeacher.employeeId,
                 subjects: editingTeacher.subjects,
                 classIds: editingTeacher.classIds,
@@ -199,6 +205,7 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
         } else {
             form.reset({
                 name: "",
+                email: "",
                 employeeId: "",
                 subjects: "",
                 classIds: "",
@@ -264,8 +271,6 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
             const payload = {
                 ...data,
                 imageUrl: finalImageUrl,
-                // Only send email for POST or if it's explicitly needed
-                ...(editingTeacher ? {} : { email: `${data.name.split(' ')[0].toLowerCase()}.${Math.floor(Math.random() * 1000)}@school.edu` })
             }
 
             const res = await fetch(url, {
@@ -522,6 +527,19 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
                                             <div className="space-y-4">
                                                 <h4 className="text-sm font-semibold text-primary/80 border-b border-primary/10 pb-1">Contact Details</h4>
                                                 <div className="grid grid-cols-2 gap-4">
+                                                    <FormField
+                                                        control={form.control}
+                                                        name="email"
+                                                        render={({ field }) => (
+                                                            <FormItem className="col-span-2">
+                                                                <FormLabel>Email Address</FormLabel>
+                                                                <FormControl>
+                                                                    <Input placeholder="teacher@school.edu" {...field} className="glass-card" />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
                                                     <FormField
                                                         control={form.control}
                                                         name="phone"
