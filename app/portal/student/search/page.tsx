@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 
 import { STUDENT_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
-
+import { useSession } from "next-auth/react"
 import { Suspense } from "react"
 
 function StudentSearchContent() {
