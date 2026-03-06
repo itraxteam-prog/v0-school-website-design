@@ -68,7 +68,7 @@ import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
 const studentSchema = z.object({
     name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-    rollNo: z.string().min(4, { message: "Roll number must be at least 4 characters." }),
+    rollNo: z.string().min(1, { message: "Roll number is required." }),
     classId: z.string().min(1, { message: "Please select a class." }),
     dob: z.string().min(1, { message: "Please select date of birth." }),
     guardianPhone: z.string().min(10, { message: "Invalid contact number." }),
@@ -238,11 +238,16 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
             const url = editingStudent ? `/api/admin/students/${editingStudent.id}` : "/api/admin/students"
             const method = editingStudent ? "PATCH" : "POST"
 
+            const cleanRoll = data.rollNo.replace(/\s+/g, '').toLowerCase()
             const res = await fetch(url, {
                 method,
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...data, imageUrl: finalImageUrl, email: `${data.rollNo.toLowerCase()}@school.edu` }) // Simulated email logic
+                body: JSON.stringify({
+                    ...data,
+                    imageUrl: finalImageUrl,
+                    email: `${cleanRoll}@school.edu`
+                })
             })
 
             if (!res.ok) {
@@ -255,6 +260,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                 description: `Student ${editingStudent ? 'updated' : 'added'} successfully.`,
             })
 
+            if (!editingStudent) setPage(1) // Go to first page to see the new student
             fetchStudents() // Refresh list
             setIsModalOpen(false)
             setEditingStudent(null)
@@ -451,7 +457,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                                         <DialogFooter className="pt-4">
                                             <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
                                             <Button type="submit" disabled={isSubmitting} className="bg-primary text-white hover:bg-primary/90 shadow-burgundy-glow min-w-[120px]">
-                                                {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : (editingStudent ? 'Update Student' : 'Save Student')}
+                                                {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : (editingStudent ? 'Update Record' : 'Save Record')}
                                             </Button>
                                         </DialogFooter>
                                     </form>

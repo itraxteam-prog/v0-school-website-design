@@ -99,10 +99,18 @@ export async function POST(req: NextRequest) {
 
         const { name, email, rollNo, classId, dob, guardianPhone, address, imageUrl } = parsed.data
 
-        // Check if user exists
-        const existing = await prisma.user.findUnique({ where: { email } })
-        if (existing) {
-            return NextResponse.json({ error: "User already exists" }, { status: 400 })
+        // 1. Check if email exists
+        const emailExists = await prisma.user.findUnique({ where: { email } })
+        if (emailExists) {
+            return NextResponse.json({ error: "A user with this email/roll number already exists" }, { status: 400 })
+        }
+
+        // 2. Check if Roll Number exists in Profile
+        const rollExists = await prisma.profile.findUnique({
+            where: { rollNumber: rollNo }
+        })
+        if (rollExists) {
+            return NextResponse.json({ error: `Roll Number "${rollNo}" is already assigned to another student.` }, { status: 400 })
         }
 
         const newStudent = await prisma.user.create({
@@ -116,18 +124,23 @@ export async function POST(req: NextRequest) {
                     create: {
                         rollNumber: rollNo,
                         dateOfBirth: dob ? new Date(dob) : null,
-                        guardianPhone: guardianPhone,
-                        address: address,
+                        guardianPhone: guardianPhone || null,
+                        address: address || null,
                     }
                 },
                 ...(classId && classId !== "Unassigned" && {
                     classes: { connect: { id: classId } }
                 })
             },
+            include: { profile: true }
         })
 
-        return NextResponse.json({ data: newStudent }, { status: 201 })
+        return NextResponse.json({ success: true, data: newStudent }, { status: 201 })
     } catch (error: any) {
+        console.error("[STUDENTS_POST_ERROR]", error);
+        if (error.code === 'P2002') {
+            return NextResponse.json({ error: "Duplicate record detected. Please check the roll number." }, { status: 400 });
+        }
         return handleAuthError(error);
     }
 }
