@@ -201,6 +201,73 @@ export function AttendanceManager({ initialClasses }: AttendanceManagerProps) {
                     </Button>
                 </div>
 
+                {/* Summary Cards */}
+                <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                    <Card className="glass-panel overflow-hidden border-border/50">
+                        <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-medium text-muted-foreground">Present</p>
+                                    <p className="mt-1 text-2xl font-bold text-green-600">
+                                        {Object.values(attendance).filter(a => a.status === 'present').length}
+                                    </p>
+                                </div>
+                                <div className="rounded-full bg-green-100 p-2">
+                                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="glass-panel overflow-hidden border-border/50">
+                        <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-medium text-muted-foreground">Absent</p>
+                                    <p className="mt-1 text-2xl font-bold text-red-600">
+                                        {Object.values(attendance).filter(a => a.status === 'absent').length}
+                                    </p>
+                                </div>
+                                <div className="rounded-full bg-red-100 p-2">
+                                    <XCircle className="h-5 w-5 text-red-600" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="glass-panel overflow-hidden border-border/50">
+                        <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-medium text-muted-foreground">Late</p>
+                                    <p className="mt-1 text-2xl font-bold text-amber-600">
+                                        {Object.values(attendance).filter(a => a.status === 'late').length}
+                                    </p>
+                                </div>
+                                <div className="rounded-full bg-amber-100 p-2">
+                                    <AlertCircle className="h-5 w-5 text-amber-600" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="glass-panel overflow-hidden border-border/50">
+                        <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-medium text-muted-foreground">Excused</p>
+                                    <p className="mt-1 text-2xl font-bold text-blue-600">
+                                        {Object.values(attendance).filter(a => a.status === 'excused').length}
+                                    </p>
+                                </div>
+                                <div className="rounded-full bg-blue-100 p-2">
+                                    <ShieldCheck className="h-5 w-5 text-blue-600" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
                 <Card className="glass-panel border-border/50">
                     <CardContent className="p-4 md:p-6">
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 lg:items-end">
@@ -239,9 +306,11 @@ export function AttendanceManager({ initialClasses }: AttendanceManagerProps) {
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2">
-                                <Button variant="outline" className="flex-1 h-11 border-green-200 text-green-700 hover:bg-green-50" onClick={() => markAll("present")}>All Present</Button>
-                                <Button variant="outline" className="flex-1 h-11 border-red-200 text-red-700 hover:bg-red-50" onClick={() => markAll("absent")}>All Absent</Button>
+                            <div className="lg:col-span-4 grid gap-4 grid-cols-2 lg:grid-cols-4">
+                                <Button variant="outline" className="h-11 border-green-200 text-green-700 hover:bg-green-50" onClick={() => markAll("present")}>All Present</Button>
+                                <Button variant="outline" className="h-11 border-red-200 text-red-700 hover:bg-red-50" onClick={() => markAll("absent")}>All Absent</Button>
+                                <Button variant="outline" className="h-11 border-amber-200 text-amber-700 hover:bg-amber-50" onClick={() => markAll("late")}>All Late</Button>
+                                <Button variant="outline" className="h-11 border-blue-200 text-blue-700 hover:bg-blue-50" onClick={() => markAll("excused")}>All Excused</Button>
                             </div>
                         </div>
                     </CardContent>
@@ -251,9 +320,11 @@ export function AttendanceManager({ initialClasses }: AttendanceManagerProps) {
                     <CardHeader className="border-b border-border/50 bg-muted/20 pb-4">
                         <div className="flex items-center justify-between">
                             <CardTitle className="heading-3 flex items-center gap-2"><Users size={20} className="text-primary" /> Student List</CardTitle>
-                            <div className="flex gap-4 text-sm font-medium">
+                            <div className="flex gap-4 text-xs font-medium">
                                 <span className="text-green-600">{Object.values(attendance).filter(a => a.status === 'present').length} Present</span>
                                 <span className="text-red-600">{Object.values(attendance).filter(a => a.status === 'absent').length} Absent</span>
+                                <span className="text-amber-600">{Object.values(attendance).filter(a => a.status === 'late').length} Late</span>
+                                <span className="text-blue-600">{Object.values(attendance).filter(a => a.status === 'excused').length} Excused</span>
                             </div>
                         </div>
                     </CardHeader>
