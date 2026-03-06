@@ -82,8 +82,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
         return NextResponse.json({ data: updatedTeacher })
     } catch (error: any) {
-        console.error("[PATCH /api/admin/teachers/:id]", error)
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+        console.error("[PATCH /api/admin/teachers/:id] Error:", error)
+        return NextResponse.json({
+            error: "Failed to update teacher",
+            details: error.message
+        }, { status: 500 })
     }
 }
 

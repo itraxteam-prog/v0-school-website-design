@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { ProfileView as AdminProfileView } from "@/components/portal/profile-view"
 import { redirect } from "next/navigation"
-import { ADMIN_SIDEBAR } from "@/lib/navigation-config"
+
 
 export default async function AdminProfilePage() {
     const session = await getServerSession(authOptions)
@@ -35,8 +35,8 @@ export default async function AdminProfilePage() {
         joiningDate: admin.createdAt.toLocaleDateString(),
         phone: admin.profile?.phone || "Not provided",
         address: admin.profile?.address || "Not provided",
-        avatarUrl: admin.image
+        avatarUrl: admin.image || ""
     };
 
-    return <AdminProfileView data={adminData} sidebarItems={ADMIN_SIDEBAR} userRole="admin" />
+    return <AdminProfileView data={adminData} userRole="admin" />
 }

@@ -64,7 +64,7 @@ const nextConfig = {
                     { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
                     {
                         key: "Content-Security-Policy",
-                        value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://*.sentry.io; font-src 'self' data:; frame-ancestors 'none'; upgrade-insecure-requests;"
+                        value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://res.cloudinary.com; connect-src 'self' https://*.sentry.io https://res.cloudinary.com; font-src 'self' data:; frame-ancestors 'none'; upgrade-insecure-requests;"
                     },
                 ],
             },

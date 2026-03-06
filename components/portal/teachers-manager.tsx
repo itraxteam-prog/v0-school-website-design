@@ -195,7 +195,7 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
         try {
             let finalImageUrl = data.imageUrl
 
-            // Upload image if selected — fall back to base64 if Cloudinary fails
+            // Upload image if selected
             if (selectedFile && imagePreview) {
                 try {
                     const formData = new FormData()
@@ -204,16 +204,19 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
                         method: "POST",
                         body: formData,
                     })
+
                     if (uploadRes.ok) {
                         const uploadData = await uploadRes.json()
                         finalImageUrl = uploadData.url
                     } else {
-                        // Cloudinary not available or error — use base64 preview directly
+                        const errData = await uploadRes.json().catch(() => ({}))
+                        console.error("Upload failed server-side:", errData)
+                        // Fallback to preview if upload fails but we have it. 
+                        // Note: Base64 might be too long for some DB fields, but we try anyway.
                         finalImageUrl = imagePreview
                     }
                 } catch (err) {
-                    console.error("Upload failed, falling back to base64", err)
-                    // Network error — use base64 preview directly
+                    console.error("Upload network error, falling back to base64 preview", err)
                     finalImageUrl = imagePreview
                 }
             }
@@ -221,27 +224,38 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
             const url = editingTeacher ? `/api/admin/teachers/${editingTeacher.id}` : "/api/admin/teachers"
             const method = editingTeacher ? "PATCH" : "POST"
 
+            // Construct payload carefully
+            const payload = {
+                ...data,
+                imageUrl: finalImageUrl,
+                // Only send email for POST or if it's explicitly needed
+                ...(editingTeacher ? {} : { email: `${data.name.split(' ')[0].toLowerCase()}.${Math.floor(Math.random() * 1000)}@school.edu` })
+            }
+
             const res = await fetch(url, {
                 method,
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...data, imageUrl: finalImageUrl, email: `${data.name.split(' ')[0].toLowerCase()}@school.edu` })
+                body: JSON.stringify(payload)
             })
 
             if (!res.ok) {
                 const err = await res.json().catch(() => ({}))
-                throw new Error(err.error || "Operation failed")
+                throw new Error(err.error || err.details?.message || "Operation failed")
             }
 
             toast({
                 title: "Success",
-                description: `Teacher ${editingTeacher ? 'updated' : 'added'} successfully.`,
+                description: `Teacher record ${editingTeacher ? 'updated' : 'created'} successfully.`,
             })
 
             fetchTeachers()
             setIsModalOpen(false)
             setEditingTeacher(null)
+            setSelectedFile(null)
+            setImagePreview(null)
         } catch (err: any) {
+            console.error("Teacher Save Error:", err)
             toast({
                 title: "Error",
                 description: err.message,

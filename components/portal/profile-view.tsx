@@ -27,7 +27,7 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
 import { useSession } from "next-auth/react"
-import { TEACHER_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+import { ADMIN_SIDEBAR, TEACHER_SIDEBAR, STUDENT_SIDEBAR } from "@/lib/navigation-config"
 
 interface ProfileViewProps {
     data: any;
@@ -36,7 +36,11 @@ interface ProfileViewProps {
 }
 
 export function ProfileView({ data: initialData, sidebarItems: propSidebarItems, userRole = "teacher" }: ProfileViewProps) {
-    const finalSidebarItems = propSidebarItems || sidebarItems;
+    let defaultSidebar: any[] = TEACHER_SIDEBAR;
+    if (userRole === "admin") defaultSidebar = ADMIN_SIDEBAR;
+    if (userRole === "student") defaultSidebar = STUDENT_SIDEBAR;
+
+    const finalSidebarItems = propSidebarItems || defaultSidebar;
     const { data: session, update } = useSession()
     const [isEditing, setIsEditing] = useState(false)
     const [loading, setLoading] = useState(false)
