@@ -16,6 +16,7 @@ import {
     Calendar as CalendarIcon,
     ShieldCheck,
     MessageSquare,
+    AlertCircle,
 } from "lucide-react"
 import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
