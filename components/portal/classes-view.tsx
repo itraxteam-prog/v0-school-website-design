@@ -53,7 +53,15 @@ export function ClassesView({ initialClasses }: ClassesViewProps) {
                                         <CardTitle className="heading-3 text-lg">{cls.name}</CardTitle>
                                         <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2 text-muted-foreground hover:text-primary"><MoreVertical size={16} /></Button>
                                     </div>
-                                    <p className="text-sm font-medium text-primary mt-0.5">{cls.subject}</p>
+                                    <div className="flex flex-wrap gap-1 mt-1.5 min-h-[24px]">
+                                        {cls.subjects ? (
+                                            cls.subjects.split(',').map((s: string, idx: number) => (
+                                                <Badge key={idx} variant="secondary" className="bg-primary/10 text-primary border-none text-[10px] py-0 h-5">{s.trim()}</Badge>
+                                            ))
+                                        ) : (
+                                            <p className="text-sm font-medium text-primary">{cls.subject}</p>
+                                        )}
+                                    </div>
                                     <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><GraduationCap size={64} /></div>
                                 </CardHeader>
                                 <CardContent className="space-y-5">

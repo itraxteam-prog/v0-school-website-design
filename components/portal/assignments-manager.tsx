@@ -54,6 +54,7 @@ const assignmentSchema = z.object({
     dueDate: z.string().min(1, { message: "Please select a due date." }),
     maxPoints: z.string().min(1, { message: "Please enter max points." }),
     classId: z.string().min(1, { message: "Please select a class." }),
+    subject: z.string().min(1, { message: "Please select a subject." }),
 })
 
 type AssignmentFormValues = z.infer<typeof assignmentSchema>
@@ -91,8 +92,13 @@ export function AssignmentsManager({ initialClasses }: AssignmentsManagerProps) 
             dueDate: "",
             maxPoints: "100",
             classId: initialClasses[0]?.id || "",
+            subject: "",
         },
     })
+
+    const selectedClassId = form.watch("classId")
+    const selectedClass = initialClasses.find(c => c.id === selectedClassId)
+    const classSubjects = selectedClass?.subjects?.split(',').map((s: string) => s.trim()) || []
 
     const fetchAssignments = useCallback(async () => {
         setLoading(true)
@@ -116,10 +122,18 @@ export function AssignmentsManager({ initialClasses }: AssignmentsManagerProps) 
     const onSubmit = async (data: AssignmentFormValues) => {
         setIsSubmitting(true)
         try {
+            const body = {
+                title: data.title,
+                description: data.description,
+                dueDate: data.dueDate,
+                maxMarks: parseFloat(data.maxPoints),
+                classId: data.classId,
+                subject: data.subject
+            }
             const res = await fetch("/api/teacher/assignments", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
+                body: JSON.stringify(body),
             })
 
             if (!res.ok) throw new Error("Failed to create assignment")
@@ -195,30 +209,63 @@ export function AssignmentsManager({ initialClasses }: AssignmentsManagerProps) 
                                                 </FormItem>
                                             )}
                                         />
-                                        <FormField
-                                            control={form.control}
-                                            name="classId"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Class</FormLabel>
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                        <FormControl>
-                                                            <SelectTrigger className="glass-card">
-                                                                <SelectValue placeholder="Select class" />
-                                                            </SelectTrigger>
-                                                        </FormControl>
-                                                        <SelectContent>
-                                                            {initialClasses.map((c) => (
-                                                                <SelectItem key={c.id} value={c.id}>
-                                                                    {c.name}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <FormField
+                                                control={form.control}
+                                                name="classId"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Class</FormLabel>
+                                                        <Select onValueChange={(val) => {
+                                                            field.onChange(val);
+                                                            form.setValue("subject", ""); // Reset subject when class changes
+                                                        }} defaultValue={field.value}>
+                                                            <FormControl>
+                                                                <SelectTrigger className="glass-card">
+                                                                    <SelectValue placeholder="Select class" />
+                                                                </SelectTrigger>
+                                                            </FormControl>
+                                                            <SelectContent>
+                                                                {initialClasses.map((c) => (
+                                                                    <SelectItem key={c.id} value={c.id}>
+                                                                        {c.name}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="subject"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Subject</FormLabel>
+                                                        <Select onValueChange={field.onChange} value={field.value}>
+                                                            <FormControl>
+                                                                <SelectTrigger className="glass-card">
+                                                                    <SelectValue placeholder="Select subject" />
+                                                                </SelectTrigger>
+                                                            </FormControl>
+                                                            <SelectContent>
+                                                                {classSubjects.length > 0 ? (
+                                                                    classSubjects.map((s: string, idx: number) => (
+                                                                        <SelectItem key={idx} value={s}>
+                                                                            {s}
+                                                                        </SelectItem>
+                                                                    ))
+                                                                ) : (
+                                                                    <SelectItem value="General" disabled>No subjects found</SelectItem>
+                                                                )}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <FormField
                                                 control={form.control}
@@ -311,10 +358,17 @@ export function AssignmentsManager({ initialClasses }: AssignmentsManagerProps) 
                                 filteredAssignments.map((a) => (
                                     <Card key={a.id} className="glass-panel border-border/50 hover:shadow-burgundy-glow transition-all duration-300">
                                         <CardHeader className="pb-3">
-                                            <div className="flex justify-between items-start">
-                                                <Badge className="bg-primary/10 text-primary border-none">
-                                                    {a.class?.name}
-                                                </Badge>
+                                            <div className="flex flex-wrap gap-2 justify-between items-start">
+                                                <div className="flex gap-2">
+                                                    <Badge className="bg-primary/10 text-primary border-none">
+                                                        {a.class?.name}
+                                                    </Badge>
+                                                    {a.subject && (
+                                                        <Badge variant="outline" className="text-[10px] h-5 py-0">
+                                                            {a.subject}
+                                                        </Badge>
+                                                    )}
+                                                </div>
                                                 <div className="flex gap-1">
                                                     <Button variant="ghost" size="icon" className="h-8 w-8"><Edit size={14} /></Button>
                                                     <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive"><Trash2 size={14} /></Button>

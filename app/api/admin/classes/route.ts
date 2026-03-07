@@ -13,6 +13,7 @@ const createClassSchema = z.object({
     teacherId: z.string().min(1),
     roomNo: z.string().optional().default(""),
     subject: z.string().optional().default(""),
+    subjects: z.string().optional().default(""),
 }).strict()
 
 export async function GET() {
@@ -31,6 +32,7 @@ export async function GET() {
             id: c.id,
             name: c.name,
             subject: c.subject,
+            subjects: c.subjects || "",
             teacher: c.teacher?.name || c.teacher?.email || "Unassigned",
             teacherId: c.teacherId,
             room: c.subject || "",
@@ -59,7 +61,7 @@ export async function POST(req: NextRequest) {
             }, { status: 400 })
         }
 
-        const { name, teacherId, subject } = parsed.data
+        const { name, teacherId, subject, subjects } = parsed.data
 
         // Verify the teacher exists
         // Try looking up by ID, then by employee ID (rollNumber), then by name
@@ -87,7 +89,8 @@ export async function POST(req: NextRequest) {
             data: {
                 name,
                 teacherId: teacher.id,
-                subject: subject || ""
+                subject: subject || "",
+                subjects: subjects || ""
             },
             include: {
                 teacher: { select: { name: true, email: true } },
@@ -111,6 +114,7 @@ export async function POST(req: NextRequest) {
                 id: newClass.id,
                 name: newClass.name,
                 subject: newClass.subject,
+                subjects: newClass.subjects,
                 teacher: newClass.teacher?.name || newClass.teacher?.email || "Unassigned",
                 teacherId: newClass.teacherId,
                 studentCount: newClass._count.students,

@@ -9,7 +9,7 @@ import { logger } from "@/lib/logger";
 
 const getCachedStudentStats = unstable_cache(
     async (studentId: string) => {
-        const [grades, attendance, announcements, assignments] = await Promise.all([
+        const [grades, attendance, announcements, assignments, studentWithClass] = await Promise.all([
             prisma.grade.findMany({
                 where: { studentId },
                 orderBy: { term: "desc" }
@@ -36,8 +36,21 @@ const getCachedStudentStats = unstable_cache(
                 },
                 take: 3,
                 orderBy: { dueDate: "asc" }
+            }),
+            prisma.user.findUnique({
+                where: { id: studentId },
+                select: {
+                    classes: {
+                        include: {
+                            teacher: { select: { name: true } }
+                        },
+                        take: 1
+                    }
+                }
             })
         ]);
+
+        const assignedClass = studentWithClass?.classes?.[0] || null;
 
         // Performance calculation
         const totalMarks = grades.reduce((acc, g) => acc + g.marks, 0);
@@ -81,7 +94,7 @@ const getCachedStudentStats = unstable_cache(
             stats: {
                 performance,
                 attendance: attendancePercent,
-                totalSubjects: [...new Set(grades.map(g => g.subjectId))].length,
+                totalSubjects: assignedClass ? (assignedClass.subjects || assignedClass.subject || "").split(',').filter(Boolean).length : 0,
                 assignments: assignments.length
             },
             recentGrades: grades.slice(0, 5).map(g => ({
@@ -99,7 +112,12 @@ const getCachedStudentStats = unstable_cache(
                 date: a.dueDate.toLocaleDateString()
             })),
             performanceTrend,
-            subjectComparison
+            subjectComparison,
+            classInfo: assignedClass ? {
+                name: assignedClass.name,
+                teacher: assignedClass.teacher?.name || "Unassigned",
+                subjects: assignedClass.subjects || assignedClass.subject || "General"
+            } : null
         };
     },
     ['student-stats'],

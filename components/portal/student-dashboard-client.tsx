@@ -219,6 +219,48 @@ export function StudentDashboardClient({ user }: StudentDashboardClientProps) {
                     {/* Right Column - Side Panel */}
                     <div className="flex flex-col gap-6 lg:col-span-1">
 
+                        {/* Class Info */}
+                        <AnimatedWrapper delay={0.4}>
+                            <Card className="glass-panel border-border/50 bg-gradient-to-br from-primary/5 to-transparent">
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="heading-3 flex items-center gap-2">
+                                        <ShieldCheck className="h-5 w-5 text-primary" />
+                                        My Class
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    {loading ? (
+                                        <div className="space-y-3">
+                                            <Skeleton className="h-4 w-3/4" />
+                                            <Skeleton className="h-4 w-1/2" />
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="flex flex-col gap-1">
+                                                <h4 className="font-bold text-foreground">{data?.classInfo?.name || "Not Assigned"}</h4>
+                                                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                                                    <User size={12} className="text-primary" />
+                                                    Teacher: {data?.classInfo?.teacher || "Unassigned"}
+                                                </p>
+                                            </div>
+                                            {data?.classInfo?.subjects && (
+                                                <div className="space-y-2">
+                                                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">My Subjects</p>
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {data.classInfo.subjects.split(',').map((s: string, i: number) => (
+                                                            <Badge key={i} variant="secondary" className="bg-primary/10 text-primary border-none text-[10px] py-0 h-5">
+                                                                {s.trim()}
+                                                            </Badge>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </AnimatedWrapper>
+
                         {/* Upcoming Events */}
                         <AnimatedWrapper delay={0.5} className="h-full">
                             <Card className="glass-panel h-full border-border/50">

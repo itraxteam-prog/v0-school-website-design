@@ -12,6 +12,7 @@ const updateClassSchema = z.object({
     name: z.string().min(2).optional(),
     teacherId: z.string().optional(),
     subject: z.string().optional(),
+    subjects: z.string().optional(),
 })
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
@@ -61,6 +62,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
                 ...(name && { name }),
                 ...(finalTeacherId && { teacherId: finalTeacherId }),
                 ...(subject !== undefined && { subject }),
+                ...(parsed.data.subjects !== undefined && { subjects: parsed.data.subjects }),
             },
             include: {
                 teacher: { select: { name: true, email: true } },
@@ -84,6 +86,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
                 id: updated.id,
                 name: updated.name,
                 subject: updated.subject,
+                subjects: updated.subjects,
                 teacher: updated.teacher?.name || updated.teacher?.email || "Unassigned",
                 teacherId: updated.teacherId,
                 studentCount: updated._count.students,

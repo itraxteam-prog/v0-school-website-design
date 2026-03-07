@@ -13,6 +13,7 @@ const createAssignmentSchema = z.object({
     dueDate: z.coerce.date(),
     maxMarks: z.coerce.number().min(0).default(100),
     classId: z.string().min(1, "Class ID is required"),
+    subject: z.string().optional(),
 });
 
 export async function POST(req: Request) {
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
             );
         }
 
-        const { title, description, dueDate, maxMarks, classId } = parsed.data;
+        const { title, description, dueDate, maxMarks, classId, subject } = parsed.data;
 
         if (user.role === Role.TEACHER) {
             const classRecord = await prisma.class.findUnique({
@@ -50,6 +51,7 @@ export async function POST(req: Request) {
                 dueDate,
                 maxMarks,
                 classId,
+                subject,
             },
         });
 

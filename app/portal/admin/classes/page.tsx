@@ -21,6 +21,7 @@ export default async function AdminClassesPage() {
       teacher: c.teacher?.name || c.teacher?.email || "Unassigned",
       teacherId: c.teacherId,
       room: c.subject || "",
+      subjects: c.subjects || "",
       studentCount: c._count.students,
     }))
 

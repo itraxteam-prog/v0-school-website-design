@@ -13,7 +13,7 @@ export default async function TeacherAssignmentsPage() {
 
     const classes = await prisma.class.findMany({
         where: { teacherId: session.user.id },
-        select: { id: true, name: true },
+        select: { id: true, name: true, subjects: true },
     })
 
     return <AssignmentsManager initialClasses={classes} />

@@ -59,6 +59,7 @@ const classSchema = z.object({
     name: z.string().min(2, { message: "Class name must be at least 2 characters." }),
     classTeacherId: z.string().min(1, { message: "Please select a class teacher." }),
     roomNo: z.string().min(1, { message: "Please enter room number." }),
+    subjects: z.string().optional().default(""),
 })
 
 type ClassFormValues = z.infer<typeof classSchema>
@@ -76,6 +77,7 @@ interface ClassRecord {
     name: string;
     teacher: string;
     room: string;
+    subjects?: string;
     studentCount: number;
 }
 
@@ -90,6 +92,7 @@ export function ClassesManager({ initialClasses, initialPeriods }: ClassesManage
         name: c.name || "",
         teacher: c.teacher || c.classTeacherId || "Unassigned",
         room: c.room || c.roomNo || "N/A",
+        subjects: c.subjects || "",
         studentCount: c.studentCount ?? 0
     })))
     const [periods, setPeriods] = useState<Period[]>(initialPeriods)
@@ -108,6 +111,7 @@ export function ClassesManager({ initialClasses, initialPeriods }: ClassesManage
             name: "",
             classTeacherId: "",
             roomNo: "",
+            subjects: "",
         },
     })
 
@@ -123,6 +127,7 @@ export function ClassesManager({ initialClasses, initialPeriods }: ClassesManage
                 name: c.name,
                 teacher: c.teacher || "Unassigned",
                 room: c.room || "",
+                subjects: c.subjects || "",
                 studentCount: c.studentCount ?? 0,
             }));
             setClasses(fetched);
@@ -139,12 +144,14 @@ export function ClassesManager({ initialClasses, initialPeriods }: ClassesManage
                 name: editingClass.name,
                 classTeacherId: editingClass.teacher,
                 roomNo: editingClass.room,
+                subjects: editingClass.subjects || "",
             })
         } else {
             form.reset({
                 name: "",
                 classTeacherId: "",
                 roomNo: "",
+                subjects: "",
             })
         }
     }, [editingClass, form])
@@ -158,14 +165,14 @@ export function ClassesManager({ initialClasses, initialPeriods }: ClassesManage
                     method: "PATCH",
                     credentials: "include",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name: data.name, teacherId: data.classTeacherId, subject: data.roomNo }),
+                    body: JSON.stringify({ name: data.name, teacherId: data.classTeacherId, subject: data.roomNo, subjects: data.subjects }),
                 });
             } else {
                 response = await fetch("/api/admin/classes", {
                     method: "POST",
                     credentials: "include",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name: data.name, teacherId: data.classTeacherId, subject: data.roomNo }),
+                    body: JSON.stringify({ name: data.name, teacherId: data.classTeacherId, subject: data.roomNo, subjects: data.subjects }),
                 });
             }
 
@@ -179,7 +186,7 @@ export function ClassesManager({ initialClasses, initialPeriods }: ClassesManage
 
             if (editingClass) {
                 setClasses(prev => prev.map(c =>
-                    c.id === editingClass.id ? { ...c, name: saved.name, teacher: saved.teacher, room: data.roomNo } : c
+                    c.id === editingClass.id ? { ...c, name: saved.name, teacher: saved.teacher, room: data.roomNo, subjects: data.subjects } : c
                 ));
             } else {
                 setClasses(prev => [{
@@ -187,6 +194,7 @@ export function ClassesManager({ initialClasses, initialPeriods }: ClassesManage
                     name: saved.name,
                     teacher: saved.teacher || "Unassigned",
                     room: data.roomNo,
+                    subjects: data.subjects,
                     studentCount: 0
                 }, ...prev]);
             }
@@ -306,10 +314,23 @@ export function ClassesManager({ initialClasses, initialPeriods }: ClassesManage
                                                 control={form.control}
                                                 name="roomNo"
                                                 render={({ field }) => (
-                                                    <FormItem className="col-span-2">
+                                                    <FormItem className="col-span-1">
                                                         <FormLabel>Room Number</FormLabel>
                                                         <FormControl>
                                                             <Input placeholder="Room 201" {...field} className="glass-card" />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="subjects"
+                                                render={({ field }) => (
+                                                    <FormItem className="col-span-1">
+                                                        <FormLabel>Subjects</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="Math, Science, English" {...field} className="glass-card" />
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>
@@ -432,6 +453,19 @@ export function ClassesManager({ initialClasses, initialPeriods }: ClassesManage
                                                         </div>
                                                     </div>
                                                 </div>
+
+                                                {c.subjects && (
+                                                    <div className="space-y-2">
+                                                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold flex items-center gap-1">
+                                                            Subjects
+                                                        </p>
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {c.subjects.split(',').map((s, idx) => (
+                                                                <Badge key={idx} variant="secondary" className="bg-muted/50 text-[10px] h-5 py-0">{s.trim()}</Badge>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
 
                                                 {classPeriods.length > 0 && (
                                                     <div className="space-y-2">

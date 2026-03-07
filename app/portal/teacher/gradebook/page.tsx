@@ -14,18 +14,25 @@ export default async function TeacherGradeEntryPage() {
   try {
     const dbClasses = await prisma.class.findMany({
       where: { teacherId: session.user.id },
-      select: { id: true, name: true, subject: true },
+      select: { id: true, name: true, subject: true, subjects: true },
       orderBy: { createdAt: "desc" }
     })
 
     if (dbClasses.length > 0) {
       classes = dbClasses.map(c => ({
         id: c.id,
-        name: `${c.name} (${c.subject || 'General'})`
+        name: `${c.name} (${c.subjects || c.subject || 'General'})`,
+        subjects: c.subjects || c.subject || 'General'
       }))
 
-      // Extract unique subjects from classes
-      const uniqueSubjects = Array.from(new Set(dbClasses.map(c => c.subject || "General")))
+      // Extract unique subjects from classes, handling multiple subjects per class
+      const subjectSet = new Set<string>();
+      dbClasses.forEach(c => {
+        const classSubs = (c.subjects || c.subject || "General").split(',');
+        classSubs.forEach(s => subjectSet.add(s.trim()));
+      });
+
+      const uniqueSubjects = Array.from(subjectSet);
       subjects = uniqueSubjects.map(s => ({
         id: s.toLowerCase().replace(/\s+/g, '-'),
         name: s

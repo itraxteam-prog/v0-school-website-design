@@ -17,14 +17,27 @@ export async function GET() {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 })
         }
 
-        const grades = await prisma.grade.findMany({
-            where: {
-                studentId: session.user.id,
-                NOT: { term: { endsWith: "-draft" } }
-            },
-            include: { class: { select: { name: true, subject: true } } },
-            orderBy: { class: { createdAt: "desc" } },
-        })
+        const [grades, studentWithClass] = await Promise.all([
+            prisma.grade.findMany({
+                where: {
+                    studentId: session.user.id,
+                    NOT: { term: { endsWith: "-draft" } }
+                },
+                include: { class: true },
+                orderBy: { createdAt: "desc" },
+            }),
+            prisma.user.findUnique({
+                where: { id: session.user.id },
+                select: {
+                    classes: {
+                        take: 1
+                    }
+                }
+            })
+        ])
+
+        const assignedClass = studentWithClass?.classes?.[0] || null
+        const classSubjects = (assignedClass?.subjects || assignedClass?.subject || "").split(',').map((s: string) => s.trim()).filter(Boolean)
 
         const formatted = grades.map((g) => {
             const score = g.marks
@@ -36,19 +49,29 @@ export async function GET() {
             else if (score >= 40) grade = "D"
             else grade = "F"
 
+            // Try to find the original subject name from the classSubjects list that matches the slug subjectId
+            const subjectName = classSubjects.find((s: string) => s.toLowerCase().replace(/\s+/g, '-') === g.subjectId) || g.subjectId
+
             return {
                 id: g.id,
-                subject: g.class?.subject || g.subjectId,
+                subject: subjectName,
                 className: g.class?.name,
                 term: g.term,
-                marks: `${g.marks}/100`,
+                marks: g.marks,
                 total: 100,
                 grade,
                 classId: g.classId,
+                date: g.createdAt.toISOString()
             }
         })
 
-        return NextResponse.json({ data: formatted })
+        const uniqueTerms = Array.from(new Set(formatted.map(g => g.term)))
+
+        return NextResponse.json({
+            data: formatted,
+            subjects: ["All Subjects", ...classSubjects],
+            terms: ["All Terms", ...uniqueTerms]
+        })
     } catch (error: any) {
         console.error("[GET /api/student/grades]", error)
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })

@@ -19,9 +19,6 @@ import { STUDENT_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 // Internal API base path
 const API_BASE = "/api";
 
-const terms = ["Fall 2025", "Spring 2026", "Fall 2026"]
-const subjects = ["All Subjects", "Mathematics", "Physics", "English", "Chemistry", "Computer Science", "Urdu", "Islamiat"]
-
 // Mock Data
 
 
@@ -30,6 +27,8 @@ export default function GradesPage() {
   const [activeSubject, setActiveSubject] = useState("All Subjects")
   const [loading, setLoading] = useState(true)
   const [grades, setGrades] = useState<any[]>([])
+  const [availableSubjects, setAvailableSubjects] = useState<string[]>(["All Subjects"])
+  const [availableTerms, setAvailableTerms] = useState<string[]>(["All Terms"])
   const [schoolSettings, setSchoolSettings] = useState<any>(null)
   const { data: session } = useSession()
 
@@ -54,6 +53,8 @@ export default function GradesPage() {
         }
         const result = await res.json();
         setGrades(result.data || []);
+        if (result.subjects) setAvailableSubjects(result.subjects);
+        if (result.terms) setAvailableTerms(result.terms);
       } catch (error: any) {
         console.error("Failed to fetch grades", error);
       } finally {
@@ -98,8 +99,7 @@ export default function GradesPage() {
                   <SelectValue placeholder="Select Term" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="All Terms">All Terms</SelectItem>
-                  {terms.map(term => <SelectItem key={term} value={term}>{term}</SelectItem>)}
+                  {availableTerms.map(term => <SelectItem key={term} value={term}>{term}</SelectItem>)}
                 </SelectContent>
               </Select>
 
@@ -108,7 +108,7 @@ export default function GradesPage() {
                   <SelectValue placeholder="Filter Subject" />
                 </SelectTrigger>
                 <SelectContent>
-                  {subjects.map(sub => <SelectItem key={sub} value={sub}>{sub}</SelectItem>)}
+                  {availableSubjects.map(sub => <SelectItem key={sub} value={sub}>{sub}</SelectItem>)}
                 </SelectContent>
               </Select>
 
@@ -133,7 +133,7 @@ export default function GradesPage() {
               {loading ? (
                 <Skeleton className="h-[300px] w-full rounded-xl" />
               ) : (
-                <PerformanceTrendChart data={[]} />
+                <PerformanceTrendChart data={grades.map(g => ({ month: new Date(g.date).toLocaleString('default', { month: 'short' }), score: g.marks })).slice(-6)} />
 
               )}
             </CardContent>
@@ -175,8 +175,8 @@ export default function GradesPage() {
                       filteredGrades.map((grade, index) => (
                         <TableRow key={index} className="group border-border/50 transition-colors hover:bg-primary/5">
                           <TableCell className="font-medium">{grade.subject}</TableCell>
-                          <TableCell className="text-muted-foreground">{grade.term || grade.type}</TableCell>
-                          <TableCell className="text-muted-foreground">{grade.examDate ? new Date(grade.examDate).toLocaleDateString() : '-'}</TableCell>
+                          <TableCell className="text-muted-foreground">{grade.term}</TableCell>
+                          <TableCell className="text-muted-foreground">{grade.date ? new Date(grade.date).toLocaleDateString() : '-'}</TableCell>
                           <TableCell className="text-right font-medium">{grade.marks}</TableCell>
                           <TableCell className="text-right text-muted-foreground">{grade.total}</TableCell>
                           <TableCell className="text-right">

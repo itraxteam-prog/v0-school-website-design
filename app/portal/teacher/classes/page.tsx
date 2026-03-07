@@ -31,6 +31,7 @@ export default async function TeacherClassesPage() {
           id: c.id,
           name: c.name,
           subject: c.subject || "General",
+          subjects: c.subjects || "",
           studentCount: c._count.students,
           room: c.subject || "",
           performance: 0, // Performance calculation is complex
@@ -44,6 +45,7 @@ export default async function TeacherClassesPage() {
           id: "c1",
           name: "Mathematics 10-A",
           subject: "Advanced Mathematics",
+          subjects: "Math, Algebra, Geometry",
           studentCount: 32,
           room: "Room 102",
           performance: 88,
@@ -53,6 +55,7 @@ export default async function TeacherClassesPage() {
           id: "c2",
           name: "Algebra 10-B",
           subject: "Linear Algebra",
+          subjects: "Algebra, Equations, Functions",
           studentCount: 28,
           room: "Room 104",
           performance: 82,

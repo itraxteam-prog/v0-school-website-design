@@ -132,6 +132,7 @@ model Class {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   subject     String?
+  subjects    String?
   assignments Assignment[]
   attendances Attendance[]
   teacher     User         @relation("TeacherClasses", fields: [teacherId], references: [id])
@@ -147,6 +148,7 @@ model Assignment {
   dueDate     DateTime
   maxMarks    Float        @default(100)
   classId     String
+  subject     String?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   class       Class        @relation(fields: [classId], references: [id], onDelete: Cascade)

@@ -54,7 +54,20 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
     const [grades, setGrades] = useState<Record<string, number>>({})
     const [searchQuery, setSearchQuery] = useState("")
     const [schoolSettings, setSchoolSettings] = useState<any>(null)
+    const [classSubjectMap, setClassSubjectMap] = useState<Record<string, { id: string, name: string }[]>>({})
     const { data: session } = useSession()
+
+    useEffect(() => {
+        const map: Record<string, { id: string, name: string }[]> = {}
+        initialClasses.forEach(c => {
+            const subs = (c.subjects || "General").split(',').map((s: string) => s.trim())
+            map[c.id] = subs.map((s: string) => ({
+                id: s.toLowerCase().replace(/\s+/g, '-'),
+                name: s
+            }))
+        })
+        setClassSubjectMap(map)
+    }, [initialClasses])
 
     useEffect(() => {
         fetch('/api/settings')
@@ -205,7 +218,11 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 lg:items-end">
                             <div className="flex flex-col gap-2">
                                 <Label className="text-sm font-medium">Class</Label>
-                                <Select value={selectedClassId} onValueChange={setSelectedClassId}>
+                                <Select value={selectedClassId} onValueChange={(val) => {
+                                    setSelectedClassId(val)
+                                    const classSubs = classSubjectMap[val] || []
+                                    setSelectedSubjectId(classSubs[0]?.id || "")
+                                }}>
                                     <SelectTrigger className="h-11"><SelectValue placeholder="Select Class" /></SelectTrigger>
                                     <SelectContent>
                                         {initialClasses.map((cls) => (
@@ -220,7 +237,7 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
                                 <Select value={selectedSubjectId} onValueChange={setSelectedSubjectId}>
                                     <SelectTrigger className="h-11"><SelectValue placeholder="Select Subject" /></SelectTrigger>
                                     <SelectContent>
-                                        {initialSubjects.map((sub) => (
+                                        {(classSubjectMap[selectedClassId] || []).map((sub) => (
                                             <SelectItem key={sub.id} value={sub.id}>{sub.name}</SelectItem>
                                         ))}
                                     </SelectContent>
