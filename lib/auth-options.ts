@@ -13,6 +13,8 @@ import { logAudit } from "@/lib/audit";
 
 const isProd = process.env.NODE_ENV === "production";
 
+import speakeasy from "speakeasy";
+
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma),
     // @ts-ignore - trustHost is required for some serverless environments
@@ -43,6 +45,7 @@ export const authOptions: NextAuthOptions = {
             credentials: {
                 email: { label: "Email", type: "email" },
                 password: { label: "Password", type: "password" },
+                code: { label: "Code", type: "text" },
             },
             async authorize(credentials, req) {
                 const ip = (req as any)?.headers?.["x-forwarded-for"]?.split(",")?.[0] || "127.0.0.1";
@@ -67,13 +70,19 @@ export const authOptions: NextAuthOptions = {
                     throw new Error("Missing email or password");
                 }
 
-                const validated = loginSchema.safeParse(credentials);
-                if (!validated.success) {
-                    throw new Error("Invalid input format");
-                }
-
                 const user = await prisma.user.findUnique({
-                    where: { email: validated.data.email },
+                    where: { email: credentials.email },
+                    select: {
+                        id: true,
+                        email: true,
+                        password: true,
+                        name: true,
+                        image: true,
+                        role: true,
+                        status: true,
+                        two_factor_enabled: true,
+                        two_factor_secret: true
+                    }
                 });
 
                 if (!user || !user.password) {
@@ -84,10 +93,42 @@ export const authOptions: NextAuthOptions = {
                     throw new Error("ACCOUNT_SUSPENDED");
                 }
 
-                const isCorrect = await verifyPassword(validated.data.password, user.password);
+                const isCorrect = await verifyPassword(credentials.password, user.password);
                 if (!isCorrect) {
-                    logger.warn({ email: validated.data.email, ip }, "LOGIN_FAILED_INVALID_CREDENTIALS");
+                    // Log security event for failed password
+                    await logAudit({
+                        action: "LOGIN_FAILED",
+                        entity: "USER",
+                        entityId: user.id,
+                        userId: user.id,
+                        metadata: {
+                            email: user.email,
+                            ip,
+                            reason: "INVALID_PASSWORD"
+                        }
+                    });
                     throw new Error("Invalid credentials");
+                }
+
+                // If 2FA is enabled, verify the code
+                if (user.two_factor_enabled) {
+                    if (!credentials.code) {
+                        throw new Error("2FA_REQUIRED");
+                    }
+
+                    if (!user.two_factor_secret) {
+                        throw new Error("2FA_MISCONFIGURED");
+                    }
+
+                    const verified = speakeasy.totp.verify({
+                        secret: user.two_factor_secret!,
+                        encoding: "base32",
+                        token: credentials.code,
+                    });
+
+                    if (!verified) {
+                        throw new Error("INVALID_2FA_CODE");
+                    }
                 }
 
                 logger.info({ email: user.email, role: user.role, ip }, "LOGIN_SUCCESS");

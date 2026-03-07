@@ -24,13 +24,22 @@ function getRedirectPathByRole(role: string): string {
   }
 }
 
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+import { ShieldCheck } from "lucide-react";
+
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { register, handleSubmit, formState: { errors } } = useForm<{ email: string; password: string }>();
+  const [showOTP, setShowOTP] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const { register, handleSubmit, getValues, formState: { errors } } = useForm<{ email: string; password: string }>();
 
   // Handle existing session
   useEffect(() => {
@@ -54,18 +63,31 @@ function LoginContent() {
       const res = await signIn("credentials", {
         redirect: false,
         email: data.email,
-        password: data.password
+        password: data.password,
+        code: otpCode
       });
 
       if (res?.ok) {
         toast.success("Success", { description: "Logged in successfully!" });
         router.push("/portal");
       } else {
-        toast.error("Error", {
-          description: res?.error === "CredentialsSignin"
-            ? "Invalid email or password"
-            : "Authentication failed. Please try again."
-        });
+        if (res?.error === "2FA_REQUIRED") {
+          setShowOTP(true);
+          toast.info("Two-Factor Authentication", {
+            description: "Please enter the 6-digit code from your authenticator app."
+          });
+        } else if (res?.error === "INVALID_2FA_CODE") {
+          toast.error("Invalid Code", {
+            description: "The 2FA code you entered is incorrect."
+          });
+          setOtpCode("");
+        } else {
+          toast.error("Error", {
+            description: res?.error === "CredentialsSignin" || res?.error === "Invalid credentials"
+              ? "Invalid email or password"
+              : res?.error || "Authentication failed. Please try again."
+          });
+        }
       }
     } catch (error) {
       toast.error("Error", { description: "Something went wrong. Please try again." });
@@ -86,7 +108,7 @@ function LoginContent() {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md relative z-10"
       >
-        <Card className="bg-white/80 backdrop-blur-sm border-slate-200 shadow-2xl">
+        <Card className="bg-white/80 backdrop-blur-sm border-slate-200 shadow-2xl overflow-hidden">
           <CardHeader className="space-y-1 text-center pb-2">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
@@ -102,70 +124,130 @@ function LoginContent() {
                 className="h-20 w-20 object-contain mx-auto drop-shadow-md"
               />
             </motion.div>
-            <CardTitle className="text-3xl font-bold tracking-tight text-slate-900 font-serif">Portal Login</CardTitle>
+            <CardTitle className="text-3xl font-bold tracking-tight text-slate-900 font-serif">
+              {showOTP ? "Verify Identity" : "Portal Login"}
+            </CardTitle>
             <CardDescription className="text-slate-500">
-              Enter your credentials to access your school dashboard
+              {showOTP
+                ? "Enter the 6-digit security code"
+                : "Enter your credentials to access your school dashboard"}
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <div className="relative group">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="email@example.com"
-                    {...register("email")}
-                    className="pl-10 h-11 bg-slate-50/50 border-slate-200 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                    required
+            {!showOTP ? (
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <div className="relative group">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="email@example.com"
+                      {...register("email")}
+                      className="pl-10 h-11 bg-slate-50/50 border-slate-200 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                      required
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Password</Label>
+                    <Link
+                      href="/portal/forgot-password"
+                      className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
+                  <div className="relative group">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      {...register("password")}
+                      className="pl-10 pr-10 h-11 bg-slate-50/50 border-slate-200 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                      required
+                      disabled={isLoading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition-colors"
+                    >
+                      {showPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+                  ) : (
+                    "Login"
+                  )}
+                </Button>
+              </form>
+            ) : (
+              <div className="space-y-6 flex flex-col items-center">
+                <div className="p-3 bg-blue-50 rounded-full">
+                  <ShieldCheck className="h-8 w-8 text-blue-600" />
+                </div>
+
+                <div className="space-y-4 w-full flex flex-col items-center">
+                  <InputOTP
+                    maxLength={6}
+                    value={otpCode}
+                    onChange={(value) => setOtpCode(value)}
                     disabled={isLoading}
-                  />
+                  >
+                    <InputOTPGroup className="gap-2">
+                      <InputOTPSlot index={0} className="h-12 w-12 text-lg border-2 rounded-lg" />
+                      <InputOTPSlot index={1} className="h-12 w-12 text-lg border-2 rounded-lg" />
+                      <InputOTPSlot index={2} className="h-12 w-12 text-lg border-2 rounded-lg" />
+                      <InputOTPSlot index={3} className="h-12 w-12 text-lg border-2 rounded-lg" />
+                      <InputOTPSlot index={4} className="h-12 w-12 text-lg border-2 rounded-lg" />
+                      <InputOTPSlot index={5} className="h-12 w-12 text-lg border-2 rounded-lg" />
+                    </InputOTPGroup>
+                  </InputOTP>
+
+                  <p className="text-xs text-slate-500 text-center">
+                    Open your authenticator app and enter the 6-digit code.
+                  </p>
+                </div>
+
+                <div className="w-full space-y-3 pt-2">
+                  <Button
+                    className="w-full h-11 font-bold shadow-md transition-all active:scale-[0.98]"
+                    onClick={() => onSubmit(getValues())}
+                    disabled={isLoading || otpCode.length !== 6}
+                  >
+                    {isLoading ? (
+                      <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+                    ) : (
+                      "Verify & Login"
+                    )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="w-full text-slate-500 hover:text-slate-800"
+                    onClick={() => {
+                      setShowOTP(false);
+                      setOtpCode("");
+                    }}
+                    disabled={isLoading}
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Credentials
+                  </Button>
                 </div>
               </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Link
-                    href="/portal/forgot-password"
-                    className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
-                <div className="relative group">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    {...register("password")}
-                    className="pl-10 pr-10 h-11 bg-slate-50/50 border-slate-200 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                    required
-                    disabled={isLoading}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition-colors"
-                  >
-                    {showPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-              <Button
-                type="submit"
-                className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <Loader2 className="h-5 w-5 animate-spin mx-auto" />
-                ) : (
-                  "Login"
-                )}
-              </Button>
-            </form>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col space-y-4 border-t border-slate-100 pt-6">
           </CardFooter>

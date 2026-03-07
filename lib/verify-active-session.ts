@@ -22,8 +22,8 @@ export async function isSessionValid(userId: string, sessionIat?: number): Promi
         // after the session was issued.
         if (sessionIat) {
             const updatedAtSeconds = Math.floor(user.updatedAt.getTime() / 1000);
-            // We allow a small grace period for clock drift (5 seconds)
-            if (updatedAtSeconds > sessionIat + 5) {
+            // We allow a grace period for clock drift and recent updates (300 seconds)
+            if (updatedAtSeconds > sessionIat + 300) {
                 return false;
             }
         }
