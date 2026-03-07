@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation"
 import { AppLayout } from "@/components/layout/app-layout";
 import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -34,6 +35,7 @@ interface User {
 }
 
 export function AdminDashboardClient() {
+    const router = useRouter()
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const { data: session } = useSession();
@@ -69,6 +71,7 @@ export function AdminDashboardClient() {
                 prev.map((u) => (u.id === userId ? { ...u, role } : u))
             );
             toast.success("User role updated successfully");
+            router.refresh()
         } catch (err) {
             toast.error("Failed to update user role");
         }

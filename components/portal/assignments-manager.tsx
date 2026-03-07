@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -73,6 +74,7 @@ interface AssignmentsManagerProps {
 }
 
 export function AssignmentsManager({ initialClasses }: AssignmentsManagerProps) {
+    const router = useRouter()
     const [assignments, setAssignments] = useState<Assignment[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -129,6 +131,7 @@ export function AssignmentsManager({ initialClasses }: AssignmentsManagerProps) 
 
             setIsModalOpen(false)
             form.reset()
+            router.refresh()
             fetchAssignments()
         } catch (err: any) {
             toast({

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import {
     LayoutDashboard,
     Users,
@@ -55,6 +56,7 @@ interface AttendanceManagerProps {
 }
 
 export function AttendanceManager({ initialClasses }: AttendanceManagerProps) {
+    const router = useRouter()
     const [selectedClassId, setSelectedClassId] = useState<string>(initialClasses[0]?.id || "")
     const [date, setDate] = useState<Date>(new Date())
     const [students, setStudents] = useState<any[]>([])
@@ -177,6 +179,8 @@ export function AttendanceManager({ initialClasses }: AttendanceManagerProps) {
             success: "Attendance saved successfully",
             error: (err) => err.message || "Failed to save attendance",
         });
+
+        savePromise.then(() => router.refresh());
     }
 
     const filteredStudents = students.filter((s) =>

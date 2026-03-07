@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import {
     LayoutDashboard,
     Users,
@@ -44,6 +45,7 @@ interface GradebookManagerProps {
 }
 
 export function GradebookManager({ initialClasses, initialSubjects }: GradebookManagerProps) {
+    const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [selectedClassId, setSelectedClassId] = useState<string>(initialClasses[0]?.id || "")
     const [selectedSubjectId, setSelectedSubjectId] = useState<string>(initialSubjects[0]?.id || "")
@@ -163,6 +165,8 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
             success: isDraft ? "Draft saved successfully!" : "Grades submitted successfully!",
             error: (err) => err.message || "Failed to save grades",
         });
+
+        savePromise.then(() => router.refresh());
     }
 
     const handleSaveDraft = () => saveGrades(true)

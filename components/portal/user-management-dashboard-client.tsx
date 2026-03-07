@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent } from "@/components/ui/card"
@@ -91,6 +92,7 @@ interface User {
 }
 
 export function UserManagementDashboardClient({ user: currentUser }: { user: any }) {
+    const router = useRouter()
     const [users, setUsers] = useState<User[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -156,6 +158,7 @@ export function UserManagementDashboardClient({ user: currentUser }: { user: any
             toast.success("User added successfully")
             setIsAddModalOpen(false)
             form.reset()
+            router.refresh()
             fetchUsers()
         } catch (err: any) {
             console.error("Submit Error:", err);
@@ -178,6 +181,7 @@ export function UserManagementDashboardClient({ user: currentUser }: { user: any
             toast.success("User deleted successfully")
             setIsDeleteModalOpen(false)
             setSelectedUser(null)
+            router.refresh()
             fetchUsers()
         } catch (err: any) {
             toast.error(err.message || "Failed to delete user")

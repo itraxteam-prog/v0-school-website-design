@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -109,6 +110,7 @@ interface StudentsManagerProps {
 }
 
 export function StudentsManager({ initialStudents }: StudentsManagerProps) {
+    const router = useRouter()
     const [students, setStudents] = useState<Student[]>(initialStudents.map(s => ({
         id: s.id,
         name: s.name || "",
@@ -329,6 +331,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
             })
 
             if (!editingStudent) setPage(1) // Go to first page to see the new student
+            router.refresh()
             fetchStudents() // Refresh list
             setIsModalOpen(false)
             setEditingStudent(null)
@@ -360,6 +363,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                 title: "Deleted",
                 description: "Student has been removed.",
             })
+            router.refresh()
         } catch (err: any) {
             toast({
                 title: "Error",

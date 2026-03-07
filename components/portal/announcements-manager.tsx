@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -76,6 +77,7 @@ interface AnnouncementsManagerProps {
 }
 
 export function AnnouncementsManager({ initialAnnouncements }: AnnouncementsManagerProps) {
+    const router = useRouter()
     const [announcements, setAnnouncements] = useState<Announcement[]>(initialAnnouncements)
     const [loading, setLoading] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
@@ -123,6 +125,7 @@ export function AnnouncementsManager({ initialAnnouncements }: AnnouncementsMana
             toast({ title: "Success", description: "Announcement created successfully." })
             setIsModalOpen(false)
             form.reset()
+            router.refresh()
             fetchData()
         } catch (err: any) {
             toast({ title: "Error", description: err.message, variant: "destructive" })
@@ -142,6 +145,7 @@ export function AnnouncementsManager({ initialAnnouncements }: AnnouncementsMana
             if (!response.ok) throw new Error("Failed to delete announcement")
 
             toast({ title: "Deleted", description: "Announcement removed." })
+            router.refresh()
             fetchData()
         } catch (err: any) {
             toast({ title: "Error", description: err.message, variant: "destructive" })

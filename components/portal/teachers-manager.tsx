@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -101,6 +102,7 @@ interface TeachersManagerProps {
 }
 
 export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
+    const router = useRouter()
     // Transform initial data if necessary
     const [teachers, setTeachers] = useState<Teacher[]>(initialTeachers.map(t => ({
         id: t.id,
@@ -298,6 +300,7 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
                 title: "Success",
                 description: `Teacher record ${editingTeacher ? 'updated' : 'created'} successfully.`,
             })
+            router.refresh()
 
             fetchTeachers()
             setIsModalOpen(false)
@@ -333,6 +336,7 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
                 title: "Deleted",
                 description: "Teacher has been removed.",
             })
+            router.refresh()
         } catch (err: any) {
             toast({
                 title: "Error",
