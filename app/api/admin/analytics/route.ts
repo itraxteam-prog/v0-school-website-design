@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = 'force-dynamic';
 export const runtime = "nodejs";
 import { requireRole } from "@/lib/auth-guard";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { withTimeout } from "@/lib/server-timeout";
 import { logger } from "@/lib/logger";
 
