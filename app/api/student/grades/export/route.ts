@@ -28,6 +28,18 @@ export async function GET() {
             orderBy: { class: { createdAt: "desc" } },
         });
 
+        const termMapping: Record<string, string> = {
+            "september-2025": "September 2025",
+            "october-2025": "October 2025",
+            "november-2025": "November 2025",
+            "mid-term": "Mid-Term Exam",
+            "december-2025": "December 2025",
+            "january-2026": "January 2026",
+            "february-2026": "February 2026",
+            "march-2026": "March 2026",
+            "final-term": "Final Exam"
+        };
+
         const rows = grades.map((g) => {
             const score = g.marks;
             let grade = "F";
@@ -44,7 +56,7 @@ export async function GET() {
             return {
                 subject: g.class?.subject ?? g.subjectId,
                 className: g.class?.name ?? null,
-                term: g.term,
+                term: termMapping[g.term] || g.term,
                 marks: `${g.marks}/100`,
                 grade,
             };

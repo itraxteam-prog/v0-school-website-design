@@ -49,7 +49,7 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
     const [loading, setLoading] = useState(false)
     const [selectedClassId, setSelectedClassId] = useState<string>(initialClasses[0]?.id || "")
     const [selectedSubjectId, setSelectedSubjectId] = useState<string>(initialSubjects[0]?.id || "")
-    const [selectedTerm, setSelectedTerm] = useState("term1")
+    const [selectedTerm, setSelectedTerm] = useState("september-2025")
     const [students, setStudents] = useState<Student[]>([])
     const [grades, setGrades] = useState<Record<string, number>>({})
     const [searchQuery, setSearchQuery] = useState("")
@@ -200,8 +200,8 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
             <div className="flex flex-col gap-6 pb-24 lg:pb-8">
                 <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                     <div>
-                        <h1 className="heading-2 text-burgundy-gradient">Grade Entry</h1>
-                        <p className="text-sm text-muted-foreground">Input and manage student marks for the current term.</p>
+                        <h1 className="heading-2 text-burgundy-gradient">Monthly Assessments</h1>
+                        <p className="text-sm text-muted-foreground">Input and manage student marks for the monthly assessment cycle.</p>
                     </div>
                     <div className="flex items-center gap-3">
                         <Button variant="outline" onClick={handleSaveDraft} className="hidden sm:flex">
@@ -245,12 +245,19 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
                             </div>
 
                             <div className="flex flex-col gap-2">
-                                <Label className="text-sm font-medium">Term</Label>
+                                <Label className="text-sm font-medium">Assessment Period</Label>
                                 <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-                                    <SelectTrigger className="h-11"><SelectValue placeholder="Select Term" /></SelectTrigger>
+                                    <SelectTrigger className="h-11"><SelectValue placeholder="Select Period" /></SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="term1">Term 1 (Mid-Year)</SelectItem>
-                                        <SelectItem value="term2">Final Examination</SelectItem>
+                                        <SelectItem value="september-2025">September 2025</SelectItem>
+                                        <SelectItem value="october-2025">October 2025</SelectItem>
+                                        <SelectItem value="november-2025">November 2025</SelectItem>
+                                        <SelectItem value="mid-term">Mid-Term Examination</SelectItem>
+                                        <SelectItem value="december-2025">December 2025</SelectItem>
+                                        <SelectItem value="january-2026">January 2026</SelectItem>
+                                        <SelectItem value="february-2026">February 2026</SelectItem>
+                                        <SelectItem value="march-2026">March 2026</SelectItem>
+                                        <SelectItem value="final-term">Final Examination</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>

@@ -127,7 +127,7 @@ export function TeacherClassReportPdf({
                     <View style={styles.table}>
                         <View style={styles.tableHeader}>
                             <Text style={[styles.colHeader, styles.colStudent]}>Student</Text>
-                            <Text style={[styles.colHeader, styles.colTerm]}>Term</Text>
+                            <Text style={[styles.colHeader, styles.colTerm]}>Assessment Period</Text>
                             <Text style={[styles.colHeader, styles.colMarks]}>Marks</Text>
                             <Text style={[styles.colHeader, styles.colGrade]}>Grade</Text>
                         </View>

@@ -81,6 +81,18 @@ export async function GET(req: NextRequest) {
                 });
             }
 
+            const termMapping: Record<string, string> = {
+                "september-2025": "September 2025",
+                "october-2025": "October 2025",
+                "november-2025": "November 2025",
+                "mid-term": "Mid-Term Exam",
+                "december-2025": "December 2025",
+                "january-2026": "January 2026",
+                "february-2026": "February 2026",
+                "march-2026": "March 2026",
+                "final-term": "Final Exam"
+            };
+
             gradeRows = grades.map((g) => {
                 const marks = g.marks;
                 let grade = "F";
@@ -94,7 +106,7 @@ export async function GET(req: NextRequest) {
                     studentName: g.student?.name ?? g.student?.email ?? "Unknown",
                     marks,
                     grade,
-                    term: g.term,
+                    term: termMapping[g.term] || g.term,
                 };
             });
         } else {

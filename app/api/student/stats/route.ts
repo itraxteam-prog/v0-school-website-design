@@ -64,20 +64,25 @@ const getCachedStudentStats = unstable_cache(
         const presentCount = attendance.filter(a => a.status === "PRESENT").length;
         const attendancePercent = attendance.length > 0 ? Math.round((presentCount / attendance.length) * 100) + "%" : "N/A";
 
-        // Performance Trend (Last 6 months)
-        const performanceTrend = Object.entries(
-            filteredGrades.reduce((acc: any, g) => {
-                const month = g.createdAt.toLocaleString('default', { month: 'short' });
-                if (!acc[month]) acc[month] = { total: 0, count: 0 };
-                acc[month].total += g.marks;
-                acc[month].count++;
+        // Performance Trend (Grouped by Assessment Period)
+        const trendMap: Record<string, { total: number; count: number }> = {};
+        filteredGrades.forEach((g) => {
+            const period = g.term.replace(/-draft$/, "");
+            if (!trendMap[period]) trendMap[period] = { total: 0, count: 0 };
+            trendMap[period].total += g.marks;
+            trendMap[period].count++;
+        });
 
-                return acc;
-            }, {})
-        ).map(([month, stats]: [string, any]) => ({
-            month,
-            score: Math.round(stats.total / stats.count)
-        })).slice(-6);
+        const performanceTrend = Object.entries(trendMap)
+            .map(([period, stats]) => {
+                const name = period.split('-')[0];
+                const readable = name.charAt(0).toUpperCase() + name.slice(1, 3);
+                return {
+                    month: readable,
+                    score: Math.round(stats.total / stats.count)
+                };
+            })
+            .slice(-6);
 
         // Subject Comparison
         const classSubs = (assignedClass?.subjects as string || "").split(',').map((s: string) => s.trim()) || [];

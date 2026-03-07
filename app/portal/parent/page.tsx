@@ -94,9 +94,21 @@ export default function ParentDashboard() {
                     ? Math.round((presentCount / attendance.length) * 100) + "%"
                     : "0%"
 
+                const termMapping: Record<string, string> = {
+                    "september-2025": "Sept",
+                    "october-2025": "Oct",
+                    "november-2025": "Nov",
+                    "mid-term": "Mid-Term",
+                    "december-2025": "Dec",
+                    "january-2026": "Jan",
+                    "february-2026": "Feb",
+                    "march-2026": "Mar",
+                    "final-term": "Finals"
+                };
+
                 // Get latest grade
                 const latestGrade = grades.length > 0
-                    ? grades[0].marks + " (" + grades[0].term + ")"
+                    ? grades[0].marks + " (" + (termMapping[grades[0].term] || grades[0].term) + ")"
                     : "No data"
 
                 // Get next class (simplified: first class of the day or first in list)
@@ -196,7 +208,7 @@ export default function ParentDashboard() {
                                     {statsLoading ? <Skeleton className="h-9 w-16" /> : (
                                         <>
                                             <h3 className="text-3xl font-bold tracking-tight">{stats?.attendance}</h3>
-                                            <p className="text-xs font-medium mt-1 text-muted-foreground">Current semester</p>
+                                            <p className="text-xs font-medium mt-1 text-muted-foreground">Academic Year</p>
                                         </>
                                     )}
                                 </div>
@@ -293,7 +305,7 @@ export default function ParentDashboard() {
                                 </div>
                                 <div className="flex flex-col gap-1">
                                     <span className="text-xs text-muted-foreground uppercase font-semibold tracking-wide">
-                                        Attendance Rate
+                                        Yearly Attendance
                                     </span>
                                     <Badge variant="outline" className="w-fit text-sm px-3 py-1 border-green-400 text-green-700 dark:text-green-400">
                                         {stats?.attendance}

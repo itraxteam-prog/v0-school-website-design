@@ -107,7 +107,7 @@ export function StudentGradesPdf({ studentName, studentEmail, schoolName, userEm
                     <View style={styles.tableHeader}>
                         <Text style={[styles.colHeader, styles.colSubject]}>Subject</Text>
                         <Text style={[styles.colHeader, styles.colClass]}>Class</Text>
-                        <Text style={[styles.colHeader, styles.colTerm]}>Term</Text>
+                        <Text style={[styles.colHeader, styles.colTerm]}>Assessment Period</Text>
                         <Text style={[styles.colHeader, styles.colMarks]}>Marks</Text>
                         <Text style={[styles.colHeader, styles.colGrade]}>Grade</Text>
                     </View>

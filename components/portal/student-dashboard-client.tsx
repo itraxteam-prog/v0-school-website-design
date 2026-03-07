@@ -322,7 +322,7 @@ export function StudentDashboardClient({ user }: StudentDashboardClientProps) {
                                         <div className="space-y-3">
                                             <h4 className="text-sm font-semibold">Mid-Term Results Out!</h4>
                                             <p className="text-xs text-muted-foreground leading-relaxed">
-                                                The results for the Spring 2026 mid-term examinations have been published. Please check your gradebook for details.
+                                                The results for the latest monthly examinations have been published. Please check your gradebook for details.
                                             </p>
                                             <Badge
                                                 className="w-fit bg-primary text-white hover:bg-primary/90 cursor-pointer"

@@ -7,7 +7,7 @@ import { withTimeout } from "@/lib/server-timeout";
 import { logger } from "@/lib/logger";
 
 const getAnalyticsData = async (filters: { classId?: string, year?: string, term?: string }) => {
-    const { classId, year } = filters;
+    const { classId, year, term } = filters;
     const yearNum = year ? parseInt(year) : new Date().getFullYear();
 
     // Base where clauses
@@ -17,7 +17,7 @@ const getAnalyticsData = async (filters: { classId?: string, year?: string, term
             lte: new Date(`${yearNum}-12-31`)
         }
     };
-    const gradeWhere: any = {};
+    const gradeWhere: any = term ? { term } : {};
     const enrollmentWhere: any = { role: "STUDENT" };
 
     if (classId && classId !== "all") {

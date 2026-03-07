@@ -45,7 +45,7 @@ export default function ParentGradesPage() {
     const [children, setChildren] = useState<Child[]>([])
     const [selectedChildId, setSelectedChildId] = useState<string>("")
     const [grades, setGrades] = useState<Grade[]>([])
-    const [activeTerm, setActiveTerm] = useState("All Terms")
+    const [activeTerm, setActiveTerm] = useState("All Periods")
     const [loading, setLoading] = useState(true)
     const [gradesLoading, setGradesLoading] = useState(false)
 
@@ -89,10 +89,22 @@ export default function ParentGradesPage() {
         fetchGrades()
     }, [selectedChildId])
 
-    const terms = ["All Terms", ...Array.from(new Set(grades.map(g => g.term)))]
+    const termMapping: Record<string, string> = {
+        "september-2025": "September 2025",
+        "october-2025": "October 2025",
+        "november-2025": "November 2025",
+        "mid-term": "Mid-Term Exam",
+        "december-2025": "December 2025",
+        "january-2026": "January 2026",
+        "february-2026": "February 2026",
+        "march-2026": "March 2026",
+        "final-term": "Final Exam"
+    };
+
+    const terms = ["All Periods", ...Array.from(new Set(grades.map(g => termMapping[g.term] || g.term)))]
 
     const filtered = grades.filter(
-        (g) => (activeTerm === "All Terms" || g.term === activeTerm)
+        (g) => (activeTerm === "All Periods" || (termMapping[g.term] || g.term) === activeTerm)
     )
 
     const selectedChildName = children.find(c => c.id === selectedChildId)?.name || "Child"
@@ -167,7 +179,7 @@ export default function ParentGradesPage() {
                                         <TableHeader>
                                             <TableRow className="border-border/50 bg-muted/20 hover:bg-muted/20">
                                                 <TableHead className="w-[180px]">Class / Subject</TableHead>
-                                                <TableHead>Term</TableHead>
+                                                <TableHead>Assessment Period</TableHead>
                                                 <TableHead>Date</TableHead>
                                                 <TableHead className="text-right">Marks</TableHead>
                                                 <TableHead className="text-right">Grade</TableHead>
@@ -180,7 +192,7 @@ export default function ParentGradesPage() {
                                                         <TableCell className="font-medium">
                                                             {grade.class.name}
                                                         </TableCell>
-                                                        <TableCell className="text-muted-foreground">{grade.term}</TableCell>
+                                                        <TableCell className="text-muted-foreground">{termMapping[grade.term] || grade.term}</TableCell>
                                                         <TableCell className="text-muted-foreground">
                                                             {new Date(grade.createdAt).toLocaleDateString()}
                                                         </TableCell>

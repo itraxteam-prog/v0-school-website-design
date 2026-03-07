@@ -95,8 +95,8 @@ export default function GradesPage() {
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <Select value={activeTerm} onValueChange={setActiveTerm}>
-                <SelectTrigger className="w-full sm:w-[150px] bg-background">
-                  <SelectValue placeholder="Select Term" />
+                <SelectTrigger className="w-full sm:w-[170px] bg-background text-xs font-semibold">
+                  <SelectValue placeholder="Assessment Period" />
                 </SelectTrigger>
                 <SelectContent>
                   {availableTerms.map(term => <SelectItem key={term} value={term}>{term}</SelectItem>)}
@@ -104,8 +104,8 @@ export default function GradesPage() {
               </Select>
 
               <Select value={activeSubject} onValueChange={setActiveSubject}>
-                <SelectTrigger className="w-full sm:w-[180px] bg-background">
-                  <SelectValue placeholder="Filter Subject" />
+                <SelectTrigger className="w-full sm:w-[180px] bg-background text-xs font-semibold">
+                  <SelectValue placeholder="All Subjects" />
                 </SelectTrigger>
                 <SelectContent>
                   {availableSubjects.map(sub => <SelectItem key={sub} value={sub}>{sub}</SelectItem>)}
@@ -126,14 +126,14 @@ export default function GradesPage() {
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="heading-3 flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-primary" />
-                Performance Trend - {activeTerm}
+                Performance Trend - {activeTerm === "All Periods" ? "Last 6 assessments" : activeTerm}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {loading ? (
                 <Skeleton className="h-[300px] w-full rounded-xl" />
               ) : (
-                <PerformanceTrendChart data={grades.map(g => ({ month: new Date(g.date).toLocaleString('default', { month: 'short' }), score: g.marks })).slice(-6)} />
+                <PerformanceTrendChart data={grades.map(g => ({ month: g.termDisplay ? g.termDisplay.split(' ')[0] : new Date(g.date).toLocaleString('default', { month: 'short' }), score: g.marks })).slice(-6)} />
 
               )}
             </CardContent>
@@ -152,7 +152,7 @@ export default function GradesPage() {
                   <TableHeader>
                     <TableRow className="border-border/50 bg-muted/20 hover:bg-muted/20">
                       <TableHead className="w-[180px]">Subject</TableHead>
-                      <TableHead>Exam/Term</TableHead>
+                      <TableHead>Assessment Period</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead className="text-right">Marks</TableHead>
                       <TableHead className="text-right">Total</TableHead>
@@ -175,7 +175,7 @@ export default function GradesPage() {
                       filteredGrades.map((grade, index) => (
                         <TableRow key={index} className="group border-border/50 transition-colors hover:bg-primary/5">
                           <TableCell className="font-medium">{grade.subject}</TableCell>
-                          <TableCell className="text-muted-foreground">{grade.term}</TableCell>
+                          <TableCell className="text-muted-foreground">{grade.termDisplay || grade.term}</TableCell>
                           <TableCell className="text-muted-foreground">{grade.date ? new Date(grade.date).toLocaleDateString() : '-'}</TableCell>
                           <TableCell className="text-right font-medium">{grade.marks}</TableCell>
                           <TableCell className="text-right text-muted-foreground">{grade.total}</TableCell>

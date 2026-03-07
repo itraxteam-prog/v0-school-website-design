@@ -53,7 +53,7 @@ export function AnalyticsDashboardClient({ user }: { user: any }) {
         subjectPerformance: []
     })
     const [filters, setFilters] = useState({
-        term: "spring26",
+        term: "september-2025",
         classId: "all",
         year: "2025"
     })
@@ -106,14 +106,21 @@ export function AnalyticsDashboardClient({ user }: { user: any }) {
                     </div>
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                         <div className="flex flex-col gap-1.5">
-                            <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Term</Label>
+                            <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Assessment Period</Label>
                             <Select value={filters.term} onValueChange={(v) => setFilters(f => ({ ...f, term: v }))}>
                                 <SelectTrigger className="h-10 w-full sm:w-36 glass-card">
-                                    <SelectValue placeholder="Term" />
+                                    <SelectValue placeholder="Period" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="fall25">Fall 2025</SelectItem>
-                                    <SelectItem value="spring26">Spring 2026</SelectItem>
+                                    <SelectItem value="september-2025">September 2025</SelectItem>
+                                    <SelectItem value="october-2025">October 2025</SelectItem>
+                                    <SelectItem value="november-2025">November 2025</SelectItem>
+                                    <SelectItem value="mid-term">Mid-Term Exam</SelectItem>
+                                    <SelectItem value="december-2025">December 2025</SelectItem>
+                                    <SelectItem value="january-2026">January 2026</SelectItem>
+                                    <SelectItem value="february-2026">February 2026</SelectItem>
+                                    <SelectItem value="march-2026">March 2026</SelectItem>
+                                    <SelectItem value="final-term">Final Examination</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
