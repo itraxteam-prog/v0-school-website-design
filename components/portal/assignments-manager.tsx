@@ -66,8 +66,8 @@ interface Assignment {
     dueDate: string;
     maxMarks: number;
     classId: string;
+    subject?: string;
     class?: { name: string };
-
 }
 
 interface AssignmentsManagerProps {
