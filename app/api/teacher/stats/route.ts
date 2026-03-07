@@ -37,9 +37,13 @@ const getCachedTeacherStats = unstable_cache(
 
         const attendancePercent = totalStudents > 0 ? Math.round((attendanceToday / totalStudents) * 100) : 0;
 
-        // 3. Pending Grades (Simplified: Assignments with submissions)
-        const totalAssignments = await prisma.assignment.count({
-            where: { classId: { in: classes.map(c => c.id) } }
+        // 3. Pending Grades: Submissions that are SUBMITTED or LATE but don't have a grade
+        const pendingGrades = await prisma.submission.count({
+            where: {
+                assignment: { classId: { in: classes.map(c => c.id) } },
+                status: { in: ["SUBMITTED", "LATE"] },
+                grade: null
+            }
         });
 
         return {
@@ -47,7 +51,7 @@ const getCachedTeacherStats = unstable_cache(
                 totalClasses,
                 totalStudents,
                 attendanceToday: `${attendancePercent}%`,
-                pendingGrades: totalAssignments * 2
+                pendingGrades
             }
         };
     },
