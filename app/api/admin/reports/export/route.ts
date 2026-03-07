@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 import { prisma } from "@/lib/prisma";
 import { createPdf } from "@/lib/pdf/createPdf";
 import { AdminAnalyticsPdf } from "@/lib/pdf/templates/AdminAnalyticsPdf";
@@ -150,9 +151,16 @@ export async function GET() {
             );
         }
 
+        if (error.message === "Forbidden" || error.message === "Unauthorized") {
+            return NextResponse.json(
+                { error: error.message },
+                { status: error.message === "Forbidden" ? 403 : 401 }
+            );
+        }
+
         return NextResponse.json(
-            { error: error.message === "Forbidden" ? "Forbidden" : "Unauthorized" },
-            { status: error.message === "Forbidden" ? 403 : 401 }
+            { error: "Internal Server Error" },
+            { status: 500 }
         );
     }
 }

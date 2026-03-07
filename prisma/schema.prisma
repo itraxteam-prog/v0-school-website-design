@@ -43,84 +43,73 @@ model VerificationToken {
 }
 
 model User {
-  id                  String               @id @default(uuid())
-  name                String?
-  email               String               @unique
-  password            String?
-  role                Role                 @default(STUDENT)
-  status              UserStatus           @default(ACTIVE)
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-  emailVerified       DateTime?
-  image               String?
-  accounts            Account[]
-  auditLogs           AuditLog[]
-  taughtClasses       Class[]              @relation("TeacherClasses")
-  passwordResetTokens PasswordResetToken[]
-  sessions            Session[]
-  classes             Class[]              @relation("UserClasses")
-  timetableEntries    Timetable[]          @relation("TeacherTimetable")
-  announcements       Announcement[]       @relation("AnnouncementAuthor")
-  profile             Profile?
-  grades              Grade[]
-  submissions         Submission[]
-  parent              Parent?
-
-  // Security
-  two_factor_enabled      Boolean   @default(false)
+  id                      String               @id @default(uuid())
+  name                    String?
+  email                   String               @unique
+  password                String?
+  role                    Role                 @default(STUDENT)
+  status                  UserStatus           @default(ACTIVE)
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
+  emailVerified           DateTime?
+  image                   String?
+  two_factor_backup_codes String?
+  two_factor_enabled      Boolean              @default(false)
   two_factor_secret       String?
-  two_factor_backup_codes String?   @db.Text // JSON string of recovery codes
-
-  // Parent relations
-  linkedParents       ParentStudent[] @relation("StudentParents")
+  accounts                Account[]
+  announcements           Announcement[]       @relation("AnnouncementAuthor")
+  auditLogs               AuditLog[]
+  taughtClasses           Class[]              @relation("TeacherClasses")
+  grades                  Grade[]
+  parent                  Parent?
+  linkedParents           ParentStudent[]      @relation("StudentParents")
+  passwordResetTokens     PasswordResetToken[]
+  profile                 Profile?
+  sessions                Session[]
+  submissions             Submission[]
+  timetableEntries        Timetable[]          @relation("TeacherTimetable")
+  classes                 Class[]              @relation("UserClasses")
 }
 
 model Parent {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String          @id @default(uuid())
+  userId    String          @unique
+  createdAt DateTime        @default(now())
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   children  ParentStudent[]
-  createdAt DateTime @default(now())
 }
 
 model ParentStudent {
   parentId  String
   studentId String
-  parent    Parent   @relation(fields: [parentId], references: [id], onDelete: Cascade)
-  student   User     @relation("StudentParents", fields: [studentId], references: [id], onDelete: Cascade)
+  parent    Parent @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  student   User   @relation("StudentParents", fields: [studentId], references: [id], onDelete: Cascade)
 
   @@id([parentId, studentId])
 }
 
 model Profile {
-  id                  String    @id @default(uuid())
-  userId              String    @unique
-  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Student specific
-  rollNumber          String?   @unique
-  dateOfBirth         DateTime?
-  gender              String?
-  bloodGroup          String?
-  nationality         String?
-  admissionDate       DateTime?
-  address             String?
-  city                String?
-  postalCode          String?
-  phone               String?
-  
-  // Guardian info
-  guardianName        String?
-  guardianPhone       String?
-  guardianEmail       String?
-  guardianRelation    String?
-  guardianOccupation  String?
-  
-  // Academic
-  academicHistory     Json?     // [{ school: string, year: string, grade: string }]
-  
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  id                 String    @id @default(uuid())
+  userId             String    @unique
+  rollNumber         String?   @unique
+  dateOfBirth        DateTime?
+  gender             String?
+  bloodGroup         String?
+  nationality        String?
+  admissionDate      DateTime?
+  address            String?
+  city               String?
+  postalCode         String?
+  phone              String?
+  guardianName       String?
+  guardianPhone      String?
+  guardianEmail      String?
+  guardianRelation   String?
+  guardianOccupation String?
+  academicHistory    Json?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -139,32 +128,29 @@ model PasswordResetToken {
 model Class {
   id          String       @id @default(uuid())
   name        String
-  subject     String?
   teacherId   String
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-  teacher     User         @relation("TeacherClasses", fields: [teacherId], references: [id])
-  students    User[]       @relation("UserClasses")
+  subject     String?
+  assignments Assignment[]
   attendances Attendance[]
+  teacher     User         @relation("TeacherClasses", fields: [teacherId], references: [id])
   grades      Grade[]
   timetable   Timetable[]
-  assignments Assignment[]
+  students    User[]       @relation("UserClasses")
 }
 
 model Assignment {
-  id          String   @id @default(uuid())
+  id          String       @id @default(uuid())
   title       String
-  description String?  @db.Text
+  description String?
   dueDate     DateTime
-  maxMarks    Float    @default(100)
-  
+  maxMarks    Float        @default(100)
   classId     String
-  class       Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
-  
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  class       Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
   submissions Submission[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 
   @@index([classId])
 }
@@ -172,41 +158,34 @@ model Assignment {
 model Timetable {
   id           String    @id @default(uuid())
   dayOfWeek    DayOfWeek
-  startTime    String    // Format "HH:mm"
-  endTime      String    // Format "HH:mm"
+  startTime    String
+  endTime      String
   subjectName  String
   room         String?
-  
   classId      String
-  class        Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
-  
   teacherId    String
-  teacher      User      @relation("TeacherTimetable", fields: [teacherId], references: [id])
-
   term         String?
   academicYear String?
-  
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+  class        Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacher      User      @relation("TeacherTimetable", fields: [teacherId], references: [id])
 
   @@index([classId])
   @@index([teacherId])
 }
 
 model Announcement {
-  id          String     @id @default(uuid())
-  title       String
-  content     String     @db.Text
-  targetRole  TargetRole @default(ALL)
-  expiresAt   DateTime?
-  
+  id            String     @id @default(uuid())
+  title         String
+  content       String
+  targetRole    TargetRole @default(ALL)
+  expiresAt     DateTime?
   createdBy     String
-  author        User      @relation("AnnouncementAuthor", fields: [createdBy], references: [id])
-  
-  notifyParents Boolean   @default(false)
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  notifyParents Boolean    @default(false)
+  author        User       @relation("AnnouncementAuthor", fields: [createdBy], references: [id])
 
   @@index([createdBy])
   @@index([targetRole])
@@ -235,43 +214,40 @@ model Attendance {
 
 model Submission {
   id           String           @id @default(uuid())
-  content      String           @db.Text
+  content      String
   status       SubmissionStatus
   submittedAt  DateTime         @default(now())
   studentId    String
   assignmentId String
-  student      User             @relation(fields: [studentId], references: [id])
-  assignment   Assignment       @relation(fields: [assignmentId], references: [id])
   grade        Grade?
+  assignment   Assignment       @relation(fields: [assignmentId], references: [id])
+  student      User             @relation(fields: [studentId], references: [id])
 
   @@index([studentId])
   @@index([assignmentId])
 }
 
 model Grade {
-  id        String   @id @default(uuid())
-  marks     Float
-  term      String
-  subjectId String
-  studentId String
-  student   User     @relation(fields: [studentId], references: [id])
-  classId   String
-  class     Class    @relation(fields: [classId], references: [id])
-
+  id           String      @id @default(uuid())
+  marks        Float
+  term         String
+  subjectId    String
+  studentId    String
+  classId      String
+  createdAt    DateTime    @default(now())
   submissionId String?     @unique
+  updatedAt    DateTime    @updatedAt
+  class        Class       @relation(fields: [classId], references: [id])
+  student      User        @relation(fields: [studentId], references: [id])
   submission   Submission? @relation(fields: [submissionId], references: [id])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
   @@index([studentId, subjectId, term])
-
 }
 
 model Setting {
   id        String   @id @default(uuid())
   key       String   @unique
-  value     String   @db.Text
+  value     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
