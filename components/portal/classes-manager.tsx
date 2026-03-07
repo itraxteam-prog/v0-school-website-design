@@ -448,7 +448,7 @@ export function ClassesManager({ initialClasses, initialPeriods }: ClassesManage
                                                 )}
 
                                                 <div className="mt-auto pt-2">
-                                                    <Button variant="outline" className="w-full text-xs h-9 border-primary/20 text-primary hover:bg-primary hover:text-white transition-all group">
+                                                    <Button variant="outline" className="w-full text-xs h-9 border-primary/20 text-primary hover:bg-primary hover:text-white transition-all group" onClick={() => { setEditingClass(c); setIsModalOpen(true); }}>
                                                         View Full Details
                                                         <ChevronRight size={14} className="ml-1 transition-transform group-hover:translate-x-0.5" />
                                                     </Button>

@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { prisma } from "@/lib/prisma"
 import { ClassesManager } from "@/components/portal/classes-manager"
 
@@ -19,7 +20,7 @@ export default async function AdminClassesPage() {
       name: c.name,
       teacher: c.teacher?.name || c.teacher?.email || "Unassigned",
       teacherId: c.teacherId,
-      room: "",
+      room: c.subject || "",
       studentCount: c._count.students,
     }))
 

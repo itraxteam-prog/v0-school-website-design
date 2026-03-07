@@ -32,7 +32,7 @@ export default async function TeacherClassesPage() {
           name: c.name,
           subject: c.subject || "General",
           studentCount: c._count.students,
-          room: "TBA",
+          room: c.subject || "",
           performance: 0, // Performance calculation is complex
           color: gradients[i % gradients.length],
         }

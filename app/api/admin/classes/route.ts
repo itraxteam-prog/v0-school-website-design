@@ -33,7 +33,7 @@ export async function GET() {
             subject: c.subject,
             teacher: c.teacher?.name || c.teacher?.email || "Unassigned",
             teacherId: c.teacherId,
-            room: "",
+            room: c.subject || "",
             studentCount: c._count.students,
             createdAt: c.createdAt,
         }))
