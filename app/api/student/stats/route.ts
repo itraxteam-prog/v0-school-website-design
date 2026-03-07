@@ -51,10 +51,14 @@ const getCachedStudentStats = unstable_cache(
         ]);
 
         const assignedClass = studentWithClass?.classes?.[0] || null;
+        const curriculum = (assignedClass?.subjects as string || "").split(',').map((s: string) => s.trim().toLowerCase().replace(/\s+/g, '-')).filter(Boolean);
+
+        // Filter grades to include only those that belong to the class curriculum
+        const filteredGrades = grades.filter(g => curriculum.includes(g.subjectId.toLowerCase().replace(/\s+/g, '-')));
 
         // Performance calculation
-        const totalMarks = grades.reduce((acc, g) => acc + g.marks, 0);
-        const performance = grades.length > 0 ? Math.round(totalMarks / grades.length) + "%" : "N/A";
+        const totalMarks = filteredGrades.reduce((acc, g) => acc + g.marks, 0);
+        const performance = filteredGrades.length > 0 ? Math.round(totalMarks / filteredGrades.length) + "%" : "N/A";
 
         // Attendance calculation
         const presentCount = attendance.filter(a => a.status === "PRESENT").length;
@@ -62,7 +66,7 @@ const getCachedStudentStats = unstable_cache(
 
         // Performance Trend (Last 6 months)
         const performanceTrend = Object.entries(
-            grades.reduce((acc: any, g) => {
+            filteredGrades.reduce((acc: any, g) => {
                 const month = g.createdAt.toLocaleString('default', { month: 'short' });
                 if (!acc[month]) acc[month] = { total: 0, count: 0 };
                 acc[month].total += g.marks;
@@ -76,12 +80,13 @@ const getCachedStudentStats = unstable_cache(
         })).slice(-6);
 
         // Subject Comparison
+        const classSubs = (assignedClass?.subjects as string || "").split(',').map((s: string) => s.trim()) || [];
         const subjectComparison = Object.entries(
-            grades.reduce((acc: any, g) => {
-                const subj = g.subjectId;
-                if (!acc[subj]) acc[subj] = { total: 0, count: 0 };
-                acc[subj].total += g.marks;
-                acc[subj].count++;
+            filteredGrades.reduce((acc: any, g) => {
+                const subName = classSubs.find((s: string) => s.toLowerCase().replace(/\s+/g, '-') === g.subjectId) || g.subjectId;
+                if (!acc[subName]) acc[subName] = { total: 0, count: 0 };
+                acc[subName].total += g.marks;
+                acc[subName].count++;
 
                 return acc;
             }, {})
@@ -97,7 +102,7 @@ const getCachedStudentStats = unstable_cache(
                 totalSubjects: assignedClass ? (assignedClass.subjects as string || "").split(',').filter(Boolean).length : 0,
                 assignments: assignments.length
             },
-            recentGrades: grades.slice(0, 5).map(g => {
+            recentGrades: filteredGrades.slice(0, 5).map(g => {
                 const classSubs = (assignedClass?.subjects as string)?.split(',').map((s: string) => s.trim()) || [];
                 const subName = classSubs.find((s: string) => s.toLowerCase().replace(/\s+/g, '-') === g.subjectId) || g.subjectId;
                 return {

@@ -37,9 +37,13 @@ export async function GET() {
         ])
 
         const assignedClass = studentWithClass?.classes?.[0] || null
-        const classSubjects = (assignedClass?.subjects as string || "").split(',').map((s: string) => s.trim()).filter(Boolean)
+        const classSubjectsRaw = (assignedClass?.subjects as string || "").split(',').map((s: string) => s.trim()).filter(Boolean)
+        const curriculumSlugs = classSubjectsRaw.map(s => s.toLowerCase().replace(/\s+/g, '-'))
 
-        const formatted = grades.map((g) => {
+        // Filter out grades that are not in the curriculum (e.g., legacy room numbers)
+        const validGrades = grades.filter(g => curriculumSlugs.includes(g.subjectId.toLowerCase().replace(/\s+/g, '-')))
+
+        const formatted = validGrades.map((g) => {
             const score = g.marks
             let grade = "F"
             if (score >= 90) grade = "A+"
@@ -50,7 +54,7 @@ export async function GET() {
             else grade = "F"
 
             // Try to find the original subject name from the classSubjects list that matches the slug subjectId
-            const subjectName = classSubjects.find((s: string) => s.toLowerCase().replace(/\s+/g, '-') === g.subjectId) || g.subjectId
+            const subjectName = classSubjectsRaw.find((s: string) => s.toLowerCase().replace(/\s+/g, '-') === g.subjectId) || g.subjectId
 
             return {
                 id: g.id,
@@ -69,7 +73,7 @@ export async function GET() {
 
         return NextResponse.json({
             data: formatted,
-            subjects: ["All Subjects", ...classSubjects],
+            subjects: ["All Subjects", ...classSubjectsRaw],
             terms: ["All Terms", ...uniqueTerms]
         })
     } catch (error: any) {

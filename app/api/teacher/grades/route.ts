@@ -76,10 +76,15 @@ export async function POST(req: NextRequest) {
         const { classId, subjectId, term, grades } = parsed.data
 
         await withTimeout((async () => {
-            // Verify teacher owns this class
+            // Verify teacher owns this class and subject is in curriculum
             const cls = await prisma.class.findFirst({ where: { id: classId, teacherId: session.user.id } })
             if (!cls) {
                 throw new Error("FORBIDDEN");
+            }
+
+            const curriculum = (cls.subjects || "").split(',').map(s => s.trim().toLowerCase().replace(/\s+/g, '-'));
+            if (!curriculum.includes(subjectId.toLowerCase().replace(/\s+/g, '-'))) {
+                throw new Error("INVALID_SUBJECT");
             }
 
             // Determine if this is a draft save or final submission
@@ -125,8 +130,9 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ success: true, message: "Grades saved successfully" })
     } catch (error: any) {
+        if (error?.message === "INVALID_SUBJECT") {
+            return NextResponse.json({ error: "Selected subject is not in the class curriculum" }, { status: 400 })
+        }
         return handleAuthError(error);
     }
 }
-
-
