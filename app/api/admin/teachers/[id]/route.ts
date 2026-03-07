@@ -9,6 +9,7 @@ import { requireServerAuth } from "@/lib/server-auth";
 import { Role } from "@prisma/client";
 import { assertAdmin } from "@/lib/assert-role";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
 
 const updateTeacherSchema = z.object({
     name: z.string().min(2).optional(),
@@ -23,6 +24,7 @@ const updateTeacherSchema = z.object({
     phone: z.string().optional(),
     address: z.string().optional(),
     imageUrl: z.string().optional(),
+    password: z.string().min(8).optional().or(z.literal("")),
 }).strict()
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
@@ -42,8 +44,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
         const {
             name, email, employeeId, subjects, classIds, dob, gender,
-            qualification, joiningDate, phone, address, imageUrl
+            qualification, joiningDate, phone, address, imageUrl, password
         } = parsed.data
+
+        // Hash password if provided
+        const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
 
         const updatedTeacher = await prisma.user.update({
             where: { id: params.id },
@@ -51,6 +56,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
                 name,
                 email,
                 ...(imageUrl !== undefined && { image: imageUrl }),
+                ...(hashedPassword && { password: hashedPassword }),
                 profile: {
                     upsert: {
                         create: {
