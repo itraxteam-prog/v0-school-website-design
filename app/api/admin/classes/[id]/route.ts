@@ -13,6 +13,7 @@ const updateClassSchema = z.object({
     teacherId: z.string().optional(),
     subject: z.string().optional(),
     subjects: z.string().optional(),
+    roomNo: z.string().optional(),
 })
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
@@ -35,7 +36,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
             return NextResponse.json({ error: "Invalid request", details: parsed.error.format() }, { status: 400 })
         }
 
-        const { name, teacherId, subject } = parsed.data
+        const { name, teacherId, subject, roomNo } = parsed.data
 
         // If updating teacher, verify they exist
         let finalTeacherId = teacherId;
@@ -63,6 +64,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
                 ...(finalTeacherId && { teacherId: finalTeacherId }),
                 ...(subject !== undefined && { subject }),
                 ...(parsed.data.subjects !== undefined && { subjects: parsed.data.subjects }),
+                ...(roomNo !== undefined && { room: roomNo }),
             },
             include: {
                 teacher: { select: { name: true, email: true } },
@@ -87,6 +89,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
                 name: updated.name,
                 subject: updated.subject,
                 subjects: updated.subjects,
+                room: updated.room,
                 teacher: updated.teacher?.name || updated.teacher?.email || "Unassigned",
                 teacherId: updated.teacherId,
                 studentCount: updated._count.students,

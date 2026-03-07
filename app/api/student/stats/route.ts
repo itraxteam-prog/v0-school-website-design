@@ -94,16 +94,20 @@ const getCachedStudentStats = unstable_cache(
             stats: {
                 performance,
                 attendance: attendancePercent,
-                totalSubjects: assignedClass ? (assignedClass.subjects || assignedClass.subject || "").split(',').filter(Boolean).length : 0,
+                totalSubjects: assignedClass ? (assignedClass.subjects as string || "").split(',').filter(Boolean).length : 0,
                 assignments: assignments.length
             },
-            recentGrades: grades.slice(0, 5).map(g => ({
-                sub: g.subjectId,
-                type: g.term,
-                date: g.createdAt.toLocaleDateString(),
-                marks: g.marks,
-                grade: g.marks >= 90 ? "A+" : g.marks >= 80 ? "A" : g.marks >= 70 ? "B" : "C"
-            })),
+            recentGrades: grades.slice(0, 5).map(g => {
+                const classSubs = (assignedClass?.subjects as string)?.split(',').map((s: string) => s.trim()) || [];
+                const subName = classSubs.find((s: string) => s.toLowerCase().replace(/\s+/g, '-') === g.subjectId) || g.subjectId;
+                return {
+                    sub: subName,
+                    type: g.term,
+                    date: g.createdAt.toLocaleDateString(),
+                    marks: g.marks,
+                    grade: g.marks >= 90 ? "A+" : g.marks >= 80 ? "A" : g.marks >= 70 ? "B" : "C"
+                };
+            }),
 
             announcement: announcements[0] || null,
             upcomingEvents: assignments.map(a => ({
@@ -116,7 +120,7 @@ const getCachedStudentStats = unstable_cache(
             classInfo: assignedClass ? {
                 name: assignedClass.name,
                 teacher: assignedClass.teacher?.name || "Unassigned",
-                subjects: assignedClass.subjects || assignedClass.subject || "General"
+                subjects: assignedClass.subjects || "General"
             } : null
         };
     },
@@ -149,4 +153,3 @@ export async function GET() {
         );
     }
 }
-

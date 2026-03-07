@@ -133,6 +133,7 @@ model Class {
   updatedAt   DateTime     @updatedAt
   subject     String?
   subjects    String?
+  room        String?
   assignments Assignment[]
   attendances Attendance[]
   teacher     User         @relation("TeacherClasses", fields: [teacherId], references: [id])

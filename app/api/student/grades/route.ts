@@ -37,7 +37,7 @@ export async function GET() {
         ])
 
         const assignedClass = studentWithClass?.classes?.[0] || null
-        const classSubjects = (assignedClass?.subjects || assignedClass?.subject || "").split(',').map((s: string) => s.trim()).filter(Boolean)
+        const classSubjects = (assignedClass?.subjects as string || "").split(',').map((s: string) => s.trim()).filter(Boolean)
 
         const formatted = grades.map((g) => {
             const score = g.marks

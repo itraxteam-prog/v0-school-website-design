@@ -28,14 +28,14 @@ export async function GET() {
             orderBy: { createdAt: "desc" },
         })
 
-        const formatted = classes.map((c) => ({
+        const formatted = classes.map((c: any) => ({
             id: c.id,
             name: c.name,
             subject: c.subject,
             subjects: c.subjects || "",
             teacher: c.teacher?.name || c.teacher?.email || "Unassigned",
             teacherId: c.teacherId,
-            room: c.subject || "",
+            room: c.room || "",
             studentCount: c._count.students,
             createdAt: c.createdAt,
         }))
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
             }, { status: 400 })
         }
 
-        const { name, teacherId, subject, subjects } = parsed.data
+        const { name, teacherId, subject, subjects, roomNo } = parsed.data
 
         // Verify the teacher exists
         // Try looking up by ID, then by employee ID (rollNumber), then by name
@@ -90,7 +90,8 @@ export async function POST(req: NextRequest) {
                 name,
                 teacherId: teacher.id,
                 subject: subject || "",
-                subjects: subjects || ""
+                subjects: subjects || "",
+                room: roomNo || ""
             },
             include: {
                 teacher: { select: { name: true, email: true } },
@@ -115,6 +116,7 @@ export async function POST(req: NextRequest) {
                 name: newClass.name,
                 subject: newClass.subject,
                 subjects: newClass.subjects,
+                room: newClass.room,
                 teacher: newClass.teacher?.name || newClass.teacher?.email || "Unassigned",
                 teacherId: newClass.teacherId,
                 studentCount: newClass._count.students,

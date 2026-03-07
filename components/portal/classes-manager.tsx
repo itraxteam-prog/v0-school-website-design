@@ -165,14 +165,14 @@ export function ClassesManager({ initialClasses, initialPeriods }: ClassesManage
                     method: "PATCH",
                     credentials: "include",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name: data.name, teacherId: data.classTeacherId, subject: data.roomNo, subjects: data.subjects }),
+                    body: JSON.stringify({ name: data.name, teacherId: data.classTeacherId, roomNo: data.roomNo, subjects: data.subjects }),
                 });
             } else {
                 response = await fetch("/api/admin/classes", {
                     method: "POST",
                     credentials: "include",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name: data.name, teacherId: data.classTeacherId, subject: data.roomNo, subjects: data.subjects }),
+                    body: JSON.stringify({ name: data.name, teacherId: data.classTeacherId, roomNo: data.roomNo, subjects: data.subjects }),
                 });
             }
 
