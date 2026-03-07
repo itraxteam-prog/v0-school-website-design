@@ -25,6 +25,7 @@ import { Users, ShieldCheck, Mail, Calendar, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper";
 import { useSession } from "next-auth/react";
+import { formatName } from "@/lib/utils";
 
 interface User {
     id: string;
@@ -82,7 +83,7 @@ export function AdminDashboardClient() {
             <div className="p-6 space-y-6">
                 <AnimatedWrapper direction="down">
                     <div className="flex flex-col gap-1 mb-6">
-                        <h1 className="heading-1 text-burgundy-gradient">Admin Operational Controls</h1>
+                        <h1 className="heading-1 text-burgundy-gradient">Welcome back, {formatName(session?.user?.name?.split(' ')[0]) || 'Admin'}</h1>
                         <p className="text-sm text-muted-foreground">Manage user roles and system-level permissions.</p>
                     </div>
                 </AnimatedWrapper>
