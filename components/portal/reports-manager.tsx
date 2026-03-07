@@ -42,6 +42,11 @@ interface ReportsManagerProps {
         studentPerformance: any[];
         teacherPerformance: any[];
         attendanceChart: any[];
+        summary?: {
+            overallAttendance: string;
+            totalStudents: number;
+            absenteeRate: string;
+        }
     }
 }
 
