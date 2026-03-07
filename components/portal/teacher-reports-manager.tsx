@@ -80,7 +80,7 @@ export function TeacherReportsManager({
                 : 0;
 
             const attCount = termAttendances.length;
-            const presCount = termAttendances.filter((a: any) => a.status === "present").length;
+            const presCount = termAttendances.filter((a: any) => a.status === "PRESENT" || a.status === "present").length;
             const attRate = attCount > 0 ? Math.round((presCount / attCount) * 100) : 100;
 
             return {
@@ -92,8 +92,7 @@ export function TeacherReportsManager({
             };
         });
 
-        // 2. Filter charts based on class if needed (already calculated in page.tsx for overall, 
-        // but here we can refine if class is selected)
+        // 2. Filter charts based on class if needed
         let perfData = initialPerformanceData;
         let attData = initialAttendanceTrendData;
 
@@ -102,10 +101,10 @@ export function TeacherReportsManager({
             const terms = ["term1", "term2", "term3"];
             perfData = terms.map(t => {
                 const classGrades = initialStudentReports.flatMap(s =>
-                    s.classes.filter((c: any) => c.id === selectedClass).flatMap((c: any) => c.grades.filter((g: any) => g.term === t))
+                    (s.classes || []).filter((c: any) => c.id === selectedClass).flatMap((c: any) => (c.grades || []).filter((g: any) => g.term === t))
                 );
-                const avg = classGrades.length > 0 ? Math.round(classGrades.reduce((a, b) => a + b.marks, 0) / classGrades.length) : 0;
-                const top = classGrades.length > 0 ? Math.max(...classGrades.map(g => g.marks)) : 0;
+                const avg = classGrades.length > 0 ? Math.round(classGrades.reduce((a, b) => a + (b.marks || 0), 0) / classGrades.length) : 0;
+                const top = classGrades.length > 0 ? Math.max(...classGrades.map(g => g.marks || 0)) : 0;
                 return { name: t === "term1" ? "Term 1" : t === "term2" ? "Term 2" : "Term 3", avg, top };
             }).filter(d => d.avg > 0);
 
@@ -113,9 +112,9 @@ export function TeacherReportsManager({
             const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
             attData = months.map((m, i) => {
                 const monthAtt = initialStudentReports.flatMap(s =>
-                    s.classes.filter((c: any) => c.id === selectedClass).flatMap((c: any) => c.attendances.filter((a: any) => new Date(a.date).getMonth() === i))
+                    (s.classes || []).filter((c: any) => c.id === selectedClass).flatMap((c: any) => (c.attendances || []).filter((a: any) => a.date && new Date(a.date).getMonth() === i))
                 );
-                const rate = monthAtt.length > 0 ? Math.round((monthAtt.filter(a => a.status === "present").length / monthAtt.length) * 100) : 0;
+                const rate = monthAtt.length > 0 ? Math.round((monthAtt.filter(a => a.status === "PRESENT" || a.status === "present").length / monthAtt.length) * 100) : 0;
                 return { month: m, rate };
             }).filter(d => d.rate > 0);
         }
@@ -135,6 +134,10 @@ export function TeacherReportsManager({
     )
 
     const handleExportCSV = () => {
+        if (filteredStudents.length === 0) {
+            toast.error("No data to export");
+            return;
+        }
         toast.success("Downloading CSV...");
         let csvContent = "Student Name,Attendance %,Avg Grade,Status\n" +
             filteredStudents.map(s => `"${s.name}",${s.attendance},${s.avgGrade},"${s.status}"`).join("\n");
@@ -166,17 +169,29 @@ export function TeacherReportsManager({
                         <Button variant="outline" className="border-border hover:bg-muted text-sm flex items-center gap-2" onClick={handleExportCSV}>
                             <Download size={16} /> Export CSV
                         </Button>
+                        <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 text-sm flex items-center gap-2" onClick={() => {
+                            if (!selectedClass) {
+                                toast.error("Please select a class first");
+                                return;
+                            }
+                            const url = `/api/teacher/reports/export?classId=${selectedClass}&type=attendance`;
+                            toast.success("Generating Attendance PDF...");
+                            window.open(url, "_blank");
+                        }}>
+                            <Download size={16} /> Attendance PDF
+                        </Button>
                         <Button className="bg-primary text-white hover:bg-primary/90 text-sm flex items-center gap-2" onClick={() => {
                             if (!selectedClass) {
                                 toast.error("Please select a class first");
                                 return;
                             }
-                            const subjectId = initialClasses.find(c => c.id === selectedClass)?.subject?.toLowerCase().replace(/\s+/g, '-') || "general";
-                            const url = `/api/teacher/reports/export?classId=${selectedClass}&type=grades&term=${selectedTerm}&subjectId=${subjectId}`;
-                            toast.success("Generating PDF...");
+                            const subjectValue = initialClasses.find(c => c.id === selectedClass)?.subject || "General";
+                            const url = `/api/teacher/reports/export?classId=${selectedClass}&type=grades&term=${selectedTerm}&subjectId=${encodeURIComponent(subjectValue)}`;
+
+                            toast.success("Generating Grades PDF...");
                             window.open(url, "_blank");
                         }}>
-                            <Download size={16} /> Save PDF Report
+                            <Download size={16} /> Grades PDF Report
                         </Button>
                     </div>
                 </div>

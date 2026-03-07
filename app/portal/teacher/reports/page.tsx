@@ -47,37 +47,10 @@ export default async function TeacherReportsPage() {
         classes: s.classes || []
       }));
     } else {
-      // Mock fallback - MUST match the expected structure
-      studentReports = [
-        {
-          id: "S001",
-          name: "Ahmed Khan",
-          classes: [
-            {
-              id: "C001",
-              name: "Grade 10-A",
-              grades: [{ marks: 88, term: "term1" }],
-              attendances: [{ status: "present", date: new Date().toISOString(), classId: "C001" }]
-            }
-          ]
-        },
-        {
-          id: "S002",
-          name: "Sara Ali",
-          classes: [
-            {
-              id: "C001",
-              name: "Grade 10-A",
-              grades: [{ marks: 94, term: "term1" }],
-              attendances: [{ status: "present", date: new Date().toISOString(), classId: "C001" }]
-            }
-          ]
-        },
-      ];
+      studentReports = [];
     }
   } catch (error) {
     console.error("Failed to fetch teacher reports data", error)
-    // Ensure studentReports is at least an empty array or valid mock
     studentReports = [];
   }
 
@@ -105,12 +78,6 @@ export default async function TeacherReportsPage() {
     return { name: termLabels[t], avg, top };
   }).filter(d => d.avg > 0 || d.top > 0);
 
-  // If no real data, provide default empty structures or basic labels
-  if (performanceData.length === 0) {
-    performanceData.push({ name: "Term 1", avg: 0, top: 0 });
-    performanceData.push({ name: "Term 2", avg: 0, top: 0 });
-  }
-
   // Calculate real attendance trend by month
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const attendanceRecords = studentReports.flatMap(s => (s.classes || []).flatMap((c: any) => c.attendances || []));
@@ -118,16 +85,11 @@ export default async function TeacherReportsPage() {
   const attendanceTrendData = monthNames.map((month, index) => {
     const monthRecords = attendanceRecords.filter(a => a.date && new Date(a.date).getMonth() === index);
     const totalCount = monthRecords.length;
-    const presentCount = monthRecords.filter(a => a.status === "present").length;
+    const presentCount = monthRecords.filter(a => a.status === "PRESENT" || a.status === "present").length;
     const rate = totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
 
     return { month, rate };
   }).filter(d => d.rate > 0);
-
-  // Ensure we have at least some months for the chart to look okay
-  if (attendanceTrendData.length === 0) {
-    attendanceTrendData.push({ month: "Current", rate: 0 });
-  }
 
   let teacherClasses: any[] = []
   try {
