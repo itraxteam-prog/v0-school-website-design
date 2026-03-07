@@ -81,12 +81,32 @@ const getAnalyticsData = async (filters: { classId?: string, year?: string, term
     })).sort((a, b) => parseInt(a.year) - parseInt(b.year));
 
     // 4. Subject-wise Performance
+    const classes = await prisma.class.findMany({
+        where: classId && classId !== "all" ? { id: classId } : {},
+        select: { subjects: true }
+    });
+
+    // Create a map of valid subject slugs to readable names
+    const curriculumMap: Record<string, string> = {};
+    classes.forEach(c => {
+        const subs = (c.subjects || "").split(',').map(s => s.trim()).filter(Boolean);
+        subs.forEach(s => {
+            const slug = s.toLowerCase().replace(/\s+/g, '-');
+            curriculumMap[slug] = s;
+        });
+    });
+
     const subjectMap: Record<string, { total: number, count: number }> = {};
     subjectGrades.forEach(g => {
-        const subjectName = g.subjectId; // In this schema subjectId is likely the name or we'd need to join
-        if (!subjectMap[subjectName]) subjectMap[subjectName] = { total: 0, count: 0 };
-        subjectMap[subjectName].total += g.marks;
-        subjectMap[subjectName].count++;
+        const slug = g.subjectId.toLowerCase().replace(/\s+/g, '-');
+        const readableName = curriculumMap[slug];
+
+        // Only include grades belonging to the academic curriculum
+        if (readableName) {
+            if (!subjectMap[readableName]) subjectMap[readableName] = { total: 0, count: 0 };
+            subjectMap[readableName].total += g.marks;
+            subjectMap[readableName].count++;
+        }
     });
 
     const subjectPerformanceData = Object.entries(subjectMap).map(([subject, stats]) => ({
