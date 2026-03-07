@@ -22,20 +22,22 @@ export default async function AdminProfilePage() {
 
     if (!admin) return <div>Admin not found</div>
 
+    const history = (admin.profile?.academicHistory as any) || {};
+
     const adminData = {
         name: admin.name || "Administrator",
-        email: admin.email || "admin@school.edu",
-        designation: "System Administrator",
-        id: `A-${admin.id.slice(0, 4)}`.toUpperCase(),
+        email: admin.email || "",
+        designation: history.designation || "System Administrator",
+        id: admin.profile?.rollNumber || `A-${admin.id.slice(0, 4)}`.toUpperCase(),
         status: admin.status,
-        dob: admin.profile?.dateOfBirth ? admin.profile.dateOfBirth.toLocaleDateString() : "Not Specified",
-        gender: admin.profile?.gender || "Not Specified",
-        qualifications: admin.profile?.academicHistory?.toString() || "B.Tech / MBA",
-        subjects: "All Access",
-        classes: "System-wide",
+        dob: admin.profile?.dateOfBirth ? admin.profile.dateOfBirth.toISOString().split('T')[0] : "",
+        gender: admin.profile?.gender || "",
+        qualifications: history.qualifications || "B.Tech / MBA",
+        subjects: history.subjects || "All Access",
+        classes: history.classes || "System-wide",
         joiningDate: admin.createdAt.toLocaleDateString(),
-        phone: admin.profile?.phone || "Not provided",
-        address: admin.profile?.address || "Not provided",
+        phone: admin.profile?.phone || "",
+        address: admin.profile?.address || "",
         avatarUrl: admin.image || ""
     };
 

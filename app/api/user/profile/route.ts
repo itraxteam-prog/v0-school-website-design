@@ -14,13 +14,18 @@ export async function POST(req: Request) {
         }
 
         const data = await req.json();
-        const { name, ...rest } = data;
+        const { name, email, status, ...rest } = data;
 
-        // Update User name
-        if (name) {
+        // Update User fields
+        const userData: any = {};
+        if (name) userData.name = name;
+        if (email) userData.email = email;
+        if (status) userData.status = status;
+
+        if (Object.keys(userData).length > 0) {
             await prisma.user.update({
                 where: { id: session.user.id },
-                data: { name }
+                data: userData
             });
         }
 
@@ -29,7 +34,6 @@ export async function POST(req: Request) {
             'rollNumber', 'dateOfBirth', 'gender', 'bloodGroup', 'nationality',
             'admissionDate', 'address', 'city', 'postalCode', 'phone',
             'guardianName', 'guardianPhone', 'guardianEmail', 'guardianRelation', 'guardianOccupation',
-            'academicHistory'
         ];
 
         const formattedProfile: any = {};
@@ -52,6 +56,25 @@ export async function POST(req: Request) {
                 }
             }
         });
+
+        // Handle academicHistory JSON specifically for qualifications, subjects, etc.
+        if (rest.qualifications || rest.subjects || rest.classes || rest.designation || rest.academicHistory) {
+            const currentProfile = await prisma.profile.findUnique({
+                where: { userId: session.user.id }
+            });
+
+            let history = (currentProfile?.academicHistory as any) || {};
+            if (typeof history !== 'object') history = {};
+
+            formattedProfile.academicHistory = {
+                ...history,
+                qualifications: rest.qualifications || history.qualifications,
+                subjects: rest.subjects || history.subjects,
+                classes: rest.classes || history.classes,
+                designation: rest.designation || history.designation,
+                ...(typeof rest.academicHistory === 'object' ? rest.academicHistory : {})
+            };
+        }
 
         // Update or Create Profile
         await prisma.profile.upsert({

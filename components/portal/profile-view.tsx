@@ -49,11 +49,17 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
     const [profileData, setProfileData] = useState(initialData) // Renamed teacherData to profileData
     const [formData, setFormData] = useState({
         name: initialData.name,
+        email: initialData.email,
         phone: initialData.phone,
         address: initialData.address,
         qualifications: initialData.qualifications,
         gender: initialData.gender,
-        dob: initialData.dob
+        dob: initialData.dob,
+        subjects: initialData.subjects,
+        classes: initialData.classes,
+        status: initialData.status,
+        designation: initialData.designation,
+        rollNumber: initialData.id,
     })
 
     const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,11 +101,17 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     name: formData.name,
+                    email: formData.email,
                     phone: formData.phone,
                     address: formData.address,
-                    academicHistory: formData.qualifications, // mapping to academicHistory for now
+                    qualifications: formData.qualifications,
                     gender: formData.gender,
-                    dateOfBirth: formData.dob
+                    dateOfBirth: formData.dob,
+                    subjects: formData.subjects,
+                    classes: formData.classes,
+                    status: formData.status,
+                    designation: formData.designation,
+                    rollNumber: formData.rollNumber
                 })
             });
 
@@ -141,11 +153,17 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
                                 if (isEditing) {
                                     setFormData({
                                         name: profileData.name,
+                                        email: profileData.email,
                                         phone: profileData.phone,
                                         address: profileData.address,
                                         qualifications: profileData.qualifications,
                                         gender: profileData.gender,
-                                        dob: profileData.dob
+                                        dob: profileData.dob,
+                                        subjects: profileData.subjects,
+                                        classes: profileData.classes,
+                                        status: profileData.status,
+                                        designation: profileData.designation,
+                                        rollNumber: profileData.id
                                     });
                                 }
                                 setIsEditing(!isEditing);
@@ -185,11 +203,36 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
                                 </div>
                                 <div className="text-center space-y-1">
                                     <h2 className="heading-3 text-xl">{profileData.name}</h2>
-                                    <div className="flex items-center justify-center gap-1.5 text-primary font-medium text-sm"><BadgeCheck size={16} /> {profileData.designation}</div>
+                                    <div className="flex items-center justify-center gap-1.5 text-primary font-medium text-sm">
+                                        <BadgeCheck size={16} />
+                                        {isEditing ? (
+                                            <input
+                                                className="bg-transparent border-b border-primary/30 text-center focus:outline-none focus:border-primary"
+                                                value={formData.designation}
+                                                onChange={(e) => setFormData(f => ({ ...f, designation: e.target.value }))}
+                                            />
+                                        ) : profileData.designation}
+                                    </div>
                                 </div>
                                 <div className="w-full pt-4 border-t border-border/50">
                                     <div className="flex justify-between text-sm py-2"><span className="text-muted-foreground">ID</span><span className="font-semibold">{profileData.id}</span></div>
-                                    <div className="flex justify-between text-sm py-2"><span className="text-muted-foreground">Status</span><Badge variant="outline" className="bg-green-50 text-green-700">{profileData.status}</Badge></div>
+                                    <div className="flex justify-between text-sm py-2">
+                                        <span className="text-muted-foreground">Status</span>
+                                        {isEditing ? (
+                                            <select
+                                                className="text-xs bg-muted rounded px-1"
+                                                value={formData.status}
+                                                onChange={(e) => setFormData(f => ({ ...f, status: e.target.value }))}
+                                            >
+                                                <option value="ACTIVE">ACTIVE</option>
+                                                <option value="SUSPENDED">SUSPENDED</option>
+                                            </select>
+                                        ) : (
+                                            <Badge variant="outline" className={cn("bg-green-50 text-green-700", profileData.status !== 'ACTIVE' && "bg-red-50 text-red-700")}>
+                                                {profileData.status}
+                                            </Badge>
+                                        )}
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
@@ -221,7 +264,14 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
                                 onChange={(val: string) => setFormData(f => ({ ...f, gender: val }))}
                                 val={formData.gender}
                             />
-                            <InfoItem label="Employee ID" value={profileData.id} />
+                            <InfoItem
+                                label="Employee ID / Roll Number"
+                                value={profileData.id}
+                                isEditing={isEditing}
+                                name="rollNumber"
+                                onChange={(val: string) => setFormData(f => ({ ...f, rollNumber: val }))}
+                                val={formData.rollNumber}
+                            />
                         </ProfileInfoSection>
 
                         <ProfileInfoSection title="Professional Info" icon={<GraduationCap size={20} className="text-primary" />}>
@@ -233,13 +283,34 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
                                 onChange={(val: string) => setFormData(f => ({ ...f, qualifications: val }))}
                                 val={formData.qualifications}
                             />
-                            <InfoItem label="Subjects" value={profileData.subjects} />
-                            <InfoItem label="Classes" value={profileData.classes} />
+                            <InfoItem
+                                label="Subjects"
+                                value={profileData.subjects}
+                                isEditing={isEditing}
+                                name="subjects"
+                                onChange={(val: string) => setFormData(f => ({ ...f, subjects: val }))}
+                                val={formData.subjects}
+                            />
+                            <InfoItem
+                                label="Classes"
+                                value={profileData.classes}
+                                isEditing={isEditing}
+                                name="classes"
+                                onChange={(val: string) => setFormData(f => ({ ...f, classes: val }))}
+                                val={formData.classes}
+                            />
                             <InfoItem label="Joining Date" value={profileData.joiningDate} />
                         </ProfileInfoSection>
 
                         <ProfileInfoSection title="Contact Details" icon={<Mail size={20} className="text-primary" />}>
-                            <InfoItem label="Email" value={profileData.email} />
+                            <InfoItem
+                                label="Email"
+                                value={profileData.email}
+                                isEditing={isEditing}
+                                name="email"
+                                onChange={(val: string) => setFormData(f => ({ ...f, email: val }))}
+                                val={formData.email}
+                            />
                             <InfoItem
                                 label="Phone"
                                 value={profileData.phone}
