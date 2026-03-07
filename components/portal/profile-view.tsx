@@ -1,5 +1,6 @@
 "use client"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 import {
     LayoutDashboard,
@@ -42,6 +43,7 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
 
     const finalSidebarItems = propSidebarItems || defaultSidebar;
     const { data: session, update } = useSession()
+    const router = useRouter()
     const [isEditing, setIsEditing] = useState(false)
     const [loading, setLoading] = useState(false)
     const [profileData, setProfileData] = useState(initialData) // Renamed teacherData to profileData
@@ -74,7 +76,8 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
             setProfileData((prev: any) => ({ ...prev, avatarUrl: result.url }));
 
             // Update session so header avatar updates
-            update({ image: result.url });
+            await update({ image: result.url });
+            router.refresh();
 
             toast.dismiss();
             toast.success("Photo updated successfully");
@@ -107,8 +110,9 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
             toast.success("Profile updated successfully");
             // Update session if name changed
             if (formData.name !== session?.user?.name) {
-                update({ name: formData.name });
+                await update({ name: formData.name });
             }
+            router.refresh();
         } catch (err) {
             toast.error("Failed to update profile");
         } finally {
