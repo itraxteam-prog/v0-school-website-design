@@ -234,13 +234,13 @@ export default function ProfilePage() {
                           <label className="text-sm font-medium text-muted-foreground">Class</label>
                           <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
                             <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm font-medium">{displayData.class || "Unassigned"}</span>
+                            <span className="text-sm font-medium">{displayData.currentClass || "Unassigned"}</span>
                           </div>
                         </div>
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-muted-foreground">Section</label>
                           <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                            <span className="text-sm font-medium">{displayData.section || "N/A"}</span>
+                            <span className="text-sm font-medium">{displayData.currentSection || "N/A"}</span>
                           </div>
                         </div>
                         <div className="space-y-2">

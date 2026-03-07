@@ -80,7 +80,7 @@ const studentSchema = z.object({
     city: z.string().optional(),
     postalCode: z.string().optional(),
     guardianName: z.string().optional(),
-    guardianPhone: z.string().min(10, { message: "Invalid contact number." }),
+    guardianPhone: z.string().optional(),
     guardianEmail: z.string().optional(),
     guardianRelation: z.string().optional(),
     guardianOccupation: z.string().optional(),
@@ -206,7 +206,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                 guardianRelation: s.guardianRelation || "",
                 guardianOccupation: s.guardianOccupation || "",
                 address: s.address || "",
-                imageUrl: s.imageUrl || ""
+                imageUrl: s.image || ""
             })))
 
             setTotalPages(result.pagination?.pages || 1)
