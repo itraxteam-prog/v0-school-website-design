@@ -6,24 +6,47 @@ import { NextResponse } from "next/server";
 import { withTimeout } from "@/lib/server-timeout";
 import { logger } from "@/lib/logger";
 
-const getAnalyticsData = async () => {
+const getAnalyticsData = async (filters: { classId?: string, year?: string, term?: string }) => {
+    const { classId, year } = filters;
+    const yearNum = year ? parseInt(year) : new Date().getFullYear();
+
+    // Base where clauses
+    const attendanceWhere: any = {
+        date: {
+            gte: new Date(`${yearNum}-01-01`),
+            lte: new Date(`${yearNum}-12-31`)
+        }
+    };
+    const gradeWhere: any = {};
+    const enrollmentWhere: any = { role: "STUDENT" };
+
+    if (classId && classId !== "all") {
+        attendanceWhere.student = { classId };
+        gradeWhere.student = { classId };
+        enrollmentWhere.classId = classId;
+    }
+
     const [attendance, grades, students, subjectGrades] = await Promise.all([
         prisma.attendance.findMany({
+            where: attendanceWhere,
             select: { date: true, status: true },
             orderBy: { date: "asc" }
         }),
         prisma.grade.findMany({
+            where: gradeWhere,
             select: { marks: true }
         }),
         prisma.user.findMany({
-            where: { role: "STUDENT" },
+            where: enrollmentWhere,
             select: { createdAt: true }
         }),
         prisma.grade.findMany({
+            where: gradeWhere,
             select: { subjectId: true, marks: true }
         })
     ]);
 
+    // 1. Attendance Trends
     const attendanceMap: Record<string, { count: number, present: number }> = {};
     attendance.forEach(a => {
         const month = a.date.toLocaleString('default', { month: 'short' });
@@ -35,33 +58,35 @@ const getAnalyticsData = async () => {
     const attendanceData = Object.entries(attendanceMap).map(([month, stats]) => ({
         month,
         attendance: Math.round((stats.present / stats.count) * 100)
-    })).slice(-6);
+    }));
 
+    // 2. Grade Distribution
     const gradeCounts: Record<string, number> = { 'A+': 0, 'A': 0, 'B': 0, 'C': 0, 'D': 0, 'F': 0 };
     grades.forEach(g => {
         const grade = g.marks >= 90 ? "A+" : g.marks >= 80 ? "A" : g.marks >= 70 ? "B" : g.marks >= 60 ? "C" : g.marks >= 50 ? "D" : "F";
-        const key = grade.startsWith('A') ? (grade === 'A+' ? 'A+' : 'A') : grade;
+        const key = (grade === "A" || grade === "A+") ? grade : grade;
         if (gradeCounts[key] !== undefined) gradeCounts[key]++;
     });
-
     const gradeDistributionData = Object.entries(gradeCounts).map(([grade, count]) => ({ grade, count }));
 
+    // 3. Enrollment Statistics
     const enrollmentMap: Record<string, number> = {};
     students.forEach(s => {
         const year = s.createdAt.getFullYear().toString();
         enrollmentMap[year] = (enrollmentMap[year] || 0) + 1;
     });
-
     const enrollmentData = Object.entries(enrollmentMap).map(([year, count]) => ({
         year,
         students: count
     })).sort((a, b) => parseInt(a.year) - parseInt(b.year));
 
+    // 4. Subject-wise Performance
     const subjectMap: Record<string, { total: number, count: number }> = {};
     subjectGrades.forEach(g => {
-        if (!subjectMap[g.subjectId]) subjectMap[g.subjectId] = { total: 0, count: 0 };
-        subjectMap[g.subjectId].total += g.marks;
-        subjectMap[g.subjectId].count++;
+        const subjectName = g.subjectId; // In this schema subjectId is likely the name or we'd need to join
+        if (!subjectMap[subjectName]) subjectMap[subjectName] = { total: 0, count: 0 };
+        subjectMap[subjectName].total += g.marks;
+        subjectMap[subjectName].count++;
     });
 
     const subjectPerformanceData = Object.entries(subjectMap).map(([subject, stats]) => ({
@@ -70,23 +95,26 @@ const getAnalyticsData = async () => {
     }));
 
     return {
-        attendanceData: attendanceData.length > 0 ? attendanceData : [
-            { month: 'Jan', attendance: 95 }, { month: 'Feb', attendance: 92 }
-        ],
+        attendanceData: attendanceData.length > 0 ? attendanceData : [],
         gradeDistribution: gradeDistributionData,
-        enrollmentData: enrollmentData.length > 0 ? enrollmentData : [
-            { year: '2025', students: students.length }
-        ],
+        enrollmentData: enrollmentData.length > 0 ? enrollmentData : [],
         subjectPerformance: subjectPerformanceData
     };
 };
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
+        const { searchParams } = new URL(req.url);
+        const filters = {
+            classId: searchParams.get("classId") || undefined,
+            year: searchParams.get("year") || undefined,
+            term: searchParams.get("term") || undefined,
+        };
+
         const session = await requireRole("ADMIN");
 
         const data = await withTimeout(
-            getAnalyticsData(),
+            getAnalyticsData(filters),
             8000,
             "GET /api/admin/analytics"
         );

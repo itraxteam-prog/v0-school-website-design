@@ -52,11 +52,33 @@ export function AnalyticsDashboardClient({ user }: { user: any }) {
         enrollmentData: [],
         subjectPerformance: []
     })
+    const [filters, setFilters] = useState({
+        term: "spring26",
+        classId: "all",
+        year: "2025"
+    })
+    const [classes, setClasses] = useState<any[]>([])
+
+    useEffect(() => {
+        const fetchClasses = async () => {
+            try {
+                const res = await fetch("/api/admin/classes")
+                if (!res.ok) throw new Error("Failed to fetch classes")
+                const result = await res.json()
+                setClasses(result.data || [])
+            } catch (error) {
+                console.error("Classes fetch error:", error)
+            }
+        }
+        fetchClasses()
+    }, [])
 
     useEffect(() => {
         const fetchData = async () => {
+            setLoading(true)
             try {
-                const res = await fetch("/api/admin/analytics", { credentials: "include" })
+                const params = new URLSearchParams(filters)
+                const res = await fetch(`/api/admin/analytics?${params.toString()}`, { credentials: "include" })
                 if (!res.ok) throw new Error("Failed to fetch analytics")
                 const result = await res.json()
                 setData(result)
@@ -67,7 +89,7 @@ export function AnalyticsDashboardClient({ user }: { user: any }) {
             }
         }
         fetchData()
-    }, [])
+    }, [filters])
 
     const { attendanceData, gradeDistribution, enrollmentData, subjectPerformance } = data
 
@@ -85,7 +107,7 @@ export function AnalyticsDashboardClient({ user }: { user: any }) {
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                         <div className="flex flex-col gap-1.5">
                             <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Term</Label>
-                            <Select defaultValue="spring26">
+                            <Select value={filters.term} onValueChange={(v) => setFilters(f => ({ ...f, term: v }))}>
                                 <SelectTrigger className="h-10 w-full sm:w-36 glass-card">
                                     <SelectValue placeholder="Term" />
                                 </SelectTrigger>
@@ -97,20 +119,21 @@ export function AnalyticsDashboardClient({ user }: { user: any }) {
                         </div>
                         <div className="flex flex-col gap-1.5">
                             <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Class</Label>
-                            <Select defaultValue="all">
+                            <Select value={filters.classId} onValueChange={(v) => setFilters(f => ({ ...f, classId: v }))}>
                                 <SelectTrigger className="h-10 w-full sm:w-36 glass-card">
                                     <SelectValue placeholder="Class" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Classes</SelectItem>
-                                    <SelectItem value="10">Grade 10</SelectItem>
-                                    <SelectItem value="9">Grade 9</SelectItem>
+                                    {classes.map(c => (
+                                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </div>
                         <div className="flex flex-col gap-1.5">
                             <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Year</Label>
-                            <Select defaultValue="2025">
+                            <Select value={filters.year} onValueChange={(v) => setFilters(f => ({ ...f, year: v }))}>
                                 <SelectTrigger className="h-10 w-full sm:w-32 glass-card">
                                     <SelectValue placeholder="Year" />
                                 </SelectTrigger>

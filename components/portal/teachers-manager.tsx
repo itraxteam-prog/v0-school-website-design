@@ -57,6 +57,8 @@ import {
     RefreshCcw,
     Upload,
     User,
+    Eye,
+    EyeOff,
 } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -78,6 +80,12 @@ const teacherSchema = z.object({
     phone: z.string().optional(),
     address: z.string().optional(),
     imageUrl: z.string().optional(),
+    password: z.string()
+        .min(8, { message: "Password must be at least 8 characters." })
+        .regex(/[0-9]/, { message: "Password must contain at least one number." })
+        .regex(/[!@#$%^&*]/, { message: "Password must contain at least one special character." })
+        .optional()
+        .or(z.literal("")),
 })
 
 type TeacherFormValues = z.infer<typeof teacherSchema>
@@ -118,6 +126,7 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [imagePreview, setImagePreview] = useState<string | null>(null)
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
+    const [showPassword, setShowPassword] = useState(false)
 
     // Pagination State
     const [page, setPage] = useState(1)
@@ -527,19 +536,48 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
                                             <div className="space-y-4">
                                                 <h4 className="text-sm font-semibold text-primary/80 border-b border-primary/10 pb-1">Contact Details</h4>
                                                 <div className="grid grid-cols-2 gap-4">
-                                                    <FormField
-                                                        control={form.control}
-                                                        name="email"
-                                                        render={({ field }) => (
-                                                            <FormItem className="col-span-2">
-                                                                <FormLabel>Email Address</FormLabel>
-                                                                <FormControl>
-                                                                    <Input placeholder="teacher@school.edu" {...field} className="glass-card" />
-                                                                </FormControl>
-                                                                <FormMessage />
-                                                            </FormItem>
-                                                        )}
-                                                    />
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 col-span-2">
+                                                        <FormField
+                                                            control={form.control}
+                                                            name="email"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel>Email Address</FormLabel>
+                                                                    <FormControl>
+                                                                        <Input placeholder="teacher@school.edu" {...field} className="glass-card" />
+                                                                    </FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                        <FormField
+                                                            control={form.control}
+                                                            name="password"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel>Password {editingTeacher ? "(Optional)" : ""}</FormLabel>
+                                                                    <FormControl>
+                                                                        <div className="relative">
+                                                                            <Input
+                                                                                type={showPassword ? "text" : "password"}
+                                                                                placeholder="Password"
+                                                                                {...field}
+                                                                                className="glass-card"
+                                                                            />
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => setShowPassword(!showPassword)}
+                                                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                                                            >
+                                                                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                                            </button>
+                                                                        </div>
+                                                                    </FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                    </div>
                                                     <FormField
                                                         control={form.control}
                                                         name="phone"

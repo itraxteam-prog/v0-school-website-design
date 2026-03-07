@@ -8,6 +8,8 @@ import { handleAuthError } from "@/lib/auth-guard"
 import { requireServerAuth } from "@/lib/server-auth";
 import { Role } from "@prisma/client";
 
+import bcrypt from "bcryptjs";
+
 const studentSchema = z.object({
     name: z.string().min(2),
     email: z.string().email(),
@@ -28,6 +30,7 @@ const studentSchema = z.object({
     guardianOccupation: z.string().optional(),
     address: z.string().optional(),
     imageUrl: z.string().optional(),
+    password: z.string().min(8).optional().or(z.literal("")),
 }).strict()
 
 export async function GET(req: NextRequest) {
@@ -122,7 +125,7 @@ export async function POST(req: NextRequest) {
         const {
             name, email, rollNo, classId, dob, gender, bloodGroup, nationality, admissionDate,
             phone, city, postalCode, guardianName, guardianPhone, guardianEmail,
-            guardianRelation, guardianOccupation, address, imageUrl
+            guardianRelation, guardianOccupation, address, imageUrl, password
         } = parsed.data
 
         // 1. Check if email exists
@@ -139,10 +142,14 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: `Roll Number "${rollNo}" is already assigned to another student.` }, { status: 400 })
         }
 
+        // Hash password if provided
+        const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
+
         const newStudent = await prisma.user.create({
             data: {
                 name,
                 email,
+                password: hashedPassword,
                 role: "STUDENT",
                 status: "ACTIVE",
                 image: imageUrl || null,

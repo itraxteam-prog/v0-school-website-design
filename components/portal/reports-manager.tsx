@@ -49,6 +49,10 @@ export function ReportsManager({ initialData }: ReportsManagerProps) {
     const [reportType, setReportType] = useState("student-performance")
     const [loading, setLoading] = useState(false)
     const [showPreview, setShowPreview] = useState(false)
+    const [filters, setFilters] = useState({
+        term: "spring26",
+        classId: "all"
+    })
 
     const handleGenerateReport = () => {
         setLoading(true)
@@ -110,7 +114,7 @@ export function ReportsManager({ initialData }: ReportsManagerProps) {
 
                             <div className="flex flex-col gap-2">
                                 <Label className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Term</Label>
-                                <Select defaultValue="spring26">
+                                <Select value={filters.term} onValueChange={(v) => setFilters(prev => ({ ...prev, term: v }))}>
                                     <SelectTrigger className="h-11 glass-card"><SelectValue placeholder="Select term" /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="spring26">Spring 2026</SelectItem>
@@ -121,7 +125,7 @@ export function ReportsManager({ initialData }: ReportsManagerProps) {
 
                             <div className="flex flex-col gap-2">
                                 <Label className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Class</Label>
-                                <Select defaultValue="10a">
+                                <Select value={filters.classId} onValueChange={(v) => setFilters(prev => ({ ...prev, classId: v }))}>
                                     <SelectTrigger className="h-11 glass-card"><SelectValue placeholder="Select class" /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="all">All Classes</SelectItem>
@@ -203,9 +207,9 @@ export function ReportsManager({ initialData }: ReportsManagerProps) {
                         {reportType === "attendance-report" && (
                             <div className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <Card className="glass-panel border-border/50 p-6 text-center"><p className="text-3xl font-bold text-emerald-600">93.4%</p><p className="text-xs text-muted-foreground uppercase font-bold">Overall Attendance</p></Card>
-                                    <Card className="glass-panel border-border/50 p-6 text-center"><p className="text-3xl font-bold">785</p><p className="text-xs text-muted-foreground uppercase font-bold">Total Students</p></Card>
-                                    <Card className="glass-panel border-border/50 p-6 text-center"><p className="text-3xl font-bold text-amber-600">6.6%</p><p className="text-xs text-muted-foreground uppercase font-bold">Absentee Rate</p></Card>
+                                    <Card className="glass-panel border-border/50 p-6 text-center"><p className="text-3xl font-bold text-emerald-600">{initialData.summary?.overallAttendance || "93.4%"}</p><p className="text-xs text-muted-foreground uppercase font-bold">Overall Attendance</p></Card>
+                                    <Card className="glass-panel border-border/50 p-6 text-center"><p className="text-3xl font-bold">{initialData.summary?.totalStudents || "785"}</p><p className="text-xs text-muted-foreground uppercase font-bold">Total Students</p></Card>
+                                    <Card className="glass-panel border-border/50 p-6 text-center"><p className="text-3xl font-bold text-amber-600">{initialData.summary?.absenteeRate || "6.6%"}</p><p className="text-xs text-muted-foreground uppercase font-bold">Absentee Rate</p></Card>
                                 </div>
                                 <Card className="glass-panel border-border/50">
                                     <CardHeader><CardTitle className="heading-3 flex items-center gap-2"><TrendingUp className="h-5 w-5 text-primary" /> Attendance Trends</CardTitle></CardHeader>

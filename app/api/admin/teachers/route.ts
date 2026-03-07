@@ -8,6 +8,8 @@ import { handleAuthError } from "@/lib/auth-guard"
 import { requireServerAuth } from "@/lib/server-auth";
 import { Role } from "@prisma/client";
 
+import bcrypt from "bcryptjs";
+
 const teacherSchema = z.object({
     name: z.string().min(2),
     email: z.string().email(),
@@ -21,6 +23,7 @@ const teacherSchema = z.object({
     phone: z.string().optional(),
     address: z.string().optional(),
     imageUrl: z.string().optional(),
+    password: z.string().min(8).optional().or(z.literal("")),
 }).strict()
 
 export async function GET(req: NextRequest) {
@@ -111,7 +114,7 @@ export async function POST(req: NextRequest) {
 
         const {
             name, email, employeeId, subjects, classIds, dob, gender,
-            qualification, joiningDate, phone, address, imageUrl
+            qualification, joiningDate, phone, address, imageUrl, password
         } = parsed.data
 
         // Check if user exists
@@ -120,10 +123,14 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "User already exists" }, { status: 400 })
         }
 
+        // Hash password if provided
+        const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
+
         const newTeacher = await prisma.user.create({
             data: {
                 name,
                 email,
+                password: hashedPassword,
                 image: imageUrl || null,
                 role: "TEACHER",
                 status: "ACTIVE",
