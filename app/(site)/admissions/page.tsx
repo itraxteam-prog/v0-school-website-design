@@ -12,10 +12,9 @@ const steps = [
 ]
 
 const fees = [
-  { level: "Primary (Grade 1-5)", admission: "25,000", monthly: "8,500", annual: "85,000" },
-  { level: "Middle (Grade 6-8)", admission: "30,000", monthly: "10,000", annual: "100,000" },
-  { level: "O-Level (Grade 9-10)", admission: "35,000", monthly: "14,000", annual: "140,000" },
-  { level: "A-Level (Grade 11-12)", admission: "40,000", monthly: "18,000", annual: "180,000" },
+  { level: "Primary (Grade 1-5)", admission: "8,000", monthly: "2,500", annual: "30,000" },
+  { level: "Middle (Grade 6-8)", admission: "8,000", monthly: "2,800", annual: "33,600" },
+  { level: "High (Grade 9-10)", admission: "8,000", monthly: "3,000", annual: "36,000" },
 ]
 
 const dates = [

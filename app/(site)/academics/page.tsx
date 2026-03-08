@@ -16,14 +16,9 @@ const gradeLevels = [
     subjects: ["English", "Mathematics", "Physics", "Chemistry", "Biology", "Computer Science", "History", "Geography"],
   },
   {
-    level: "O-Level (Grade 9-10)",
+    level: "High (Grade 9-10)",
     description: "Cambridge International curriculum preparing students for globally recognized qualifications.",
     subjects: ["English Language", "Mathematics", "Physics", "Chemistry", "Biology", "Computer Science", "Urdu", "Islamiat"],
-  },
-  {
-    level: "A-Level (Grade 11-12)",
-    description: "Advanced level studies with specialized subject streams for university preparation.",
-    subjects: ["Mathematics", "Physics", "Chemistry", "Biology", "Computer Science", "Economics", "Business Studies", "Accounting"],
   },
 ]
 
@@ -36,46 +31,18 @@ const highlights = [
 
 const faculty = [
   {
-    name: "Mr. Usman Sheikh",
-    designation: "Head of Mathematics",
-    qualifications: "M.Sc. Mathematics, B.Ed.",
-    specialization: "Calculus & Pure Mathematics",
-    bio: "Dedicated to making complex mathematical concepts accessible through interactive problem-solving techniques."
+    name: "Mr. Muhammad Asif Shahyan",
+    designation: "CEO of The Pioneers High School",
+    qualifications: "Masters in Political Science",
+    specialization: "Leadership & Administration",
+    bio: "Driving the vision and strategic direction of The Pioneers High School."
   },
   {
-    name: "Dr. Ayesha Siddiqui",
-    designation: "Senior Physics Faculty",
-    qualifications: "Ph.D. Physics",
-    specialization: "Quantum Mechanics",
-    bio: "Passionate about research-led teaching and inspiring the next generation of experimental physicists."
-  },
-  {
-    name: "Ms. Nadia Jamil",
-    designation: "Department Head, English",
-    qualifications: "M.A. English Literature",
-    specialization: "Contemporary Literature",
-    bio: "Focused on developing critical thinking and expressive writing skills in high school students."
-  },
-  {
-    name: "Mr. Bilal Ahmed",
-    designation: "ICT Coordinator",
-    qualifications: "M.S. Computer Science",
-    specialization: "Software Architecture",
-    bio: "Teaching technology not just as a tool, but as a medium for creative problem-solving."
-  },
-  {
-    name: "Dr. Zainab Rizvi",
-    designation: "Chemistry Specialist",
-    qualifications: "Ph.D. Chemistry",
-    specialization: "Organic Chemistry",
-    bio: "Creating laboratory experiences that bring theoretical chemistry to life for every student."
-  },
-  {
-    name: "Ms. Hira Farooq",
-    designation: "Biology Faculty",
-    qualifications: "M.Phil. Microbiology",
-    specialization: "Genetics",
-    bio: "Exploring the wonders of the natural world through hands-on biological studies and research."
+    name: "Ms. Saeeda Sahar",
+    designation: "Principal of The Pioneers High School",
+    qualifications: "B. Ed",
+    specialization: "Educational Administration",
+    bio: "Dedicated to fostering a supportive and rigorous academic environment for all students."
   },
 ]
 

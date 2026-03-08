@@ -11,10 +11,11 @@ const timeline = [
 ]
 
 const leaders = [
-  { name: "Dr. Ahmad Raza", role: "Principal", department: "Administration" },
-  { name: "Ms. Fatima Khan", role: "Vice Principal", department: "Academics" },
-  { name: "Mr. Hassan Ali", role: "Head of Sciences", department: "STEM" },
-  { name: "Ms. Sarah Malik", role: "Head of Humanities", department: "Arts" },
+  { name: "Mr. Muhammad Asif Shahyan", role: "CEO", department: "Administration" },
+  { name: "Ms. Saeeda Sahar", role: "Principal", department: "Administration" },
+  { name: "Ms. [Name Here]", role: "Head", department: "High Section" },
+  { name: "Ms. [Name Here]", role: "Head", department: "Middle Section" },
+  { name: "Ms. [Name Here]", role: "Head", department: "Primary Section" },
 ]
 
 const values = [
@@ -103,7 +104,7 @@ function AboutContent() {
             <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">Visionaries</p>
             <h2 className="heading-2">Our Leadership Team</h2>
           </AnimatedWrapper>
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
             {leaders.map((leader, i) => (
               <AnimatedWrapper key={leader.name} delay={i * 0.1}>
                 <Card className="glass-card border-none text-center h-full group">
