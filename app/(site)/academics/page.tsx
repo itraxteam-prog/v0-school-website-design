@@ -217,19 +217,21 @@ function AcademicsContent() {
           </AnimatedWrapper>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
             {[
-              { name: "Debate" },
-              { name: "Scrabble" },
-              { name: "Chess" },
-              { name: "Arts" },
-              { name: "Sports" },
+              { name: "Debate", image: "/images/activities/debate.jpg" },
+              { name: "Scrabble", image: "/images/activities/scrabble.jpg" },
+              { name: "Chess", image: "/images/activities/chess.jpg" },
+              { name: "Arts", image: "/images/activities/arts.jpg" },
+              { name: "Sports", image: "/images/activities/sports.jpg" },
             ].map((activity, i) => (
               <AnimatedWrapper key={activity.name} delay={i * 0.1} className="h-full">
                 <Card className="glass-card group hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 border-none h-full bg-background/50 overflow-hidden">
                   <div className="aspect-square w-full bg-muted flex items-center justify-center relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10" />
-                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest group-hover:text-white group-hover:z-20 transition-colors">
-                      Activity Photo
-                    </span>
+                    <img
+                      src={activity.image}
+                      alt={activity.name}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10" />
                   </div>
                   <CardContent className="p-6 text-center">
                     <p className="text-sm font-bold tracking-wider text-muted-foreground group-hover:text-primary transition-colors uppercase">
