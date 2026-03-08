@@ -156,17 +156,16 @@ export function AttendanceDistributionChart({ data }: { data: AttendanceStats })
     return (
         <div className="flex flex-col gap-6">
             {/* Pie Chart */}
-            <div className="h-[240px] w-full">
+            <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie
                             data={chartData}
                             cx="50%"
                             cy="50%"
-                            labelLine={false}
-                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                            innerRadius={60}
                             outerRadius={80}
-                            fill="#8884d8"
+                            paddingAngle={5}
                             dataKey="value"
                         >
                             {chartData.map((entry, index) => (
@@ -180,6 +179,12 @@ export function AttendanceDistributionChart({ data }: { data: AttendanceStats })
                                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                                 fontSize: '12px'
                             }}
+                        />
+                        <Legend
+                            verticalAlign="bottom"
+                            align="center"
+                            iconType="circle"
+                            formatter={(value) => <span className="text-xs font-medium text-muted-foreground">{value}</span>}
                         />
                     </PieChart>
                 </ResponsiveContainer>

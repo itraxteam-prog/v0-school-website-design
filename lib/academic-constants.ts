@@ -24,26 +24,6 @@ export const ASSESSMENT_MONTHS = [
   { value: "february", label: "February" },
 ];
 
-/**
- * Groups months into Terms as per requirements:
- * Term 1: March - July (Mid-term)
- * Term 2: August - December (Final-term)
- */
-export const ACADEMIC_TERMS = [
-  {
-    name: "Term 1 (March - July)",
-    slug: "term-1",
-    months: ASSESSMENT_MONTHS.slice(0, 5),
-    milestone: "mid-term"
-  },
-  {
-    name: "Term 2 (August - December)",
-    slug: "term-2",
-    months: ASSESSMENT_MONTHS.slice(5, 10),
-    milestone: "final-term"
-  }
-];
-
 // Unified list for Select dropdowns across portals
 export const ASSESSMENT_PERIOD_OPTIONS = [
   ...ASSESSMENT_MONTHS.map(m => ({
@@ -79,8 +59,9 @@ export function getTermDisplayLabel(slug: string, includeYear = false): string {
   if (baseSlug === "mid-term") label = "Mid-Term Examination";
   else if (baseSlug === "final-term") label = "Final Examination";
   else if (!month) {
-    // Fallback to title case if not a defined month
-    label = baseSlug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    // Return original slug if not a defined month or milestone, 
+    // avoiding "Term 1" mapping or title-casing legacy data.
+    label = baseSlug;
   }
 
   return includeYear && yearPart ? `${label} ${yearPart}` : label;

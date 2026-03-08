@@ -17,7 +17,7 @@ import {
     Megaphone,
     Users,
 } from "lucide-react"
-import { getTermDisplayLabel, ACADEMIC_YEARS } from "@/lib/academic-constants"
+import { getTermDisplayLabel, ACADEMIC_YEARS, ASSESSMENT_PERIOD_OPTIONS } from "@/lib/academic-constants"
 
 const PARENT_SIDEBAR = [
     { href: "/portal/parent", label: "Dashboard", icon: LayoutDashboard },
@@ -48,6 +48,9 @@ export default function ParentGradesPage() {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString())
     const [grades, setGrades] = useState<Grade[]>([])
     const [activeTerm, setActiveTerm] = useState("All Periods")
+    const [activeSubject, setActiveSubject] = useState("All Subjects")
+    const [availableSubjects, setAvailableSubjects] = useState<string[]>(["All Subjects"])
+    const [availableTerms, setAvailableTerms] = useState<string[]>(["All Periods"])
     const [loading, setLoading] = useState(true)
     const [gradesLoading, setGradesLoading] = useState(false)
 
@@ -81,6 +84,14 @@ export default function ParentGradesPage() {
                 if (res.ok) {
                     const data = await res.json()
                     setGrades(data)
+
+                    const uniqueSubjects = Array.from(new Set(data.map((g: any) => g.class?.name || g.class?.subject || "Unknown"))) as string[];
+                    setAvailableSubjects(["All Subjects", ...uniqueSubjects])
+
+                    const officialTerms = ASSESSMENT_PERIOD_OPTIONS.map(opt => opt.label);
+                    const uniqueResultTerms = Array.from(new Set(data.map((g: any) => getTermDisplayLabel(g.term)))) as string[];
+                    const alignedTerms = uniqueResultTerms.filter((t: string) => officialTerms.includes(t));
+                    setAvailableTerms(["All Periods", ...alignedTerms])
                 }
             } catch (error) {
                 console.error("Failed to fetch grades:", error)
@@ -91,10 +102,11 @@ export default function ParentGradesPage() {
         fetchGrades()
     }, [selectedChildId])
 
-    const terms = ["All Periods", ...Array.from(new Set(grades.map(g => getTermDisplayLabel(g.term))))]
+    // Term generation removed/replaced in above chunk
 
     const filtered = grades.filter(g => {
         const termMatches = activeTerm === "All Periods" || getTermDisplayLabel(g.term) === activeTerm;
+        const subjectMatches = activeSubject === "All Subjects" || g.class?.name === activeSubject || (g.class as any)?.subject === activeSubject;
 
         // Year matching logic
         const yearPrefix = g.term?.split('-')[0];
@@ -102,7 +114,7 @@ export default function ParentGradesPage() {
         const gradeYear = isYearPrefixed ? yearPrefix : new Date(g.createdAt).getFullYear().toString();
         const yearMatches = selectedYear === "All Years" || gradeYear === selectedYear;
 
-        return termMatches && yearMatches;
+        return termMatches && yearMatches && subjectMatches;
     })
 
     const selectedChildName = children.find(c => c.id === selectedChildId)?.name || "Child"
@@ -153,12 +165,23 @@ export default function ParentGradesPage() {
                                 </SelectContent>
                             </Select>
 
+                            <Select value={activeSubject} onValueChange={setActiveSubject}>
+                                <SelectTrigger className="w-full sm:w-[150px] bg-background">
+                                    <SelectValue placeholder="Subject" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {availableSubjects.map((s) => (
+                                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+
                             <Select value={activeTerm} onValueChange={setActiveTerm}>
                                 <SelectTrigger className="w-full sm:w-[150px] bg-background">
                                     <SelectValue placeholder="Period" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {terms.map((t) => (
+                                    {availableTerms.map((t) => (
                                         <SelectItem key={t} value={t}>{t}</SelectItem>
                                     ))}
                                 </SelectContent>
@@ -209,10 +232,10 @@ export default function ParentGradesPage() {
                                                         <TableCell className="text-right font-medium">{grade.marks}</TableCell>
                                                         <TableCell className="text-right">
                                                             <Badge
-                                                                variant={grade.marks >= 80 ? "default" : "secondary"}
+                                                                variant={grade.marks >= 90 ? "default" : grade.marks >= 80 ? "default" : "secondary"}
                                                                 className="font-bold min-w-[2.5rem] justify-center"
                                                             >
-                                                                {grade.marks >= 90 ? "A+" : grade.marks >= 80 ? "A" : grade.marks >= 70 ? "B" : "C"}
+                                                                {grade.marks >= 90 ? "A+" : grade.marks >= 80 ? "A" : grade.marks >= 70 ? "B" : grade.marks >= 60 ? "C" : grade.marks >= 40 ? "D" : "F"}
                                                             </Badge>
                                                         </TableCell>
                                                     </TableRow>

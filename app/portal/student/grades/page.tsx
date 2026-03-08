@@ -15,7 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useSession } from "next-auth/react"
 
 import { STUDENT_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
-import { ACADEMIC_YEARS, getTermDisplayLabel } from "@/lib/academic-constants"
+import { ACADEMIC_YEARS, getTermDisplayLabel, ASSESSMENT_PERIOD_OPTIONS } from "@/lib/academic-constants"
 
 // Internal API base path
 const API_BASE = "/api";
@@ -57,7 +57,13 @@ export default function GradesPage() {
         const result = await res.json();
         setGrades(result.data || []);
         if (result.subjects) setAvailableSubjects(result.subjects);
-        if (result.terms) setAvailableTerms(result.terms);
+
+        // Only show terms that are part of our official academic system
+        const officialTerms = ASSESSMENT_PERIOD_OPTIONS.map(opt => opt.label);
+        const uniqueResultTerms = Array.from(new Set((result.data || []).map((g: any) => g.termDisplay))) as string[];
+        const alignedTerms = uniqueResultTerms.filter((t: string) => officialTerms.includes(t));
+
+        setAvailableTerms(["All Periods", ...alignedTerms]);
       } catch (error: any) {
         console.error("Failed to fetch grades", error);
       } finally {
@@ -154,7 +160,7 @@ export default function GradesPage() {
                 <Skeleton className="h-[300px] w-full rounded-xl" />
               ) : (
                 <PerformanceTrendChart data={filteredGrades.map(g => ({
-                  month: getTermDisplayLabel(g.term),
+                  month: g.termDisplay,
                   score: g.marks
                 })).slice(-6)} />
 
