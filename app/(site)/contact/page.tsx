@@ -17,10 +17,10 @@ const contactInfo = [
 ]
 
 const departments = [
-  { name: "Admissions Office", phone: "+92 300 1234567", email: "admissions@pioneershigh.edu" },
-  { name: "Academics Department", phone: "+92 300 2345678", email: "academics@pioneershigh.edu" },
-  { name: "Finance & Accounts", phone: "+92 300 3456789", email: "finance@pioneershigh.edu" },
-  { name: "Student Affairs", phone: "+92 300 4567890", email: "studentaffairs@pioneershigh.edu" },
+  { name: "Admissions Office", phone: "+92 313 8692098, +92 315 8020097", email: "thepioneershighschool@gmail.com" },
+  { name: "Academics Department", phone: "+92 313 8692098, +92 315 8020097", email: "thepioneershighschool@gmail.com" },
+  { name: "Finance & Accounts", phone: "+92 313 8692098, +92 315 8020097", email: "thepioneershighschool@gmail.com" },
+  { name: "Student Affairs", phone: "+92 313 8692098, +92 315 8020097", email: "thepioneershighschool@gmail.com" },
 ]
 
 function ContactContent() {
