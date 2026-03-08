@@ -29,7 +29,7 @@ export function FacultySection({ faculty }: FacultySectionProps) {
                         <h2 className="heading-2">Faculty Spotlight</h2>
                         <p className="text-muted-foreground mt-4 max-w-xl mx-auto">Click on a faculty member to view their complete professional profile.</p>
                     </AnimatedWrapper>
-                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
                         {faculty.map((f, i) => (
                             <AnimatedWrapper key={f.name} delay={i * 0.1}>
                                 <Card
