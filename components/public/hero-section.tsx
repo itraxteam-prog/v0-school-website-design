@@ -32,7 +32,7 @@ export function HeroSection() {
 
           <AnimatedWrapper direction="up" delay={0.3}>
             <p className="mb-8 max-w-xl text-base leading-relaxed text-white/80 md:text-lg">
-              The Pioneers High School is a premier K-12 academic institution committed
+              The Pioneers High School is a premier K-10 academic institution committed
               to academic excellence, discipline, and holistic student development.
             </p>
           </AnimatedWrapper>

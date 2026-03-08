@@ -4,10 +4,10 @@ import { CountUp } from "@/components/public/count-up"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 
 const stats = [
-  { value: 28, suffix: "+", label: "Years of Excellence" },
+  { value: 12, suffix: "+", label: "Years of Excellence" },
   { value: 15, suffix: ":1", label: "Student-Teacher Ratio" },
   { value: 98, suffix: "%", label: "Graduation Rate" },
-  { value: 85, suffix: "%", label: "University Placements" },
+  { value: 85, suffix: "%", label: "Scholarships" },
 ]
 
 export function StatsSection() {

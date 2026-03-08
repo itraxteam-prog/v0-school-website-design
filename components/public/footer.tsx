@@ -99,15 +99,15 @@ export function Footer() {
             <ul className="flex flex-col gap-3">
               <li className="flex items-start gap-2 text-sm text-white/70">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>123 Education Avenue, Academic City</span>
+                <span>99 Street, Near Milo Chowk Alamdar Road, Quetta.</span>
               </li>
               <li className="flex items-center gap-2 text-sm text-white/70">
                 <Phone className="h-4 w-4 shrink-0" />
-                <span>+92 300 1234567</span>
+                <span>+92 313 8692098, +92 315 8020097</span>
               </li>
               <li className="flex items-center gap-2 text-sm text-white/70">
                 <Mail className="h-4 w-4 shrink-0" />
-                <span>info@pioneershigh.edu</span>
+                <span>thepioneershighschool@gmail.com</span>
               </li>
             </ul>
           </div>

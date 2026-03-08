@@ -6,8 +6,6 @@ const campusItems = [
   { title: "Science Labs", category: "Academics", aspect: "aspect-[4/3]" },
   { title: "School Library", category: "Resources", aspect: "aspect-[4/3]" },
   { title: "Sports Complex", category: "Athletics", aspect: "aspect-[4/3]" },
-  { title: "Art Studio", category: "Creative Arts", aspect: "aspect-[4/3]" },
-  { title: "Auditorium", category: "Events", aspect: "aspect-[4/3]" },
   { title: "Computer Lab", category: "Technology", aspect: "aspect-[4/3]" },
 ]
 
@@ -26,7 +24,7 @@ export function CampusLifeSection() {
           </h2>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2 lg:gap-6">
           {campusItems.map((item, i) => (
             <div
               key={item.title}
