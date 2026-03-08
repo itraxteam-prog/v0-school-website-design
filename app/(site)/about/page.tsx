@@ -13,8 +13,9 @@ const timeline = [
 const leaders = [
   { name: "Mr. Muhammad Asif Shahyan", role: "CEO", department: "Administration", image: "/images/ceo.jpg" },
   { name: "Ms. Saeeda Sahar", role: "Principal", department: "Administration" },
-  { name: "Ms. Shazia", role: "Head", department: "Middle Section" },
-  { name: "Ms. Zainab", role: "Head", department: "Primary Section" },
+  { name: "Ms. Shazia", role: "Head", department: "High Section" },
+  { name: "Ms. Zainab", role: "Head", department: "Middle Section" },
+  { name: "Ms. Batool", role: "Head", department: "Primary Section" },
 ]
 
 const values = [

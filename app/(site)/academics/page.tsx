@@ -131,50 +131,79 @@ function AcademicsContent() {
       </section>
 
       {/* Academic Year & Assessments */}
-      <section className="bg-background py-16 md:py-24">
+      <section className="bg-background py-16 md:py-28 overflow-hidden">
         <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8">
-          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
-            <AnimatedWrapper direction="left">
-              <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-primary">Academic Structure</p>
-              <h2 className="heading-2 mb-6">Academic Year & Assessments</h2>
-              <p className="text-base leading-relaxed text-muted-foreground/80 mb-8">
-                The academic year is structured into two comprehensive terms to ensure balanced learning and thorough evaluation of student progress.
-              </p>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-2xl bg-secondary/50 p-6 border border-primary/5">
-                  <h4 className="text-sm font-bold uppercase tracking-wider text-primary mb-2">1st Term</h4>
-                  <p className="text-sm text-muted-foreground">March to July</p>
+          <AnimatedWrapper direction="up" className="mb-16 text-center">
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.4em] text-primary">Academic Excellence</p>
+            <h2 className="heading-1 font-serif text-foreground">Academic Year <span className="text-burgundy-gradient">&</span> Assessments</h2>
+          </AnimatedWrapper>
+
+          <div className="relative">
+            {/* Roadmap Line */}
+            <div className="absolute top-1/2 left-0 w-full h-px bg-primary/10 hidden lg:block -translate-y-1/2" />
+
+            <div className="grid lg:grid-cols-2 gap-12 lg:gap-24 relative z-10">
+              {/* Year Roadmap */}
+              <div className="space-y-8">
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="h-0.5 w-12 bg-burgundy-gradient rounded-full" />
+                  <h3 className="text-lg font-serif font-bold text-primary italic">The Academic Cycle</h3>
                 </div>
-                <div className="rounded-2xl bg-secondary/50 p-6 border border-primary/5">
-                  <h4 className="text-sm font-bold uppercase tracking-wider text-primary mb-2">2nd Term</h4>
-                  <p className="text-sm text-muted-foreground">August to December</p>
+                <div className="grid gap-6">
+                  <AnimatedWrapper direction="left" className="group">
+                    <div className="glass-panel p-8 rounded-[2rem] border-primary/5 hover:border-primary/20 transition-all hover:shadow-2xl bg-secondary/20 relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-1.5 h-full bg-burgundy-gradient" />
+                      <div className="flex justify-between items-start mb-4">
+                        <span className="text-xs font-bold uppercase tracking-widest text-primary/60">Phase One</span>
+                        <span className="text-xs font-bold text-primary bg-primary/5 px-3 py-1 rounded-full uppercase tracking-tighter italic">March - July</span>
+                      </div>
+                      <h4 className="heading-3 mb-2 font-serif">1st Term</h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">Foundation phase focusing on core competencies and primary term milestones.</p>
+                    </div>
+                  </AnimatedWrapper>
+
+                  <AnimatedWrapper direction="left" delay={0.1} className="group">
+                    <div className="glass-panel p-8 rounded-[2rem] border-primary/5 hover:border-primary/20 transition-all hover:shadow-2xl bg-secondary/20 relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-1.5 h-full bg-burgundy-gradient" />
+                      <div className="flex justify-between items-start mb-4">
+                        <span className="text-xs font-bold uppercase tracking-widest text-primary/60">Phase Two</span>
+                        <span className="text-xs font-bold text-primary bg-primary/5 px-3 py-1 rounded-full uppercase tracking-tighter italic">August - December</span>
+                      </div>
+                      <h4 className="heading-3 mb-2 font-serif">2nd Term</h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">Consolidation and final evaluations phase, leading to end-of-year results.</p>
+                    </div>
+                  </AnimatedWrapper>
                 </div>
               </div>
-            </AnimatedWrapper>
-            <AnimatedWrapper direction="right">
-              <Card className="glass-card border-none overflow-hidden">
-                <CardContent className="p-0">
-                  <div className="bg-burgundy-gradient p-6 text-white text-center">
-                    <h3 className="heading-3">Assessment System</h3>
-                  </div>
-                  <div className="p-8 grid gap-4">
-                    {[
-                      "Admission Tests",
-                      "Informal Assessments",
-                      "First Term Examination",
-                      "Second Term Examination"
-                    ].map((item, i) => (
-                      <div key={item} className="flex items-center gap-4 text-sm font-medium text-muted-foreground">
-                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-[10px] font-bold">
-                          {i + 1}
+
+              {/* Assessment Roadmap */}
+              <div className="space-y-8">
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="h-0.5 w-12 bg-burgundy-gradient rounded-full" />
+                  <h3 className="text-lg font-serif font-bold text-primary italic">Evaluation Milestones</h3>
+                </div>
+                <div className="grid gap-4">
+                  {[
+                    { title: "Admission Tests", desc: "Evaluating readiness for initial enrollment." },
+                    { title: "Informal Assessments", desc: "Continuous monitoring of progress throughout the year." },
+                    { title: "First Term Examination", desc: "Summative evaluation of first half curriculum." },
+                    { title: "Second Term Examination", desc: "Final examination covering the complete academic scope." }
+                  ].map((item, i) => (
+                    <AnimatedWrapper key={item.title} direction="right" delay={i * 0.1}>
+                      <div className="flex items-start gap-6 group hover:translate-x-2 transition-transform">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-burgundy-glow text-white shadow-lg group-hover:scale-110 transition-transform">
+                          <span className="text-xs font-bold">{i + 1}</span>
                         </div>
-                        {item}
+                        <div className="pt-1">
+                          <h4 className="text-base font-bold text-foreground group-hover:text-primary transition-colors">{item.title}</h4>
+                          <p className="text-sm text-muted-foreground leading-relaxed mt-1">{item.desc}</p>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </AnimatedWrapper>
+                    </AnimatedWrapper>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
