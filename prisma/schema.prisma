@@ -297,6 +297,7 @@ enum TargetRole {
   TEACHER
   STUDENT
   ALL
+  HOMEPAGE
 }
 
 enum SubmissionStatus {

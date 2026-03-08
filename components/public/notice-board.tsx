@@ -1,27 +1,35 @@
-"use client"
-
-import { Megaphone, ArrowRight } from "lucide-react"
+import { Megaphone, ArrowRight, Calendar } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { Card, CardContent } from "@/components/ui/card"
 import { sanitizeHtml } from "@/lib/sanitize"
+import { prisma } from "@/lib/prisma"
 
-const notices = [
-    { id: 1, title: "Annual Science Fair 2026 Registration Open", date: "Feb 20, 2026", type: "Urgent", content: "Students are invited to register their projects by the end of next week." },
-    { id: 2, title: "Summer Internship Program for Grade 11-12", date: "Feb 18, 2026", type: "Latest", content: "Apply for our exclusive internship partners in tech and social work." },
-    { id: 3, title: "Updated Examination Schedule - Term 2", date: "Feb 15, 2026", type: "Normal", content: "Please check the portal for the updated datesheet." },
-]
+export async function NoticeBoard() {
+    const notices = await prisma.announcement.findMany({
+        where: {
+            targetRole: "HOMEPAGE"
+        },
+        orderBy: {
+            createdAt: "desc"
+        },
+        take: 3
+    })
 
-export function NoticeBoard() {
+    if (notices.length === 0) return null;
+
     return (
-        <section className="py-16 bg-background relative">
+        <section className="py-24 bg-background relative overflow-hidden">
             <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-            <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8">
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
-                    <div>
+            <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+                    <div className="space-y-4">
                         <AnimatedWrapper direction="left">
-                            <span className="text-xs font-bold uppercase tracking-[0.2em] text-primary mb-2 block">Announcements</span>
-                            <h2 className="heading-2">Bulletin & Notices</h2>
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
+                                <Megaphone className="h-3.5 w-3.5 text-primary" />
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Official Updates</span>
+                            </div>
+                            <h2 className="heading-2 mt-4">Bulletin & Notices</h2>
                         </AnimatedWrapper>
                     </div>
                     <AnimatedWrapper direction="right">
@@ -31,31 +39,31 @@ export function NoticeBoard() {
                     </AnimatedWrapper>
                 </div>
 
-                <div className="grid gap-6">
+                <div className="grid gap-8">
                     {notices.map((notice, index) => (
                         <AnimatedWrapper key={notice.id} delay={index * 0.1}>
-                            <Card className={`glass-card border-none overflow-hidden transition-all hover:shadow-2xl hover:-translate-y-1 ${notice.type === 'Urgent' ? 'ring-1 ring-primary/20' : ''}`}>
+                            <Card className="glass-card border-none overflow-hidden transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 group">
                                 <CardContent className="p-0">
                                     <div className="flex flex-col md:flex-row">
-                                        <div className={`p-6 md:w-56 flex flex-col justify-center items-start border-b md:border-b-0 md:border-r border-primary/5 ${notice.type === 'Urgent' ? 'bg-burgundy-glow text-white' : 'bg-muted/30'}`}>
-                                            {notice.type === 'Urgent' && (
-                                                <Badge className="bg-white text-primary hover:bg-white mb-3 animate-pulse ring-4 ring-white/20 text-[10px] font-bold uppercase">
-                                                    Urgent
-                                                </Badge>
-                                            )}
-                                            {notice.type === 'Latest' && (
-                                                <Badge className="bg-primary hover:bg-primary text-white mb-3 text-[10px] font-bold uppercase">
-                                                    Latest
-                                                </Badge>
-                                            )}
-                                            <span className={`text-[10px] font-bold uppercase tracking-widest ${notice.type === 'Urgent' ? 'text-white/70' : 'text-muted-foreground'}`}>{notice.date}</span>
+                                        <div className="p-8 md:w-64 flex flex-col justify-center items-start bg-muted/30 border-b md:border-b-0 md:border-r border-border/50 relative">
+                                            <Badge className="bg-primary hover:bg-primary text-white mb-4 text-[10px] font-bold uppercase tracking-wider px-3 py-1">
+                                                Latest
+                                            </Badge>
+                                            <div className="flex items-center gap-2 text-muted-foreground">
+                                                <Calendar className="h-3.5 w-3.5" />
+                                                <span className="text-[10px] font-bold uppercase tracking-widest">
+                                                    {new Date(notice.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div className="p-6 flex-1 flex flex-col justify-center">
-                                            <h3 className="heading-3 mb-2 line-clamp-1">{notice.title}</h3>
-                                            <p className="text-sm text-muted-foreground font-medium line-clamp-1 italic">&ldquo;{sanitizeHtml(notice.content)}&rdquo;</p>
+                                        <div className="p-8 flex-1 flex flex-col justify-center bg-gradient-to-r from-transparent to-primary/5">
+                                            <h3 className="heading-3 mb-3 group-hover:text-primary transition-colors">{notice.title}</h3>
+                                            <p className="text-muted-foreground leading-relaxed italic text-base">
+                                                &ldquo;{sanitizeHtml(notice.content)}&rdquo;
+                                            </p>
                                         </div>
-                                        <div className="p-6 md:pr-8 flex items-center justify-end">
-                                            <button className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center hover:bg-primary hover:text-white transition-all shadow-sm">
+                                        <div className="p-8 flex items-center justify-end">
+                                            <button className="h-12 w-12 rounded-2xl bg-secondary flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-burgundy-glow">
                                                 <ArrowRight className="h-5 w-5" />
                                             </button>
                                         </div>
