@@ -35,6 +35,7 @@ const faculty = [
     designation: "CEO of The Pioneers High School",
     qualifications: "Masters in Political Science",
     specialization: "Leadership & Administration",
+    image: "/images/ceo.jpg",
     bio: "Driving the vision and strategic direction of The Pioneers High School."
   },
   {
@@ -187,18 +188,21 @@ function AcademicsContent() {
           </AnimatedWrapper>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
             {[
-              { name: "Debate", icon: Mic2 },
-              { name: "Scrabble", icon: LayoutGrid },
-              { name: "Chess", icon: Trophy },
-              { name: "Arts", icon: Palette },
-              { name: "Sports", icon: Dribbble },
+              { name: "Debate" },
+              { name: "Scrabble" },
+              { name: "Chess" },
+              { name: "Arts" },
+              { name: "Sports" },
             ].map((activity, i) => (
               <AnimatedWrapper key={activity.name} delay={i * 0.1} className="h-full">
-                <Card className="glass-card group hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 border-none h-full bg-background/50">
-                  <CardContent className="flex flex-col items-center justify-center p-8 gap-4">
-                    <div className="h-14 w-14 rounded-2xl bg-burgundy-glow flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
-                      <activity.icon className="h-6 w-6" />
-                    </div>
+                <Card className="glass-card group hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 border-none h-full bg-background/50 overflow-hidden">
+                  <div className="aspect-square w-full bg-muted flex items-center justify-center relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10" />
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest group-hover:text-white group-hover:z-20 transition-colors">
+                      Activity Photo
+                    </span>
+                  </div>
+                  <CardContent className="p-6 text-center">
                     <p className="text-sm font-bold tracking-wider text-muted-foreground group-hover:text-primary transition-colors uppercase">
                       {activity.name}
                     </p>

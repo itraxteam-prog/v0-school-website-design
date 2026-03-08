@@ -11,6 +11,7 @@ interface FacultyMember {
     qualifications: string;
     specialization: string;
     bio: string;
+    image?: string;
 }
 
 interface FacultySectionProps {
@@ -37,9 +38,11 @@ export function FacultySection({ faculty }: FacultySectionProps) {
                                     onClick={() => setSelectedMember(f)}
                                 >
                                     <CardContent className="flex items-center gap-5 p-6">
-                                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-muted overflow-hidden border border-white/20 group-hover:scale-105 transition-transform">
-                                            <span className="text-[10px] text-muted-foreground uppercase font-bold">Photo</span>
-                                        </div>
+                                        {f.image ? (
+                                            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl overflow-hidden border border-white/20 group-hover:scale-105 transition-transform">
+                                                <img src={f.image} alt={f.name} className="h-full w-full object-cover" />
+                                            </div>
+                                        ) : null}
                                         <div className="flex-1">
                                             <h3 className="text-base font-bold text-card-foreground line-clamp-1 group-hover:text-primary transition-colors">{f.name}</h3>
                                             <p className="text-xs font-bold text-primary uppercase tracking-wider mb-1 mt-1">{f.designation}</p>

@@ -11,11 +11,10 @@ const timeline = [
 ]
 
 const leaders = [
-  { name: "Mr. Muhammad Asif Shahyan", role: "CEO", department: "Administration" },
+  { name: "Mr. Muhammad Asif Shahyan", role: "CEO", department: "Administration", image: "/images/ceo.jpg" },
   { name: "Ms. Saeeda Sahar", role: "Principal", department: "Administration" },
-  { name: "Ms. [Name Here]", role: "Head", department: "High Section" },
-  { name: "Ms. [Name Here]", role: "Head", department: "Middle Section" },
-  { name: "Ms. [Name Here]", role: "Head", department: "Primary Section" },
+  { name: "Ms. Shazia", role: "Head", department: "Middle Section" },
+  { name: "Ms. Zainab", role: "Head", department: "Primary Section" },
 ]
 
 const values = [
@@ -121,9 +120,11 @@ function AboutContent() {
               <AnimatedWrapper key={leader.name} delay={i * 0.1}>
                 <Card className="glass-card border-none text-center h-full group">
                   <CardContent className="flex flex-col items-center gap-4 p-8">
-                    <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-muted overflow-hidden border border-white/20 shadow-inner group-hover:scale-105 transition-transform">
-                      <span className="text-xs text-muted-foreground uppercase font-bold">Photo</span>
-                    </div>
+                    {leader.image ? (
+                      <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-muted overflow-hidden border border-white/20 shadow-inner group-hover:scale-105 transition-transform">
+                        <img src={leader.image} alt={leader.name} className="h-full w-full object-cover" />
+                      </div>
+                    ) : null}
                     <div>
                       <h3 className="heading-3 mb-1">{leader.name}</h3>
                       <p className="text-xs font-bold text-primary uppercase tracking-widest mb-1">{leader.role}</p>
@@ -146,9 +147,7 @@ function AboutContent() {
               <div className="grid lg:grid-cols-12 gap-12 lg:gap-20 items-center">
                 <div className="lg:col-span-4 relative group">
                   <div className="aspect-[4/5] overflow-hidden rounded-[2.5rem] bg-muted relative z-10 shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
-                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground font-bold uppercase tracking-widest text-sm text-center p-8 bg-gradient-to-br from-secondary to-muted">
-                      Mr. Muhammad Asif Shahyan
-                    </div>
+                    <img src="/images/ceo.jpg" alt="Mr. Muhammad Asif Shahyan" className="h-full w-full object-cover" />
                   </div>
                   <div className="absolute -inset-4 bg-burgundy-glow rounded-[3rem] blur-2xl opacity-10 group-hover:opacity-20 transition-opacity" />
                   <div className="absolute -bottom-6 -right-6 h-24 w-24 bg-background rounded-3xl shadow-xl flex items-center justify-center text-primary z-20">
@@ -195,16 +194,8 @@ function AboutContent() {
                     </div>
                   </div>
                 </div>
-                <div className="lg:col-span-4 order-1 lg:order-2 relative group">
-                  <div className="aspect-[4/5] overflow-hidden rounded-[2.5rem] bg-muted relative z-10 shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
-                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground font-bold uppercase tracking-widest text-sm text-center p-8 bg-gradient-to-br from-secondary to-muted">
-                      Ms. Saeeda Sahar
-                    </div>
-                  </div>
-                  <div className="absolute -inset-4 bg-burgundy-glow rounded-[3rem] blur-2xl opacity-10 group-hover:opacity-20 transition-opacity" />
-                  <div className="absolute -bottom-6 -left-6 h-24 w-24 bg-background rounded-3xl shadow-xl flex items-center justify-center text-primary z-20">
-                    <Quote className="h-10 w-10 fill-primary/10 stroke-primary/40 rotate-180" />
-                  </div>
+                <div className="lg:col-span-4 order-1 lg:order-2 relative group hidden">
+                  {/* Portrait Hidden as requested */}
                 </div>
               </div>
             </AnimatedWrapper>
