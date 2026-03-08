@@ -10,10 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MapPin, Phone, Mail, Clock } from "lucide-react"
 
 const contactInfo = [
-  { icon: MapPin, label: "Address", value: "123 Education Avenue, Academic City, Pakistan" },
-  { icon: Phone, label: "Phone", value: "+92 300 1234567" },
-  { icon: Mail, label: "Email", value: "info@pioneershigh.edu" },
-  { icon: Clock, label: "Office Hours", value: "Mon - Fri: 8:00 AM - 3:00 PM\nSat: 9:00 AM - 12:00 PM" },
+  { icon: MapPin, label: "Address", value: "99 Street, Near Milo Chowk Alamdar Road, Quetta." },
+  { icon: Phone, label: "Phone", value: "+92 313 8692098, +92 315 8020097" },
+  { icon: Mail, label: "Email", value: "thepioneershighschool@gmail.com" },
+  { icon: Clock, label: "Office Hours", value: "Mon - Fri: 8:00 AM - 8:00 PM" },
 ]
 
 const departments = [
