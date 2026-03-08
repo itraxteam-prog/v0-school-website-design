@@ -4,6 +4,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { getTermDisplayLabel } from "@/lib/academic-constants"
 
 export async function GET() {
     try {
@@ -69,23 +70,11 @@ export async function GET() {
             }
         })
 
-        const termMapping: Record<string, string> = {
-            "september-2025": "September 2025",
-            "october-2025": "October 2025",
-            "november-2025": "November 2025",
-            "mid-term": "Mid-Term Exam",
-            "december-2025": "December 2025",
-            "january-2026": "January 2026",
-            "february-2026": "February 2026",
-            "march-2026": "March 2026",
-            "final-term": "Final Exam"
-        };
-
         const uniqueTerms = Array.from(new Set(formatted.map(g => g.term)))
-            .map(t => termMapping[t] || t);
+            .map(t => getTermDisplayLabel(t));
 
         return NextResponse.json({
-            data: formatted.map(g => ({ ...g, termDisplay: termMapping[g.term] || g.term })),
+            data: formatted.map(g => ({ ...g, termDisplay: getTermDisplayLabel(g.term) })),
             subjects: ["All Subjects", ...classSubjectsRaw],
             terms: ["All Periods", ...uniqueTerms]
         })

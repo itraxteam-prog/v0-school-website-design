@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -34,6 +35,7 @@ import {
 import dynamic from "next/dynamic"
 import { AppLayout } from "@/components/layout/app-layout"
 import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+import { ASSESSMENT_PERIOD_OPTIONS } from "@/lib/academic-constants"
 
 const ReportAttendanceChart = dynamic(() => import("@/components/portal/report-charts").then(mod => mod.ReportAttendanceChart), { ssr: false });
 
@@ -47,24 +49,40 @@ interface ReportsManagerProps {
             totalStudents: number;
             absenteeRate: string;
         }
-    }
+    };
+    classes: any[];
+    currentFilters: {
+        term?: string;
+        classId?: string;
+        startDate?: string;
+        endDate?: string;
+    };
 }
 
-export function ReportsManager({ initialData }: ReportsManagerProps) {
+export function ReportsManager({ initialData, classes, currentFilters }: ReportsManagerProps) {
+    const router = useRouter()
+    const searchParams = useSearchParams()
+
     const [reportType, setReportType] = useState("student-performance")
     const [loading, setLoading] = useState(false)
-    const [showPreview, setShowPreview] = useState(false)
+    const [showPreview, setShowPreview] = useState(true)
     const [filters, setFilters] = useState({
-        term: "spring26",
-        classId: "all"
+        term: currentFilters.term || "mid-term",
+        classId: currentFilters.classId || "all",
+        startDate: currentFilters.startDate || "",
+        endDate: currentFilters.endDate || ""
     })
 
     const handleGenerateReport = () => {
         setLoading(true)
-        setShowPreview(false)
-        // Immediate preview since data is pre-fetched
-        setLoading(false)
-        setShowPreview(true)
+        const params = new URLSearchParams()
+        if (filters.term) params.set("term", filters.term)
+        if (filters.classId) params.set("classId", filters.classId)
+        if (filters.startDate) params.set("startDate", filters.startDate)
+        if (filters.endDate) params.set("endDate", filters.endDate)
+
+        router.push(`/portal/admin/reports?${params.toString()}`)
+        setTimeout(() => setLoading(false), 500)
     }
 
     const handleExportCSV = () => {
@@ -122,8 +140,9 @@ export function ReportsManager({ initialData }: ReportsManagerProps) {
                                 <Select value={filters.term} onValueChange={(v) => setFilters(prev => ({ ...prev, term: v }))}>
                                     <SelectTrigger className="h-11 glass-card"><SelectValue placeholder="Select term" /></SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="spring26">Spring 2026</SelectItem>
-                                        <SelectItem value="fall25">Fall 2025</SelectItem>
+                                        {ASSESSMENT_PERIOD_OPTIONS.map(opt => (
+                                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -134,17 +153,32 @@ export function ReportsManager({ initialData }: ReportsManagerProps) {
                                     <SelectTrigger className="h-11 glass-card"><SelectValue placeholder="Select class" /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="all">All Classes</SelectItem>
-                                        <SelectItem value="10a">10-A</SelectItem>
-                                        <SelectItem value="10b">10-B</SelectItem>
+                                        {classes.map(c => (
+                                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>
 
                             <div className="flex flex-col gap-2">
                                 <Label className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Date Range</Label>
-                                <div className="relative">
-                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <Input type="text" placeholder="Jan 2026 - Jun 2026" className="h-11 pl-9 glass-card" readOnly />
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div className="relative">
+                                        <Input
+                                            type="date"
+                                            value={filters.startDate}
+                                            onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
+                                            className="h-11 pl-2 glass-card text-xs"
+                                        />
+                                    </div>
+                                    <div className="relative">
+                                        <Input
+                                            type="date"
+                                            value={filters.endDate}
+                                            onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
+                                            className="h-11 pl-2 glass-card text-xs"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>

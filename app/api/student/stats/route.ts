@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { withTimeout } from "@/lib/server-timeout";
 import { logger } from "@/lib/logger";
+import { getTermDisplayLabel } from "@/lib/academic-constants";
 
 const getCachedStudentStats = unstable_cache(
     async (studentId: string) => {
@@ -75,10 +76,15 @@ const getCachedStudentStats = unstable_cache(
 
         const performanceTrend = Object.entries(trendMap)
             .map(([period, stats]) => {
-                const name = period.split('-')[0];
-                const readable = name.charAt(0).toUpperCase() + name.slice(1, 3);
+                const fullLabel = getTermDisplayLabel(period);
+                let label = fullLabel;
+
+                if (period === "mid-term") label = "Mid-Term";
+                else if (period === "final-term") label = "Final Exam";
+                else label = fullLabel.slice(0, 3); // Month abbreviation
+
                 return {
-                    month: readable,
+                    month: label,
                     score: Math.round(stats.total / stats.count)
                 };
             })
@@ -112,7 +118,7 @@ const getCachedStudentStats = unstable_cache(
                 const subName = classSubs.find((s: string) => s.toLowerCase().replace(/\s+/g, '-') === g.subjectId) || g.subjectId;
                 return {
                     sub: subName,
-                    type: g.term,
+                    type: getTermDisplayLabel(g.term),
                     date: g.createdAt.toLocaleDateString(),
                     marks: g.marks,
                     grade: g.marks >= 90 ? "A+" : g.marks >= 80 ? "A" : g.marks >= 70 ? "B" : "C"

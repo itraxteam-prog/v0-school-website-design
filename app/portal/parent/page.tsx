@@ -16,6 +16,7 @@ import {
     TrendingUp,
     Users,
 } from "lucide-react"
+import { getTermDisplayLabel } from "@/lib/academic-constants"
 
 const PARENT_SIDEBAR = [
     { href: "/portal/parent", label: "Dashboard", icon: LayoutDashboard },
@@ -94,21 +95,9 @@ export default function ParentDashboard() {
                     ? Math.round((presentCount / attendance.length) * 100) + "%"
                     : "0%"
 
-                const termMapping: Record<string, string> = {
-                    "september-2025": "Sept",
-                    "october-2025": "Oct",
-                    "november-2025": "Nov",
-                    "mid-term": "Mid-Term",
-                    "december-2025": "Dec",
-                    "january-2026": "Jan",
-                    "february-2026": "Feb",
-                    "march-2026": "Mar",
-                    "final-term": "Finals"
-                };
-
                 // Get latest grade
                 const latestGrade = grades.length > 0
-                    ? grades[0].marks + " (" + (termMapping[grades[0].term] || grades[0].term) + ")"
+                    ? `${grades[0].marks} (${getTermDisplayLabel(grades[0].term)})`
                     : "No data"
 
                 // Get next class (simplified: first class of the day or first in list)

@@ -16,6 +16,7 @@ const API_BASE = "/api";
 
 import { useSession } from "next-auth/react"
 import { STUDENT_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+import { ACADEMIC_YEARS, ASSESSMENT_MONTHS } from "@/lib/academic-constants"
 
 type AttendanceStatus = "present" | "absent" | "late" | "excused" | "none";
 
@@ -27,20 +28,11 @@ const statusColors = {
   none: "",
 }
 
-const months = [
-  "January 2026",
-  "February 2026",
-  "March 2026",
-  "April 2026",
-  "May 2026",
-  "June 2026",
-  "July 2026",
-  "August 2026",
-  "September 2025",
-  "October 2025",
-  "November 2025",
-  "December 2025",
-]
+const months = ACADEMIC_YEARS.flatMap(year =>
+  ASSESSMENT_MONTHS.map(m => `${m.label} ${year}`)
+)
+// Sort them so recent/upcoming are easier to find if needed, 
+// though flat list from 2026-2075 is fine.
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
@@ -127,7 +119,13 @@ function calculateStats(calendar: { day: number; status: AttendanceStatus }[][])
 }
 
 export default function AttendancePage() {
-  const [activeMonth, setActiveMonth] = useState("February 2026")
+  const currentMonthName = format(new Date(), "MMMM")
+  const currentYear = format(new Date(), "yyyy")
+  const defaultMonth = months.includes(`${currentMonthName} ${currentYear}`)
+    ? `${currentMonthName} ${currentYear}`
+    : months[0]
+
+  const [activeMonth, setActiveMonth] = useState(defaultMonth)
   const [loading, setLoading] = useState(true)
   const [attendanceRecords, setAttendanceRecords] = useState<any[]>([])
   const { data: session } = useSession()

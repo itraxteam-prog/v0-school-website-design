@@ -30,6 +30,7 @@ const EnrollmentStatsChart = dynamic(() => import("@/components/portal/analytics
 const SubjectPerformanceChart = dynamic(() => import("@/components/portal/analytics-charts").then(mod => mod.SubjectPerformanceChart), { ssr: false });
 
 import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+import { ACADEMIC_YEARS, ASSESSMENT_PERIOD_OPTIONS } from "@/lib/academic-constants"
 
 const chartConfig = {
     gridStroke: "#E5E7EB",
@@ -53,9 +54,9 @@ export function AnalyticsDashboardClient({ user }: { user: any }) {
         subjectPerformance: []
     })
     const [filters, setFilters] = useState({
-        term: "september-2025",
+        term: ASSESSMENT_PERIOD_OPTIONS[0]?.value || "march",
         classId: "all",
-        year: "2025"
+        year: ACADEMIC_YEARS[0] || "2026"
     })
     const [classes, setClasses] = useState<any[]>([])
 
@@ -112,15 +113,9 @@ export function AnalyticsDashboardClient({ user }: { user: any }) {
                                     <SelectValue placeholder="Period" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="september-2025">September 2025</SelectItem>
-                                    <SelectItem value="october-2025">October 2025</SelectItem>
-                                    <SelectItem value="november-2025">November 2025</SelectItem>
-                                    <SelectItem value="mid-term">Mid-Term Exam</SelectItem>
-                                    <SelectItem value="december-2025">December 2025</SelectItem>
-                                    <SelectItem value="january-2026">January 2026</SelectItem>
-                                    <SelectItem value="february-2026">February 2026</SelectItem>
-                                    <SelectItem value="march-2026">March 2026</SelectItem>
-                                    <SelectItem value="final-term">Final Examination</SelectItem>
+                                    {ASSESSMENT_PERIOD_OPTIONS.map(opt => (
+                                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -145,8 +140,9 @@ export function AnalyticsDashboardClient({ user }: { user: any }) {
                                     <SelectValue placeholder="Year" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="2024">2024</SelectItem>
-                                    <SelectItem value="2025">2025</SelectItem>
+                                    {ACADEMIC_YEARS.map(year => (
+                                        <SelectItem key={year} value={year}>{year}</SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </div>

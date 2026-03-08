@@ -32,6 +32,7 @@ const TeacherPerformanceOverviewChart = dynamic(() => import("@/components/porta
 
 import { useSession } from "next-auth/react"
 import { TEACHER_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+import { ASSESSMENT_PERIOD_OPTIONS } from "@/lib/academic-constants"
 
 interface TeacherReportsManagerProps {
     initialPerformanceData: any[];
@@ -47,7 +48,7 @@ export function TeacherReportsManager({
     initialClasses
 }: TeacherReportsManagerProps) {
     const [loading, setLoading] = useState(false)
-    const [selectedTerm, setSelectedTerm] = useState("term1")
+    const [selectedTerm, setSelectedTerm] = useState("mid-term")
     const [selectedClass, setSelectedClass] = useState(initialClasses[0]?.id || "")
     const [searchQuery, setSearchQuery] = useState("")
     const { data: session } = useSession()
@@ -98,14 +99,14 @@ export function TeacherReportsManager({
 
         if (selectedClass) {
             // Recalculate Performance Trend for this specific class
-            const terms = ["term1", "term2", "term3"];
+            const terms = ["mid-term", "final-term"];
             perfData = terms.map(t => {
                 const classGrades = initialStudentReports.flatMap(s =>
                     (s.classes || []).filter((c: any) => c.id === selectedClass).flatMap((c: any) => (c.grades || []).filter((g: any) => g.term === t))
                 );
                 const avg = classGrades.length > 0 ? Math.round(classGrades.reduce((a, b) => a + (b.marks || 0), 0) / classGrades.length) : 0;
                 const top = classGrades.length > 0 ? Math.max(...classGrades.map(g => g.marks || 0)) : 0;
-                return { name: t === "term1" ? "Term 1" : t === "term2" ? "Term 2" : "Term 3", avg, top };
+                return { name: t === "mid-term" ? "Mid-Term" : "Final Examination", avg, top };
             }).filter(d => d.avg > 0);
 
             // Recalculate Attendance Trend for this specific class
@@ -204,9 +205,9 @@ export function TeacherReportsManager({
                                 <Select value={selectedTerm} onValueChange={setSelectedTerm}>
                                     <SelectTrigger className="h-11 border-border bg-background/50"><SelectValue placeholder="Select Term" /></SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="term1">Term 1</SelectItem>
-                                        <SelectItem value="term2">Term 2</SelectItem>
-                                        <SelectItem value="term3">Term 3</SelectItem>
+                                        {ASSESSMENT_PERIOD_OPTIONS.map(opt => (
+                                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>

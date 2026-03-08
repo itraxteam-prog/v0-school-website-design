@@ -23,12 +23,12 @@ const API_BASE = "/api";
 
 
 export default function GradesPage() {
-  const [activeTerm, setActiveTerm] = useState("All Terms")
+  const [activeTerm, setActiveTerm] = useState("All Periods")
   const [activeSubject, setActiveSubject] = useState("All Subjects")
   const [loading, setLoading] = useState(true)
   const [grades, setGrades] = useState<any[]>([])
   const [availableSubjects, setAvailableSubjects] = useState<string[]>(["All Subjects"])
-  const [availableTerms, setAvailableTerms] = useState<string[]>(["All Terms"])
+  const [availableTerms, setAvailableTerms] = useState<string[]>(["All Periods"])
   const [schoolSettings, setSchoolSettings] = useState<any>(null)
   const { data: session } = useSession()
 
@@ -65,7 +65,7 @@ export default function GradesPage() {
   }, [])
 
   const filteredGrades = grades.filter(g =>
-    (activeTerm === "All Terms" || g.term === activeTerm) &&
+    (activeTerm === "All Periods" || g.termDisplay === activeTerm) &&
     (activeSubject === "All Subjects" || g.subject === activeSubject)
   )
 

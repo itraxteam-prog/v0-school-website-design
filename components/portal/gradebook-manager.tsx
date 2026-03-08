@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils"
 
 import { TEACHER_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 import { useSession } from "next-auth/react"
+import { ASSESSMENT_PERIOD_OPTIONS } from "@/lib/academic-constants"
 
 interface Student {
     id: string;
@@ -49,7 +50,7 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
     const [loading, setLoading] = useState(false)
     const [selectedClassId, setSelectedClassId] = useState<string>(initialClasses[0]?.id || "")
     const [selectedSubjectId, setSelectedSubjectId] = useState<string>(initialSubjects[0]?.id || "")
-    const [selectedTerm, setSelectedTerm] = useState("september-2025")
+    const [selectedTerm, setSelectedTerm] = useState("mid-term")
     const [students, setStudents] = useState<Student[]>([])
     const [grades, setGrades] = useState<Record<string, number>>({})
     const [searchQuery, setSearchQuery] = useState("")
@@ -249,15 +250,9 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
                                 <Select value={selectedTerm} onValueChange={setSelectedTerm}>
                                     <SelectTrigger className="h-11"><SelectValue placeholder="Select Period" /></SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="september-2025">September 2025</SelectItem>
-                                        <SelectItem value="october-2025">October 2025</SelectItem>
-                                        <SelectItem value="november-2025">November 2025</SelectItem>
-                                        <SelectItem value="mid-term">Mid-Term Examination</SelectItem>
-                                        <SelectItem value="december-2025">December 2025</SelectItem>
-                                        <SelectItem value="january-2026">January 2026</SelectItem>
-                                        <SelectItem value="february-2026">February 2026</SelectItem>
-                                        <SelectItem value="march-2026">March 2026</SelectItem>
-                                        <SelectItem value="final-term">Final Examination</SelectItem>
+                                        {ASSESSMENT_PERIOD_OPTIONS.map(opt => (
+                                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>

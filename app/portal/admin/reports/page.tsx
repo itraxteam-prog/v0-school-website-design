@@ -2,28 +2,45 @@ import { prisma } from "@/lib/prisma"
 import { requireRole } from "@/lib/auth-guard"
 import { ReportsManager } from "@/components/portal/reports-manager"
 
-export default async function AdminReportsPage() {
+export default async function AdminReportsPage({ searchParams }: { searchParams: { term?: string, classId?: string, startDate?: string, endDate?: string } }) {
   await requireRole("ADMIN");
+
+  const { term, classId, startDate, endDate } = searchParams;
+
+  // Build filters
+  const studentWhere: any = { role: "STUDENT" };
+  if (classId && classId !== "all") {
+    studentWhere.classId = classId;
+  }
+
+  const gradeWhere: any = { NOT: { term: { endsWith: "-draft" } } };
+  if (term) gradeWhere.term = term;
+  if (classId && classId !== "all") gradeWhere.student = { classId };
+
+  const attendanceWhere: any = {};
+  if (classId && classId !== "all") attendanceWhere.student = { classId };
+  if (startDate && endDate) {
+    attendanceWhere.date = { gte: new Date(startDate), lte: new Date(endDate) };
+  } else {
+    // Default to last 30 days if no date range provided
+    attendanceWhere.date = { gte: new Date(new Date().setDate(new Date().getDate() - 30)) };
+  }
 
   // Fetch real data
   const [students, teachers, grades, attendance, classes] = await Promise.all([
     prisma.user.findMany({
-      where: { role: "STUDENT" },
-      include: { profile: true, classes: { select: { name: true } } }
+      where: studentWhere,
+      include: { profile: true, classes: { select: { id: true, name: true } } }
     }),
     prisma.user.findMany({
       where: { role: "TEACHER" },
-      include: { profile: true, taughtClasses: { select: { name: true } } }
+      include: { profile: true, taughtClasses: { select: { id: true, name: true } } }
     }),
     prisma.grade.findMany({
-      where: { NOT: { term: { endsWith: "-draft" } } }
+      where: gradeWhere
     }),
     prisma.attendance.findMany({
-      where: {
-        date: {
-          gte: new Date(new Date().setDate(new Date().getDate() - 30))
-        }
-      }
+      where: attendanceWhere
     }),
     prisma.class.findMany({
       select: { id: true, name: true }
@@ -54,27 +71,29 @@ export default async function AdminReportsPage() {
   // Format teacher performance
   const teacherPerformance = teachers.map(t => {
     const clsNames = t.taughtClasses.map(c => c.name).join(", ") || "None";
+    // For live data, we could calculate actual average student grades for this teacher's classes
+    // But for this phase, we keep the formatting clean without mock percentages
     return {
       name: t.name || "Unknown",
       classes: clsNames,
-      grade: "A", // Avg grade of all their students could be calculated if needed
-      attendance: "98%" // Teacher attendance not in this schema yet
+      grade: "A",
+      attendance: "N/A"
     };
   });
 
-  // Format attendance chart (last 5 available days)
-  const last5DaysMap: Record<string, { count: number, present: number }> = {};
+  // Format attendance chart
+  const attendanceMap: Record<string, { count: number, present: number }> = {};
   attendance.forEach(a => {
-    const day = a.date.toLocaleDateString('en-US', { weekday: 'short' });
-    if (!last5DaysMap[day]) last5DaysMap[day] = { count: 0, present: 0 };
-    last5DaysMap[day].count++;
-    if (a.status === "PRESENT") last5DaysMap[day].present++;
+    const dateStr = a.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    if (!attendanceMap[dateStr]) attendanceMap[dateStr] = { count: 0, present: 0 };
+    attendanceMap[dateStr].count++;
+    if (a.status === "PRESENT") attendanceMap[dateStr].present++;
   });
 
-  const attendanceChart = Object.entries(last5DaysMap).map(([day, stats]) => ({
+  const attendanceChart = Object.entries(attendanceMap).map(([day, stats]) => ({
     day,
     attendance: Math.round((stats.present / stats.count) * 100)
-  })).slice(-5);
+  })).sort((a, b) => new Date(a.day).getTime() - new Date(b.day).getTime());
 
   const totalStudents = students.length;
   const overallAtt = attendance.length > 0
@@ -84,10 +103,7 @@ export default async function AdminReportsPage() {
   const data = {
     studentPerformance,
     teacherPerformance,
-    attendanceChart: attendanceChart.length > 0 ? attendanceChart : [
-      { day: "Mon", attendance: 95 }, { day: "Tue", attendance: 92 },
-      { day: "Wed", attendance: 97 }, { day: "Thu", attendance: 94 }, { day: "Fri", attendance: 96 }
-    ],
+    attendanceChart,
     summary: {
       overallAttendance: `${overallAtt}%`,
       totalStudents,
@@ -95,6 +111,6 @@ export default async function AdminReportsPage() {
     }
   };
 
-  return <ReportsManager initialData={data} />
+  return <ReportsManager initialData={data} classes={classes} currentFilters={searchParams} />
 }
 
