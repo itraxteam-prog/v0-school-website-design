@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card"
-import { Target, Eye, Heart } from "lucide-react"
+import { Target, Eye, Heart, Quote } from "lucide-react"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 
 const timeline = [
@@ -138,44 +138,74 @@ function AboutContent() {
       </section>
 
       {/* Founders Messages */}
-      <section className="bg-secondary/30 py-16 md:py-24">
+      <section className="bg-secondary/30 py-16 md:py-28 overflow-hidden">
         <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8">
-          <div className="grid gap-12 lg:grid-cols-2">
-            <AnimatedWrapper direction="left">
-              <div className="flex flex-col gap-6">
-                <div className="flex items-center gap-6">
-                  <div className="flex h-32 w-32 shrink-0 items-center justify-center rounded-2xl bg-muted overflow-hidden border border-white/20 shadow-inner">
-                    <span className="text-xs text-muted-foreground uppercase font-bold text-center">Mr. Muhammad Asif Shahyan</span>
+          <div className="flex flex-col gap-24 lg:gap-32">
+            {/* CEO Message */}
+            <AnimatedWrapper direction="up">
+              <div className="grid lg:grid-cols-12 gap-12 lg:gap-20 items-center">
+                <div className="lg:col-span-4 relative group">
+                  <div className="aspect-[4/5] overflow-hidden rounded-[2.5rem] bg-muted relative z-10 shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
+                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground font-bold uppercase tracking-widest text-sm text-center p-8 bg-gradient-to-br from-secondary to-muted">
+                      Mr. Muhammad Asif Shahyan
+                    </div>
                   </div>
-                  <div>
-                    <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-primary">Message from</p>
-                    <h2 className="heading-2">The CEO</h2>
+                  <div className="absolute -inset-4 bg-burgundy-glow rounded-[3rem] blur-2xl opacity-10 group-hover:opacity-20 transition-opacity" />
+                  <div className="absolute -bottom-6 -right-6 h-24 w-24 bg-background rounded-3xl shadow-xl flex items-center justify-center text-primary z-20">
+                    <Quote className="h-10 w-10 fill-primary/10 stroke-primary/40" />
                   </div>
                 </div>
-                <p className="text-base leading-relaxed text-muted-foreground/90 italic">
-                  "Mr. Muhammad Asif Shahyan, with his rich background in debating and literature, is dedicated to providing quality education that balances academic excellence with cognitive and moral development."
-                </p>
-                <div className="h-px w-full bg-primary/10" />
-                <p className="text-sm font-bold text-primary">Mr. Muhammad Asif Shahyan</p>
+                <div className="lg:col-span-8 relative">
+                  <Quote className="absolute -top-16 -left-10 h-32 w-32 text-primary/5 -z-10" />
+                  <div className="space-y-6">
+                    <div>
+                      <p className="mb-2 text-xs font-bold uppercase tracking-[0.4em] text-primary">Founders Statement</p>
+                      <h2 className="heading-1 font-serif text-foreground">Message from <span className="text-burgundy-gradient">The CEO</span></h2>
+                    </div>
+                    <div className="h-1 w-20 bg-burgundy-gradient rounded-full" />
+                    <p className="text-lg md:text-xl leading-relaxed text-muted-foreground italic font-medium">
+                      "Mr. Muhammad Asif Shahyan, with his rich background in debating and literature, is dedicated to providing quality education that balances academic excellence with cognitive and moral development."
+                    </p>
+                    <div className="pt-4">
+                      <p className="text-xl font-serif font-bold text-primary">Mr. Muhammad Asif Shahyan</p>
+                      <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mt-1">Chief Executive Officer</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </AnimatedWrapper>
 
-            <AnimatedWrapper direction="right">
-              <div className="flex flex-col gap-6">
-                <div className="flex items-center gap-6">
-                  <div className="flex h-32 w-32 shrink-0 items-center justify-center rounded-2xl bg-muted overflow-hidden border border-white/20 shadow-inner">
-                    <span className="text-xs text-muted-foreground uppercase font-bold text-center">Ms. Saeeda Sahar</span>
-                  </div>
-                  <div>
-                    <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-primary">Message from</p>
-                    <h2 className="heading-2">The Principal</h2>
+            {/* Principal Message */}
+            <AnimatedWrapper direction="up" delay={0.2}>
+              <div className="grid lg:grid-cols-12 gap-12 lg:gap-20 items-center">
+                <div className="lg:col-span-8 order-2 lg:order-1 relative">
+                  <Quote className="absolute -bottom-16 -right-10 h-32 w-32 text-primary/5 -z-10 rotate-180" />
+                  <div className="space-y-6 lg:text-right flex flex-col lg:items-end">
+                    <div>
+                      <p className="mb-2 text-xs font-bold uppercase tracking-[0.4em] text-primary">Leadership Insights</p>
+                      <h2 className="heading-1 font-serif text-foreground">Message from <span className="text-burgundy-gradient">The Principal</span></h2>
+                    </div>
+                    <div className="h-1 w-20 bg-burgundy-gradient rounded-full" />
+                    <p className="text-lg md:text-xl leading-relaxed text-muted-foreground italic font-medium max-w-2xl">
+                      "Ms. Saeeda Sahar emphasizes the importance of formative childhood education. Her message highlights our commitment to maintaining a standard of education that prepares students for the challenges of the future while remaining rooted in ethical values."
+                    </p>
+                    <div className="pt-4">
+                      <p className="text-xl font-serif font-bold text-primary">Ms. Saeeda Sahar</p>
+                      <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mt-1">School Principal</p>
+                    </div>
                   </div>
                 </div>
-                <p className="text-base leading-relaxed text-muted-foreground/90 italic">
-                  "Ms. Saeeda Sahar emphasizes the importance of formative childhood education. Her message highlights our commitment to maintaining a standard of education that prepares students for the challenges of the future while remaining rooted in ethical values."
-                </p>
-                <div className="h-px w-full bg-primary/10" />
-                <p className="text-sm font-bold text-primary">Ms. Saeeda Sahar</p>
+                <div className="lg:col-span-4 order-1 lg:order-2 relative group">
+                  <div className="aspect-[4/5] overflow-hidden rounded-[2.5rem] bg-muted relative z-10 shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
+                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground font-bold uppercase tracking-widest text-sm text-center p-8 bg-gradient-to-br from-secondary to-muted">
+                      Ms. Saeeda Sahar
+                    </div>
+                  </div>
+                  <div className="absolute -inset-4 bg-burgundy-glow rounded-[3rem] blur-2xl opacity-10 group-hover:opacity-20 transition-opacity" />
+                  <div className="absolute -bottom-6 -left-6 h-24 w-24 bg-background rounded-3xl shadow-xl flex items-center justify-center text-primary z-20">
+                    <Quote className="h-10 w-10 fill-primary/10 stroke-primary/40 rotate-180" />
+                  </div>
+                </div>
               </div>
             </AnimatedWrapper>
           </div>

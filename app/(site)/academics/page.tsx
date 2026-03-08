@@ -2,7 +2,7 @@ import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { FacultySection } from "@/components/public/faculty-section"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { BookOpen, GraduationCap, Award, Users } from "lucide-react"
+import { BookOpen, GraduationCap, Award, Users, Mic2, LayoutGrid, Trophy, Palette, Dribbble } from "lucide-react"
 
 const gradeLevels = [
   {
@@ -180,15 +180,30 @@ function AcademicsContent() {
 
       {/* Extracurriculars */}
       <section className="bg-secondary/30 py-16 md:py-24">
-        <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8 text-center">
-          <AnimatedWrapper direction="up" className="mb-12">
+        <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8">
+          <AnimatedWrapper direction="up" className="mb-16 text-center">
             <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">Beyond the Classroom</p>
-            <h2 className="heading-2">Extracurricular Activities</h2>
+            <h2 className="heading-2 font-serif text-primary">Extracurricular Activities</h2>
           </AnimatedWrapper>
-          <div className="flex flex-wrap justify-center gap-4">
-            {["Debate", "Scrabble", "Chess", "Arts", "Sports"].map((activity) => (
-              <AnimatedWrapper key={activity} className="px-6 py-3 rounded-2xl bg-background shadow-sm border border-primary/5 text-sm font-bold text-primary">
-                {activity}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+            {[
+              { name: "Debate", icon: Mic2 },
+              { name: "Scrabble", icon: LayoutGrid },
+              { name: "Chess", icon: Trophy },
+              { name: "Arts", icon: Palette },
+              { name: "Sports", icon: Dribbble },
+            ].map((activity, i) => (
+              <AnimatedWrapper key={activity.name} delay={i * 0.1} className="h-full">
+                <Card className="glass-card group hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 border-none h-full bg-background/50">
+                  <CardContent className="flex flex-col items-center justify-center p-8 gap-4">
+                    <div className="h-14 w-14 rounded-2xl bg-burgundy-glow flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
+                      <activity.icon className="h-6 w-6" />
+                    </div>
+                    <p className="text-sm font-bold tracking-wider text-muted-foreground group-hover:text-primary transition-colors uppercase">
+                      {activity.name}
+                    </p>
+                  </CardContent>
+                </Card>
               </AnimatedWrapper>
             ))}
           </div>

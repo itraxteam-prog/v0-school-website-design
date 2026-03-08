@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ClipboardCheck, FileText, UserCheck, CalendarDays, BookOpen } from "lucide-react"
+import { ClipboardCheck, FileText, UserCheck, CalendarDays, BookOpen, CheckCircle2 } from "lucide-react"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { AdmissionForm } from "@/components/public/admission-form"
 import {
@@ -119,32 +119,32 @@ function AdmissionsContent() {
         <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8">
           <div className="grid gap-12 lg:grid-cols-2">
             <AnimatedWrapper direction="left">
-              <h2 className="heading-2 mb-8">Required Documents</h2>
-              <div className="space-y-8">
-                <div>
-                  <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+              <h2 className="heading-2 mb-8 font-serif">Admission Documentation</h2>
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div className="glass-panel p-6 rounded-3xl border-primary/5">
+                  <h3 className="text-lg font-serif font-bold text-primary mb-6 flex items-center gap-3">
                     <div className="h-2 w-2 rounded-full bg-primary" />
                     For Fresh Admits
                   </h3>
-                  <ul className="grid gap-3 pl-4">
+                  <ul className="space-y-4">
                     {["Parent/Guardian CNIC", "Birth Certificate", "Two 1x1 Photos"].map(doc => (
-                      <li key={doc} className="text-sm text-muted-foreground flex items-center gap-2">
-                        <span className="h-1.5 w-1.5 rounded-full bg-primary/20" />
-                        {doc}
+                      <li key={doc} className="text-sm text-muted-foreground flex items-start gap-3 group">
+                        <CheckCircle2 className="h-5 w-5 shrink-0 text-primary/40 group-hover:text-primary transition-colors mt-0.5" />
+                        <span className="font-medium">{doc}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                <div className="glass-panel p-6 rounded-3xl border-primary/5">
+                  <h3 className="text-lg font-serif font-bold text-primary mb-6 flex items-center gap-3">
                     <div className="h-2 w-2 rounded-full bg-primary" />
                     For Migrating Students
                   </h3>
-                  <ul className="grid gap-3 pl-4">
+                  <ul className="space-y-4">
                     {["Parent/Guardian CNIC", "Last Progress Report", "Two 1x1 Photos", "School Leaving Certificate"].map(doc => (
-                      <li key={doc} className="text-sm text-muted-foreground flex items-center gap-2">
-                        <span className="h-1.5 w-1.5 rounded-full bg-primary/20" />
-                        {doc}
+                      <li key={doc} className="text-sm text-muted-foreground flex items-start gap-3 group">
+                        <CheckCircle2 className="h-5 w-5 shrink-0 text-primary/40 group-hover:text-primary transition-colors mt-0.5" />
+                        <span className="font-medium">{doc}</span>
                       </li>
                     ))}
                   </ul>
@@ -153,31 +153,35 @@ function AdmissionsContent() {
             </AnimatedWrapper>
 
             <AnimatedWrapper direction="right">
-              <div className="rounded-3xl bg-burgundy-gradient p-8 text-white shadow-2xl relative overflow-hidden h-full">
-                <div className="absolute top-0 right-0 p-8 opacity-10">
-                  <FileText className="h-32 w-32" />
+              <div className="rounded-[2.5rem] bg-secondary/30 border border-primary/5 p-8 md:p-10 relative overflow-hidden h-full glass-panel">
+                <div className="absolute -top-12 -right-12 p-8 opacity-[0.03] rotate-12">
+                  <FileText className="h-64 w-64" />
                 </div>
-                <h2 className="heading-2 mb-6">Withdrawal Procedure</h2>
-                <p className="mb-8 text-white/80 leading-relaxed font-medium">
-                  Our withdrawal process is designed to be transparent and efficient for parents.
-                </p>
-                <div className="grid gap-6">
-                  {[
-                    { title: "Get Form", text: "Collect the withdrawal form from the school office." },
-                    { title: "Clear Dues", text: "Ensure all school dues and library books are cleared." },
-                    { title: "Processing Time", text: "SLC will be issued after document verification." }
-                  ].map((step, i) => (
-                    <div key={step.title} className="flex gap-4">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20 font-bold text-sm">
-                        {i + 1}
+                <div className="relative z-10">
+                  <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-primary">Protocol</p>
+                  <h2 className="heading-2 mb-6 font-serif">Withdrawal Procedure</h2>
+                  <p className="mb-10 text-muted-foreground leading-relaxed font-medium max-w-md">
+                    Our withdrawal process is designed to be transparent and efficient for parents.
+                  </p>
+                  <div className="grid gap-8">
+                    {[
+                      { title: "Get Form", text: "Collect the withdrawal form from the school office." },
+                      { title: "Clear Dues", text: "Ensure all school dues and library books are cleared." },
+                      { title: "Processing Time", text: "SLC will be issued after document verification." }
+                    ].map((step, i) => (
+                      <div key={step.title} className="flex gap-6 group">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-burgundy-glow text-white font-bold text-sm shadow-lg group-hover:scale-110 transition-transform">
+                          {i + 1}
+                        </div>
+                        <div className="pt-1">
+                          <h4 className="font-bold text-foreground mb-1 group-hover:text-primary transition-colors">{step.title}</h4>
+                          <p className="text-sm text-muted-foreground leading-relaxed">{step.text}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="font-bold mb-1">{step.title}</h4>
-                        <p className="text-sm text-white/70">{step.text}</p>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
+                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-burgundy-gradient" />
               </div>
             </AnimatedWrapper>
           </div>
