@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
         const classId = searchParams.get("classId")
         const subjectId = searchParams.get("subjectId")
         const term = searchParams.get("term")
+        const year = searchParams.get("year")
 
         if (!classId || !subjectId || !term) {
             return NextResponse.json({ error: "classId, subjectId, and term are required" }, { status: 400 })
@@ -40,7 +41,23 @@ export async function GET(req: NextRequest) {
                 throw new Error("FORBIDDEN");
             }
 
-            // Try to find final grades first
+            // 1. Try with year prefix if provided
+            const termWithYear = year ? `${year}-${term}` : null;
+            const draftTermWithYear = year ? `${year}-${term}-draft` : null;
+
+            if (termWithYear) {
+                const results = await prisma.grade.findMany({
+                    where: { classId, subjectId, term: termWithYear },
+                });
+                if (results.length > 0) return results;
+
+                const draftResults = await prisma.grade.findMany({
+                    where: { classId, subjectId, term: draftTermWithYear! },
+                });
+                if (draftResults.length > 0) return draftResults;
+            }
+
+            // 2. Fallback to legacy non-prefixed behavior
             const finalGrades = await prisma.grade.findMany({
                 where: { classId, subjectId, term },
             })
@@ -49,7 +66,6 @@ export async function GET(req: NextRequest) {
                 return finalGrades;
             }
 
-            // Fallback to draft grades
             return prisma.grade.findMany({
                 where: { classId, subjectId, term: `${term}-draft` },
             })

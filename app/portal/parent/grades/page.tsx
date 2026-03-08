@@ -17,7 +17,7 @@ import {
     Megaphone,
     Users,
 } from "lucide-react"
-import { getTermDisplayLabel } from "@/lib/academic-constants"
+import { getTermDisplayLabel, ACADEMIC_YEARS } from "@/lib/academic-constants"
 
 const PARENT_SIDEBAR = [
     { href: "/portal/parent", label: "Dashboard", icon: LayoutDashboard },
@@ -45,6 +45,7 @@ export default function ParentGradesPage() {
     const { data: session } = useSession()
     const [children, setChildren] = useState<Child[]>([])
     const [selectedChildId, setSelectedChildId] = useState<string>("")
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString())
     const [grades, setGrades] = useState<Grade[]>([])
     const [activeTerm, setActiveTerm] = useState("All Periods")
     const [loading, setLoading] = useState(true)
@@ -92,9 +93,17 @@ export default function ParentGradesPage() {
 
     const terms = ["All Periods", ...Array.from(new Set(grades.map(g => getTermDisplayLabel(g.term))))]
 
-    const filtered = grades.filter(
-        (g) => (activeTerm === "All Periods" || getTermDisplayLabel(g.term) === activeTerm)
-    )
+    const filtered = grades.filter(g => {
+        const termMatches = activeTerm === "All Periods" || getTermDisplayLabel(g.term) === activeTerm;
+
+        // Year matching logic
+        const yearPrefix = g.term?.split('-')[0];
+        const isYearPrefixed = /^\d{4}$/.test(yearPrefix);
+        const gradeYear = isYearPrefixed ? yearPrefix : new Date(g.createdAt).getFullYear().toString();
+        const yearMatches = selectedYear === "All Years" || gradeYear === selectedYear;
+
+        return termMatches && yearMatches;
+    })
 
     const selectedChildName = children.find(c => c.id === selectedChildId)?.name || "Child"
 
@@ -132,9 +141,21 @@ export default function ParentGradesPage() {
                                 </SelectContent>
                             </Select>
 
+                            <Select value={selectedYear} onValueChange={setSelectedYear}>
+                                <SelectTrigger className="w-full sm:w-[120px] bg-background">
+                                    <SelectValue placeholder="Year" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="All Years">All Years</SelectItem>
+                                    {ACADEMIC_YEARS.map(year => (
+                                        <SelectItem key={year} value={year}>{year}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+
                             <Select value={activeTerm} onValueChange={setActiveTerm}>
                                 <SelectTrigger className="w-full sm:w-[150px] bg-background">
-                                    <SelectValue placeholder="Select Term" />
+                                    <SelectValue placeholder="Period" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {terms.map((t) => (

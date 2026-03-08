@@ -32,7 +32,7 @@ const TeacherPerformanceOverviewChart = dynamic(() => import("@/components/porta
 
 import { useSession } from "next-auth/react"
 import { TEACHER_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
-import { ASSESSMENT_PERIOD_OPTIONS } from "@/lib/academic-constants"
+import { ASSESSMENT_PERIOD_OPTIONS, ACADEMIC_YEARS } from "@/lib/academic-constants"
 
 interface TeacherReportsManagerProps {
     initialPerformanceData: any[];
@@ -49,6 +49,7 @@ export function TeacherReportsManager({
 }: TeacherReportsManagerProps) {
     const [loading, setLoading] = useState(false)
     const [selectedTerm, setSelectedTerm] = useState("mid-term")
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString())
     const [selectedClass, setSelectedClass] = useState(initialClasses[0]?.id || "")
     const [searchQuery, setSearchQuery] = useState("")
     const { data: session } = useSession()
@@ -73,8 +74,15 @@ export function TeacherReportsManager({
             !selectedClass || (s.classes || []).some((c: any) => c.id === selectedClass)
         ).map(s => {
             const studentClass = (s.classes || []).find((c: any) => c.id === selectedClass) || s.classes?.[0];
-            const termGrades = studentClass?.grades?.filter((g: any) => !selectedTerm || g.term === selectedTerm) || [];
-            const termAttendances = studentClass?.attendances || []; // Filter by term if date-term mapping exists, otherwise show overall for class
+            const termGrades = studentClass?.grades?.filter((g: any) => {
+                const termMatches = !selectedTerm || g.term.includes(selectedTerm);
+                const yearMatches = g.term.startsWith(selectedYear) || (new Date(g.createdAt).getFullYear().toString() === selectedYear && !g.term.includes('-'));
+                return termMatches && yearMatches;
+            }) || [];
+
+            const termAttendances = studentClass?.attendances?.filter((a: any) =>
+                new Date(a.date).getFullYear().toString() === selectedYear
+            ) || [];
 
             const avgGrade = termGrades.length > 0
                 ? Math.round(termGrades.reduce((acc: number, g: any) => acc + (g.marks || 0), 0) / termGrades.length)
@@ -102,18 +110,22 @@ export function TeacherReportsManager({
             const terms = ["mid-term", "final-term"];
             perfData = terms.map(t => {
                 const classGrades = initialStudentReports.flatMap(s =>
-                    (s.classes || []).filter((c: any) => c.id === selectedClass).flatMap((c: any) => (c.grades || []).filter((g: any) => g.term === t))
+                    (s.classes || []).filter((c: any) => c.id === selectedClass).flatMap((c: any) =>
+                        (c.grades || []).filter((g: any) => g.term.includes(t) && (g.term.startsWith(selectedYear) || new Date(g.createdAt).getFullYear().toString() === selectedYear))
+                    )
                 );
-                const avg = classGrades.length > 0 ? Math.round(classGrades.reduce((a, b) => a + (b.marks || 0), 0) / classGrades.length) : 0;
-                const top = classGrades.length > 0 ? Math.max(...classGrades.map(g => g.marks || 0)) : 0;
+                const avg = classGrades.length > 0 ? Math.round(classGrades.reduce((a, b: any) => a + (b.marks || 0), 0) / classGrades.length) : 0;
+                const top = classGrades.length > 0 ? Math.max(...classGrades.map((g: any) => g.marks || 0)) : 0;
                 return { name: t === "mid-term" ? "Mid-Term" : "Final Examination", avg, top };
             }).filter(d => d.avg > 0);
 
-            // Recalculate Attendance Trend for this specific class
+            // Recalculate Attendance Trend for this specific class and year
             const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
             attData = months.map((m, i) => {
                 const monthAtt = initialStudentReports.flatMap(s =>
-                    (s.classes || []).filter((c: any) => c.id === selectedClass).flatMap((c: any) => (c.attendances || []).filter((a: any) => a.date && new Date(a.date).getMonth() === i))
+                    (s.classes || []).filter((c: any) => c.id === selectedClass).flatMap((c: any) =>
+                        (c.attendances || []).filter((a: any) => a.date && new Date(a.date).getMonth() === i && new Date(a.date).getFullYear().toString() === selectedYear)
+                    )
                 );
                 const rate = monthAtt.length > 0 ? Math.round((monthAtt.filter(a => a.status === "PRESENT" || a.status === "present").length / monthAtt.length) * 100) : 0;
                 return { month: m, rate };
@@ -128,7 +140,7 @@ export function TeacherReportsManager({
             attendance: attData.length > 0 ? attData : initialAttendanceTrendData,
             termAvg: overallAvg
         });
-    }, [selectedClass, selectedTerm, initialStudentReports, initialPerformanceData, initialAttendanceTrendData]);
+    }, [selectedClass, selectedTerm, selectedYear, initialStudentReports, initialPerformanceData, initialAttendanceTrendData]);
 
     const filteredStudents = calculatedData.students.filter((s) =>
         s.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -175,7 +187,7 @@ export function TeacherReportsManager({
                                 toast.error("Please select a class first");
                                 return;
                             }
-                            const url = `/api/teacher/reports/export?classId=${selectedClass}&type=attendance`;
+                            const url = `/api/teacher/reports/export?classId=${selectedClass}&type=attendance&year=${selectedYear}`;
                             toast.success("Generating Attendance PDF...");
                             window.open(url, "_blank");
                         }}>
@@ -187,7 +199,7 @@ export function TeacherReportsManager({
                                 return;
                             }
                             const subjectValue = initialClasses.find(c => c.id === selectedClass)?.subject || "General";
-                            const url = `/api/teacher/reports/export?classId=${selectedClass}&type=grades&term=${selectedTerm}&subjectId=${encodeURIComponent(subjectValue)}`;
+                            const url = `/api/teacher/reports/export?classId=${selectedClass}&type=grades&term=${selectedTerm}&year=${selectedYear}&subjectId=${encodeURIComponent(subjectValue)}`;
 
                             toast.success("Generating Grades PDF...");
                             window.open(url, "_blank");
@@ -199,7 +211,18 @@ export function TeacherReportsManager({
 
                 <Card className="glass-panel border-border/50">
                     <CardContent className="p-4 md:p-6">
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 lg:items-end">
+                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 lg:items-end">
+                            <div className="flex flex-col gap-2">
+                                <Label className="text-sm font-medium">Academic Year</Label>
+                                <Select value={selectedYear} onValueChange={setSelectedYear}>
+                                    <SelectTrigger className="h-11 border-border bg-background/50"><SelectValue placeholder="Select Year" /></SelectTrigger>
+                                    <SelectContent>
+                                        {ACADEMIC_YEARS.map(year => (
+                                            <SelectItem key={year} value={year}>{year}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                             <div className="flex flex-col gap-2">
                                 <Label className="text-sm font-medium">Academic Term</Label>
                                 <Select value={selectedTerm} onValueChange={setSelectedTerm}>

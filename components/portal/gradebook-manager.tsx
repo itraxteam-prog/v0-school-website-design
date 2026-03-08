@@ -32,7 +32,7 @@ import { cn } from "@/lib/utils"
 
 import { TEACHER_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 import { useSession } from "next-auth/react"
-import { ASSESSMENT_PERIOD_OPTIONS } from "@/lib/academic-constants"
+import { ASSESSMENT_PERIOD_OPTIONS, ACADEMIC_YEARS } from "@/lib/academic-constants"
 
 interface Student {
     id: string;
@@ -50,6 +50,7 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
     const [loading, setLoading] = useState(false)
     const [selectedClassId, setSelectedClassId] = useState<string>(initialClasses[0]?.id || "")
     const [selectedSubjectId, setSelectedSubjectId] = useState<string>(initialSubjects[0]?.id || "")
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString())
     const [selectedTerm, setSelectedTerm] = useState("mid-term")
     const [students, setStudents] = useState<Student[]>([])
     const [grades, setGrades] = useState<Record<string, number>>({})
@@ -95,7 +96,7 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
 
                 // Fetch grades
                 const gradesRes = await fetch(
-                    `/api/teacher/grades?classId=${selectedClassId}&subjectId=${selectedSubjectId}&term=${selectedTerm}`,
+                    `/api/teacher/grades?classId=${selectedClassId}&subjectId=${selectedSubjectId}&term=${selectedTerm}&year=${selectedYear}`,
                     { credentials: "include" }
                 );
                 const gradeMap: Record<string, number> = {};
@@ -114,7 +115,7 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
             }
         };
         fetchData();
-    }, [selectedClassId, selectedSubjectId, selectedTerm]);
+    }, [selectedClassId, selectedSubjectId, selectedTerm, selectedYear]);
 
     const calculateGrade = (marks: number) => {
         const gradingSystem = schoolSettings?.gradingSystem || 'percentage'
@@ -163,7 +164,7 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
             body: JSON.stringify({
                 classId: selectedClassId,
                 subjectId: selectedSubjectId,
-                term: termValue,
+                term: `${selectedYear}-${termValue}`,
                 grades: records,
             }),
         }).then(async (res) => {
@@ -216,7 +217,19 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
 
                 <Card className="glass-panel border-border/50">
                     <CardContent className="p-4 md:p-6">
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 lg:items-end">
+                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5 lg:items-end">
+                            <div className="flex flex-col gap-2">
+                                <Label className="text-sm font-medium">Year</Label>
+                                <Select value={selectedYear} onValueChange={setSelectedYear}>
+                                    <SelectTrigger className="h-11"><SelectValue placeholder="Select Year" /></SelectTrigger>
+                                    <SelectContent>
+                                        {ACADEMIC_YEARS.map(year => (
+                                            <SelectItem key={year} value={year}>{year}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
                             <div className="flex flex-col gap-2">
                                 <Label className="text-sm font-medium">Class</Label>
                                 <Select value={selectedClassId} onValueChange={(val) => {

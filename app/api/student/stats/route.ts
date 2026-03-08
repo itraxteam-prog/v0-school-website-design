@@ -68,10 +68,11 @@ const getCachedStudentStats = unstable_cache(
         // Performance Trend (Grouped by Assessment Period)
         const trendMap: Record<string, { total: number; count: number }> = {};
         filteredGrades.forEach((g) => {
-            const period = g.term.replace(/-draft$/, "");
-            if (!trendMap[period]) trendMap[period] = { total: 0, count: 0 };
-            trendMap[period].total += g.marks;
-            trendMap[period].count++;
+            // Strip draft suffix AND year prefix for grouping
+            const cleanPeriod = g.term.replace(/-draft$/, "").replace(/^\d{4}-/, "");
+            if (!trendMap[cleanPeriod]) trendMap[cleanPeriod] = { total: 0, count: 0 };
+            trendMap[cleanPeriod].total += g.marks;
+            trendMap[cleanPeriod].count++;
         });
 
         const performanceTrend = Object.entries(trendMap)

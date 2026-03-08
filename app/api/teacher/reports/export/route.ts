@@ -11,6 +11,7 @@ import { logAudit } from "@/lib/audit";
 import { checkExportRateLimit } from "@/lib/pdf/export-rate-limit";
 import { createPdfResponse } from "@/lib/pdf/pdf-response";
 import { assertNodeRuntime } from "@/lib/runtime-assert";
+import { getTermDisplayLabel } from "@/lib/academic-constants";
 
 const SCHOOL_NAME = "Vibe School Management System";
 
@@ -32,6 +33,8 @@ export async function GET(req: NextRequest) {
         const { searchParams } = new URL(req.url);
         const classId = searchParams.get("classId");
         const type = searchParams.get("type") as "grades" | "attendance" | null;
+        const year = searchParams.get("year");
+        const yearNum = year ? parseInt(year) : new Date().getFullYear();
 
         if (!classId || !type || !["grades", "attendance"].includes(type)) {
             return NextResponse.json(
@@ -67,7 +70,14 @@ export async function GET(req: NextRequest) {
             }
 
             let grades = await prisma.grade.findMany({
-                where: { classId, subjectId, term },
+                where: {
+                    classId,
+                    subjectId,
+                    OR: [
+                        { term: term },
+                        { term: `${yearNum}-${term}` }
+                    ]
+                },
                 include: { student: { select: { name: true, email: true } } },
                 orderBy: { student: { name: "asc" } },
             });
@@ -75,23 +85,18 @@ export async function GET(req: NextRequest) {
             // Fallback to drafts if no final grades
             if (grades.length === 0) {
                 grades = await prisma.grade.findMany({
-                    where: { classId, subjectId, term: `${term}-draft` },
+                    where: {
+                        classId,
+                        subjectId,
+                        OR: [
+                            { term: `${term}-draft` },
+                            { term: `${yearNum}-${term}-draft` }
+                        ]
+                    },
                     include: { student: { select: { name: true, email: true } } },
                     orderBy: { student: { name: "asc" } },
                 });
             }
-
-            const termMapping: Record<string, string> = {
-                "september-2025": "September 2025",
-                "october-2025": "October 2025",
-                "november-2025": "November 2025",
-                "mid-term": "Mid-Term Exam",
-                "december-2025": "December 2025",
-                "january-2026": "January 2026",
-                "february-2026": "February 2026",
-                "march-2026": "March 2026",
-                "final-term": "Final Exam"
-            };
 
             gradeRows = grades.map((g) => {
                 const marks = g.marks;
@@ -106,13 +111,19 @@ export async function GET(req: NextRequest) {
                     studentName: g.student?.name ?? g.student?.email ?? "Unknown",
                     marks,
                     grade,
-                    term: termMapping[g.term] || g.term,
+                    term: getTermDisplayLabel(g.term, true),
                 };
             });
         } else {
-            // attendance: fetch all attendance for this class ordered by date then student
+            // attendance: fetch attendance for this class and year
             const records = await prisma.attendance.findMany({
-                where: { classId },
+                where: {
+                    classId,
+                    date: {
+                        gte: new Date(`${yearNum}-01-01`),
+                        lte: new Date(`${yearNum}-12-31`)
+                    }
+                },
                 include: {
                     // Attendance model doesn't have a student relation — we join via User
                 },

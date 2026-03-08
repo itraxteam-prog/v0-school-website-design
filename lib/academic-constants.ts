@@ -56,18 +56,32 @@ export const ASSESSMENT_PERIOD_OPTIONS = [
 
 /**
  * Helper to get the display label for a term value/slug.
+ * Automatically handles year-prefixed slugs (e.g., "2026-march").
  */
-export function getTermDisplayLabel(slug: string): string {
+export function getTermDisplayLabel(slug: string, includeYear = false): string {
   if (!slug) return "N/A";
 
+  const parts = slug.toLowerCase().split('-');
+  let yearPart = "";
+  let baseSlug = slug.toLowerCase();
+
+  // Check if first part is a 4-digit year (e.g. 2026)
+  if (parts.length > 1 && /^\d{4}$/.test(parts[0])) {
+    yearPart = parts[0];
+    baseSlug = parts.slice(1).join('-');
+  }
+
   // 1. Check if it's a month from ASSESSMENT_MONTHS
-  const month = ASSESSMENT_MONTHS.find(m => m.value === slug.toLowerCase());
-  if (month) return month.label;
+  const month = ASSESSMENT_MONTHS.find(m => m.value === baseSlug);
+  let label = month ? month.label : baseSlug;
 
   // 2. Check explicitly for mid-term/final-term
-  if (slug.toLowerCase() === "mid-term") return "Mid-Term Examination";
-  if (slug.toLowerCase() === "final-term") return "Final Examination";
+  if (baseSlug === "mid-term") label = "Mid-Term Examination";
+  else if (baseSlug === "final-term") label = "Final Examination";
+  else if (!month) {
+    // Fallback to title case if not a defined month
+    label = baseSlug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  }
 
-  // 3. Fallback to title case if not found
-  return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  return includeYear && yearPart ? `${label} ${yearPart}` : label;
 }

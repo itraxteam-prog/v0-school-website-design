@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useSession } from "next-auth/react"
 
 import { STUDENT_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+import { ACADEMIC_YEARS, getTermDisplayLabel } from "@/lib/academic-constants"
 
 // Internal API base path
 const API_BASE = "/api";
@@ -24,11 +25,13 @@ const API_BASE = "/api";
 
 export default function GradesPage() {
   const [activeTerm, setActiveTerm] = useState("All Periods")
+  const [activeYear, setActiveYear] = useState(new Date().getFullYear().toString())
   const [activeSubject, setActiveSubject] = useState("All Subjects")
   const [loading, setLoading] = useState(true)
   const [grades, setGrades] = useState<any[]>([])
   const [availableSubjects, setAvailableSubjects] = useState<string[]>(["All Subjects"])
   const [availableTerms, setAvailableTerms] = useState<string[]>(["All Periods"])
+  const [availableYears, setAvailableYears] = useState<string[]>(["All Years", ...ACADEMIC_YEARS])
   const [schoolSettings, setSchoolSettings] = useState<any>(null)
   const { data: session } = useSession()
 
@@ -64,10 +67,18 @@ export default function GradesPage() {
     fetchGrades();
   }, [])
 
-  const filteredGrades = grades.filter(g =>
-    (activeTerm === "All Periods" || g.termDisplay === activeTerm) &&
-    (activeSubject === "All Subjects" || g.subject === activeSubject)
-  )
+  const filteredGrades = grades.filter(g => {
+    const termMatches = activeTerm === "All Periods" || g.termDisplay === activeTerm;
+    const subjectMatches = activeSubject === "All Subjects" || g.subject === activeSubject;
+
+    // Year matching logic
+    const yearPrefix = g.term?.split('-')[0];
+    const isYearPrefixed = /^\d{4}$/.test(yearPrefix);
+    const gradeYear = isYearPrefixed ? yearPrefix : new Date(g.date).getFullYear().toString();
+    const yearMatches = activeYear === "All Years" || gradeYear === activeYear;
+
+    return termMatches && subjectMatches && yearMatches;
+  })
 
   return (
     <AppLayout
@@ -94,9 +105,18 @@ export default function GradesPage() {
               )}
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Select value={activeYear} onValueChange={setActiveYear}>
+                <SelectTrigger className="w-full sm:w-[120px] bg-background text-xs font-semibold">
+                  <SelectValue placeholder="Year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
+                </SelectContent>
+              </Select>
+
               <Select value={activeTerm} onValueChange={setActiveTerm}>
                 <SelectTrigger className="w-full sm:w-[170px] bg-background text-xs font-semibold">
-                  <SelectValue placeholder="Assessment Period" />
+                  <SelectValue placeholder="Period" />
                 </SelectTrigger>
                 <SelectContent>
                   {availableTerms.map(term => <SelectItem key={term} value={term}>{term}</SelectItem>)}
@@ -133,7 +153,10 @@ export default function GradesPage() {
               {loading ? (
                 <Skeleton className="h-[300px] w-full rounded-xl" />
               ) : (
-                <PerformanceTrendChart data={grades.map(g => ({ month: g.termDisplay ? g.termDisplay.split(' ')[0] : new Date(g.date).toLocaleString('default', { month: 'short' }), score: g.marks })).slice(-6)} />
+                <PerformanceTrendChart data={filteredGrades.map(g => ({
+                  month: getTermDisplayLabel(g.term),
+                  score: g.marks
+                })).slice(-6)} />
 
               )}
             </CardContent>

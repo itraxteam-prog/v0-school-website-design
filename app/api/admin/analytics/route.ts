@@ -17,7 +17,25 @@ const getAnalyticsData = async (filters: { classId?: string, year?: string, term
             lte: new Date(`${yearNum}-12-31`)
         }
     };
-    const gradeWhere: any = term ? { term } : {};
+
+    let gradeWhere: any = {};
+    if (term) {
+        // Handle both legacy (non-prefixed) and new (year-prefixed) terms
+        gradeWhere = {
+            OR: [
+                { term: term },
+                { term: `${yearNum}-${term}` }
+            ]
+        };
+    } else {
+        // If no term specified, we should still ideally filter by year if the data is prefixed
+        // but since we don't have a dedicated Year field, we'll look for terms starting with the year
+        gradeWhere = {
+            term: {
+                startsWith: yearNum.toString()
+            }
+        };
+    }
     const enrollmentWhere: any = { role: "STUDENT" };
 
     if (classId && classId !== "all") {

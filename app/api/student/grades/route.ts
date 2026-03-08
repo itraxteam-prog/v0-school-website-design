@@ -70,8 +70,7 @@ export async function GET() {
             }
         })
 
-        const uniqueTerms = Array.from(new Set(formatted.map(g => g.term)))
-            .map(t => getTermDisplayLabel(t));
+        const uniqueTerms = Array.from(new Set(formatted.map(g => getTermDisplayLabel(g.term))));
 
         return NextResponse.json({
             data: formatted.map(g => ({ ...g, termDisplay: getTermDisplayLabel(g.term) })),
