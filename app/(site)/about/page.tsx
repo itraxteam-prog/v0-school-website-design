@@ -19,9 +19,21 @@ const leaders = [
 ]
 
 const values = [
-  { icon: Target, title: "Our Mission", description: "To provide a rigorous academic environment that fosters intellectual curiosity, moral integrity, and leadership skills in every student." },
-  { icon: Eye, title: "Our Vision", description: "To be the leading educational institution that shapes global citizens rooted in strong values and equipped for the challenges of tomorrow." },
-  { icon: Heart, title: "Our Values", description: "Excellence, Discipline, Integrity, Innovation, and Community. These core values guide everything we do at The Pioneers High School." },
+  {
+    icon: Eye,
+    title: "Our Vision",
+    description: "To see The Pioneers School and English Language System as standard educational and ethical oriented institute determined on cognitive moral development of children."
+  },
+  {
+    icon: Target,
+    title: "Our Mission",
+    description: "To actualize our vision in safe environment maximally conductive to learning... By striving for excellence..."
+  },
+  {
+    icon: Heart,
+    title: "Our Values",
+    description: "Godliness, truthfulness, integrity, reasoned judgment, self-esteem, tolerance, respect for human dignity."
+  },
 ]
 
 function AboutContent() {
@@ -121,6 +133,81 @@ function AboutContent() {
                 </Card>
               </AnimatedWrapper>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Founders Messages */}
+      <section className="bg-secondary/30 py-16 md:py-24">
+        <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8">
+          <div className="grid gap-12 lg:grid-cols-2">
+            <AnimatedWrapper direction="left">
+              <div className="flex flex-col gap-6">
+                <div className="flex items-center gap-6">
+                  <div className="flex h-32 w-32 shrink-0 items-center justify-center rounded-2xl bg-muted overflow-hidden border border-white/20 shadow-inner">
+                    <span className="text-xs text-muted-foreground uppercase font-bold text-center">Mr. Muhammad Asif Shahyan</span>
+                  </div>
+                  <div>
+                    <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-primary">Message from</p>
+                    <h2 className="heading-2">The CEO</h2>
+                  </div>
+                </div>
+                <p className="text-base leading-relaxed text-muted-foreground/90 italic">
+                  "Mr. Muhammad Asif Shahyan, with his rich background in debating and literature, is dedicated to providing quality education that balances academic excellence with cognitive and moral development."
+                </p>
+                <div className="h-px w-full bg-primary/10" />
+                <p className="text-sm font-bold text-primary">Mr. Muhammad Asif Shahyan</p>
+              </div>
+            </AnimatedWrapper>
+
+            <AnimatedWrapper direction="right">
+              <div className="flex flex-col gap-6">
+                <div className="flex items-center gap-6">
+                  <div className="flex h-32 w-32 shrink-0 items-center justify-center rounded-2xl bg-muted overflow-hidden border border-white/20 shadow-inner">
+                    <span className="text-xs text-muted-foreground uppercase font-bold text-center">Ms. Saeeda Sahar</span>
+                  </div>
+                  <div>
+                    <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-primary">Message from</p>
+                    <h2 className="heading-2">The Principal</h2>
+                  </div>
+                </div>
+                <p className="text-base leading-relaxed text-muted-foreground/90 italic">
+                  "Ms. Saeeda Sahar emphasizes the importance of formative childhood education. Her message highlights our commitment to maintaining a standard of education that prepares students for the challenges of the future while remaining rooted in ethical values."
+                </p>
+                <div className="h-px w-full bg-primary/10" />
+                <p className="text-sm font-bold text-primary">Ms. Saeeda Sahar</p>
+              </div>
+            </AnimatedWrapper>
+          </div>
+        </div>
+      </section>
+
+      {/* Distinctive Features */}
+      <section className="bg-background py-16 md:py-24">
+        <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8">
+          <AnimatedWrapper direction="up" className="mb-16 text-center">
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">What Sets Us Apart</p>
+            <h2 className="heading-2">Distinctive Features</h2>
+          </AnimatedWrapper>
+          <div className="grid gap-8 md:grid-cols-3">
+            <Card className="glass-card border-none">
+              <CardContent className="p-8">
+                <h3 className="heading-3 mb-4 text-primary">Ethics in Syllabus</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">"Included ethic in our syllabus and pupils will be taught and exercised the ethical actions."</p>
+              </CardContent>
+            </Card>
+            <Card className="glass-card border-none">
+              <CardContent className="p-8">
+                <h3 className="heading-3 mb-4 text-primary">Spoken English Focus</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">"Definite plans and dynamics to build an English speaking culture..."</p>
+              </CardContent>
+            </Card>
+            <Card className="glass-card border-none">
+              <CardContent className="p-8">
+                <h3 className="heading-3 mb-4 text-primary">Effective Learning</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">"Ongoing system of school-based teacher education and training."</p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>

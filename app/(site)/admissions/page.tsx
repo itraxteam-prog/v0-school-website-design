@@ -1,8 +1,14 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ClipboardCheck, FileText, UserCheck, CalendarDays } from "lucide-react"
+import { ClipboardCheck, FileText, UserCheck, CalendarDays, BookOpen } from "lucide-react"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { AdmissionForm } from "@/components/public/admission-form"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 
 const steps = [
   { icon: FileText, step: "01", title: "Submit Application", description: "Fill out the online inquiry form or collect an application from our admissions office." },
@@ -38,6 +44,16 @@ function AdmissionsContent() {
             <p className="text-base leading-relaxed text-white/80 md:text-lg">
               Begin your journey at The Pioneers High School. We welcome students who are eager to learn, grow, and excel.
             </p>
+            <AnimatedWrapper direction="up" delay={0.2} className="mt-8">
+              <a
+                href="/prospectus.pdf"
+                download
+                className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 text-sm font-bold text-black transition-all hover:bg-white/90 shadow-xl"
+              >
+                <BookOpen className="h-4 w-4" />
+                Download Official Prospectus
+              </a>
+            </AnimatedWrapper>
           </AnimatedWrapper>
         </div>
       </section>
@@ -98,6 +114,76 @@ function AdmissionsContent() {
         </div>
       </section>
 
+      {/* Admission Requirements & Withdrawal */}
+      <section className="bg-background py-16 md:py-24">
+        <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8">
+          <div className="grid gap-12 lg:grid-cols-2">
+            <AnimatedWrapper direction="left">
+              <h2 className="heading-2 mb-8">Required Documents</h2>
+              <div className="space-y-8">
+                <div>
+                  <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-primary" />
+                    For Fresh Admits
+                  </h3>
+                  <ul className="grid gap-3 pl-4">
+                    {["Parent/Guardian CNIC", "Birth Certificate", "Two 1x1 Photos"].map(doc => (
+                      <li key={doc} className="text-sm text-muted-foreground flex items-center gap-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary/20" />
+                        {doc}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-primary" />
+                    For Migrating Students
+                  </h3>
+                  <ul className="grid gap-3 pl-4">
+                    {["Parent/Guardian CNIC", "Last Progress Report", "Two 1x1 Photos", "School Leaving Certificate"].map(doc => (
+                      <li key={doc} className="text-sm text-muted-foreground flex items-center gap-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary/20" />
+                        {doc}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </AnimatedWrapper>
+
+            <AnimatedWrapper direction="right">
+              <div className="rounded-3xl bg-burgundy-gradient p-8 text-white shadow-2xl relative overflow-hidden h-full">
+                <div className="absolute top-0 right-0 p-8 opacity-10">
+                  <FileText className="h-32 w-32" />
+                </div>
+                <h2 className="heading-2 mb-6">Withdrawal Procedure</h2>
+                <p className="mb-8 text-white/80 leading-relaxed font-medium">
+                  Our withdrawal process is designed to be transparent and efficient for parents.
+                </p>
+                <div className="grid gap-6">
+                  {[
+                    { title: "Get Form", text: "Collect the withdrawal form from the school office." },
+                    { title: "Clear Dues", text: "Ensure all school dues and library books are cleared." },
+                    { title: "Processing Time", text: "SLC will be issued after document verification." }
+                  ].map((step, i) => (
+                    <div key={step.title} className="flex gap-4">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20 font-bold text-sm">
+                        {i + 1}
+                      </div>
+                      <div>
+                        <h4 className="font-bold mb-1">{step.title}</h4>
+                        <p className="text-sm text-white/70">{step.text}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </AnimatedWrapper>
+          </div>
+        </div>
+      </section>
+
       {/* Important Dates & Inquiry */}
       <section className="bg-background py-16 md:py-24">
         <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8">
@@ -133,6 +219,46 @@ function AdmissionsContent() {
               <AdmissionForm />
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Code of Conduct */}
+      <section className="bg-secondary/30 py-16 md:py-24">
+        <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8">
+          <AnimatedWrapper direction="up" className="mb-12 text-center">
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">Policies</p>
+            <h2 className="heading-2">Code of Conduct & Guidelines</h2>
+          </AnimatedWrapper>
+          <AnimatedWrapper direction="up" delay={0.2} className="max-w-3xl mx-auto">
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="item-1" className="bg-background px-6 rounded-2xl mb-4 border-none shadow-sm">
+                <AccordionTrigger className="hover:no-underline py-6">
+                  <span className="text-left font-bold text-primary">General Rules of Good Order and Discipline</span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-6 text-muted-foreground leading-relaxed">
+                  <ul className="grid gap-3">
+                    <li>Strict adherence to school uniforms and personal hygiene standards.</li>
+                    <li>Prior written notification required for student absence.</li>
+                    <li>Restricted items (mobile phones, electronic gadgets, etc.) are strictly prohibited on campus.</li>
+                    <li>Respectful behavior towards faculty, staff, and fellow students at all times.</li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-2" className="bg-background px-6 rounded-2xl border-none shadow-sm">
+                <AccordionTrigger className="hover:no-underline py-6">
+                  <span className="text-left font-bold text-primary">Guidelines for Parents/Guardians</span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-6 text-muted-foreground leading-relaxed">
+                  <ul className="grid gap-3">
+                    <li>Active attendance and participation in Parent-Teacher Meetings (PTMs) is mandatory.</li>
+                    <li>Ensuring student punctuality for school timings.</li>
+                    <li>Submit all concerns or complaints directly through the school administration office.</li>
+                    <li>Support the school's educational and disciplinary policies at home.</li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </AnimatedWrapper>
         </div>
       </section>
     </div>

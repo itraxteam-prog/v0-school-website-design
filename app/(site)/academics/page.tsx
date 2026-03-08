@@ -7,17 +7,17 @@ import { BookOpen, GraduationCap, Award, Users } from "lucide-react"
 const gradeLevels = [
   {
     level: "Primary (Grade 1-5)",
-    description: "Foundation years focusing on literacy, numeracy, and character building with a play-based learning approach.",
+    description: "Foundation years focusing on literacy, numeracy, and character building. We emphasize 'Active Learning through real experience' with a play-based approach.",
     subjects: ["English", "Mathematics", "Science", "Urdu", "Islamiat", "Art", "Physical Education"],
   },
   {
     level: "Middle (Grade 6-8)",
-    description: "Transition years introducing specialized subjects and developing critical thinking skills.",
+    description: "Transition years introducing specialized subjects and developing critical thinking skills through active engagement.",
     subjects: ["English", "Mathematics", "Physics", "Chemistry", "Biology", "Computer Science", "History", "Geography"],
   },
   {
     level: "High (Grade 9-10)",
-    description: "Cambridge International curriculum preparing students for globally recognized qualifications.",
+    description: "Cambridge International curriculum preparing students for globally recognized qualifications. Focus on research and application.",
     subjects: ["English Language", "Mathematics", "Physics", "Chemistry", "Biology", "Computer Science", "Urdu", "Islamiat"],
   },
 ]
@@ -59,6 +59,16 @@ function AcademicsContent() {
             <p className="text-base leading-relaxed text-white/80 md:text-lg">
               Our rigorous academic programs are designed to challenge students intellectually while nurturing their individual strengths.
             </p>
+            <AnimatedWrapper direction="up" delay={0.2} className="mt-8">
+              <a
+                href="/prospectus.pdf"
+                download
+                className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 text-sm font-bold text-black transition-all hover:bg-white/90 shadow-xl"
+              >
+                <BookOpen className="h-4 w-4" />
+                Download Official Prospectus
+              </a>
+            </AnimatedWrapper>
           </AnimatedWrapper>
         </div>
       </section>
@@ -113,6 +123,72 @@ function AcademicsContent() {
                     </div>
                   </CardContent>
                 </Card>
+              </AnimatedWrapper>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Academic Year & Assessments */}
+      <section className="bg-background py-16 md:py-24">
+        <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8">
+          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+            <AnimatedWrapper direction="left">
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-primary">Academic Structure</p>
+              <h2 className="heading-2 mb-6">Academic Year & Assessments</h2>
+              <p className="text-base leading-relaxed text-muted-foreground/80 mb-8">
+                The academic year is structured into two comprehensive terms to ensure balanced learning and thorough evaluation of student progress.
+              </p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-2xl bg-secondary/50 p-6 border border-primary/5">
+                  <h4 className="text-sm font-bold uppercase tracking-wider text-primary mb-2">1st Term</h4>
+                  <p className="text-sm text-muted-foreground">March to July</p>
+                </div>
+                <div className="rounded-2xl bg-secondary/50 p-6 border border-primary/5">
+                  <h4 className="text-sm font-bold uppercase tracking-wider text-primary mb-2">2nd Term</h4>
+                  <p className="text-sm text-muted-foreground">August to December</p>
+                </div>
+              </div>
+            </AnimatedWrapper>
+            <AnimatedWrapper direction="right">
+              <Card className="glass-card border-none overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="bg-burgundy-gradient p-6 text-white text-center">
+                    <h3 className="heading-3">Assessment System</h3>
+                  </div>
+                  <div className="p-8 grid gap-4">
+                    {[
+                      "Admission Tests",
+                      "Informal Assessments",
+                      "First Term Examination",
+                      "Second Term Examination"
+                    ].map((item, i) => (
+                      <div key={item} className="flex items-center gap-4 text-sm font-medium text-muted-foreground">
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-[10px] font-bold">
+                          {i + 1}
+                        </div>
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </AnimatedWrapper>
+          </div>
+        </div>
+      </section>
+
+      {/* Extracurriculars */}
+      <section className="bg-secondary/30 py-16 md:py-24">
+        <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8 text-center">
+          <AnimatedWrapper direction="up" className="mb-12">
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">Beyond the Classroom</p>
+            <h2 className="heading-2">Extracurricular Activities</h2>
+          </AnimatedWrapper>
+          <div className="flex flex-wrap justify-center gap-4">
+            {["Debate", "Scrabble", "Chess", "Arts", "Sports"].map((activity) => (
+              <AnimatedWrapper key={activity} className="px-6 py-3 rounded-2xl bg-background shadow-sm border border-primary/5 text-sm font-bold text-primary">
+                {activity}
               </AnimatedWrapper>
             ))}
           </div>
