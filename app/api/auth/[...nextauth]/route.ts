@@ -40,6 +40,13 @@ async function handler(req: NextRequest, context: any) {
         newHeaders.delete("Set-Cookie");
 
         setCookies.forEach((cookie: string) => {
+            // If the cookie is being deleted (Max-Age=0), let it pass through as-is
+            // to ensure the browser actually removes the old cookie.
+            if (cookie.includes("Max-Age=0")) {
+                newHeaders.append("Set-Cookie", cookie);
+                return;
+            }
+
             const sessionOnlyCookie = cookie
                 .replace(/Max-Age=[^;]+;?/i, "")
                 .replace(/Expires=[^;]+;?/i, "")
