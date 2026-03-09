@@ -4,10 +4,11 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
-import { Menu, X, LayoutDashboard, ChevronRight } from "lucide-react"
+import { Menu, X, LayoutDashboard, ChevronRight, Moon, Sun } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/AuthContext"
 import { motion, AnimatePresence } from "framer-motion"
+import { useTheme } from "next-themes"
 
 import { ScrollProgress } from "@/components/ui/scroll-progress"
 
@@ -17,6 +18,7 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = usePathname()
   const { user } = useAuth()
+  const { theme, setTheme } = useTheme()
 
   const portalHref = user ? `/portal/${user.role.toLowerCase()}` : "/portal/login"
   const portalLabel = "Login"
@@ -69,6 +71,16 @@ export function Navbar() {
 
           {/* Desktop CTA */}
           <div className="hidden items-center gap-3 lg:flex">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="h-10 w-10 text-foreground"
+              aria-label="Toggle Theme"
+            >
+              <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            </Button>
             <Link href={portalHref} prefetch={true}>
               <Button variant="outline" size="sm" className="min-w-[100px] border-primary text-primary hover:bg-primary hover:text-primary-foreground flex items-center justify-center gap-2">
                 {user && <LayoutDashboard className="h-4 w-4" />}
@@ -84,6 +96,16 @@ export function Navbar() {
 
           {/* Mobile Menu Toggle */}
           <div className="flex items-center gap-4 lg:hidden">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="h-9 w-9 text-foreground"
+              aria-label="Toggle Theme"
+            >
+              <Sun className="h-[18px] w-[18px] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-[18px] w-[18px] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            </Button>
             <Link href={portalHref} className="sm:hidden">
               <Button variant="ghost" size="icon" className="h-9 w-9 text-primary"><LayoutDashboard size={20} /></Button>
             </Link>

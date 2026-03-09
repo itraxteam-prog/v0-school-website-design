@@ -29,6 +29,10 @@ interface AppLayoutProps {
   userImage?: string
 }
 
+// Module-level cache to survive client-side navigation
+let cachedSettings: any = null;
+let cachedPreferences: any = null;
+
 export function AppLayout({ children, sidebarItems, userName: propUserName, userRole: propUserRole, userImage: propUserImage }: AppLayoutProps) {
   const { data: session } = useSession()
   const isMobile = useIsMobile()
@@ -42,35 +46,47 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
   const [isSearchVisible, setIsSearchVisible] = useState(false)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [notifications, setNotifications] = useState<any[]>([])
-  const [settings, setSettings] = useState<any>(null)
+  const [settings, setSettings] = useState<any>(cachedSettings)
   const pathname = usePathname()
   const { logout } = useAuth()
   const portalRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // 1. Fetch Global Settings (Logo, School Name)
-    fetch('/api/settings')
-      .then(res => res.json())
-      .then(data => {
-        if (!data.error) {
-          setSettings(data)
-        }
-      })
-      .catch(console.error)
-
-    // 2. Fetch Personal Preferences (Theme, etc.) — apply as portal-scoped class only
-    fetch('/api/user/preferences')
-      .then(res => res.json())
-      .then(data => {
-        if (!data.error && data.darkMode !== undefined) {
-          if (portalRef.current) {
-            portalRef.current.classList.toggle('portal-dark', !!data.darkMode)
+    // 1. Fetch Global Settings (Logo, School Name) - Use Cache if available
+    if (cachedSettings) {
+      setSettings(cachedSettings);
+    } else {
+      fetch('/api/settings')
+        .then(res => res.json())
+        .then(data => {
+          if (!data.error) {
+            cachedSettings = data;
+            setSettings(data);
           }
-        }
-      })
-      .catch(console.error)
+        })
+        .catch(console.error)
+    }
 
-    // 3. Fetch Real-time Notifications/Announcements
+    // 2. Fetch Personal Preferences (Theme, etc.) - Apply as portal-scoped class only
+    if (cachedPreferences) {
+      if (portalRef.current) {
+        portalRef.current.classList.toggle('portal-dark', !!cachedPreferences.darkMode)
+      }
+    } else {
+      fetch('/api/user/preferences')
+        .then(res => res.json())
+        .then(data => {
+          if (!data.error && data.darkMode !== undefined) {
+            cachedPreferences = data;
+            if (portalRef.current) {
+              portalRef.current.classList.toggle('portal-dark', !!data.darkMode)
+            }
+          }
+        })
+        .catch(console.error)
+    }
+
+    // 3. Fetch Real-time Notifications/Announcements (Always fetch latest)
     fetch('/api/notifications')
       .then(res => res.json())
       .then(data => {
@@ -355,7 +371,7 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
+            transition={{ duration: isMobile ? 0.15 : 0.3, ease: "easeOut" }}
           >
             {children}
           </motion.div>
