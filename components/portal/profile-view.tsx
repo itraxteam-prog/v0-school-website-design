@@ -66,31 +66,36 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
         const file = e.target.files?.[0];
         if (!file) return;
 
-        const uploadData = new FormData();
-        uploadData.append("file", file);
+        // Use FileReader to convert to base64 (to work on Vercel)
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+            const base64String = reader.result as string;
 
-        try {
-            toast.loading("Uploading photo...");
-            const res = await fetch("/api/user/photo", {
-                method: "POST",
-                body: uploadData,
-            });
+            try {
+                toast.loading("Uploading photo...");
+                const res = await fetch("/api/user/photo", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ image: base64String }),
+                });
 
-            if (!res.ok) throw new Error("Upload failed");
-            const result = await res.json();
+                if (!res.ok) throw new Error("Upload failed");
+                const result = await res.json();
 
-            setProfileData((prev: any) => ({ ...prev, avatarUrl: result.url }));
+                setProfileData((prev: any) => ({ ...prev, avatarUrl: result.url }));
 
-            // Update session so header avatar updates
-            await update({ image: result.url });
-            router.refresh();
+                // Update session so header avatar updates
+                await update({ image: result.url });
+                router.refresh();
 
-            toast.dismiss();
-            toast.success("Photo updated successfully");
-        } catch (err) {
-            toast.dismiss();
-            toast.error("Failed to upload photo");
-        }
+                toast.dismiss();
+                toast.success("Photo updated successfully");
+            } catch (err) {
+                toast.dismiss();
+                toast.error("Failed to upload photo");
+            }
+        };
+        reader.readAsDataURL(file);
     };
 
     const handleSave = async () => {
@@ -258,6 +263,7 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
                                 value={profileData.dob}
                                 isEditing={isEditing}
                                 name="dob"
+                                type="date"
                                 onChange={(val: string) => setFormData(f => ({ ...f, dob: val }))}
                                 val={formData.dob}
                             />
@@ -352,12 +358,13 @@ function ProfileInfoSection({ title, icon, children }: any) {
     )
 }
 
-function InfoItem({ label, value, fullWidth = false, isEditing = false, onChange, val }: any) {
+function InfoItem({ label, value, fullWidth = false, isEditing = false, onChange, val, type = "text" }: any) {
     return (
         <div className={cn("flex flex-col gap-2", fullWidth && "sm:col-span-2")}>
             <span className="text-xs font-bold text-muted-foreground uppercase">{label}</span>
             {isEditing && onChange ? (
                 <input
+                    type={type}
                     className="rounded-lg border bg-background px-3.5 py-2.5 text-sm font-medium focus:outline-primary w-full"
                     value={val || ""}
                     onChange={(e) => onChange(e.target.value)}
