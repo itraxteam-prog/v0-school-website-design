@@ -139,45 +139,44 @@
     text-wrap: balance;
   }
 
-  /* Responsive typography scale */
+  /* Fluid Typography Scale using clamp()
+     Format: clamp(min, preferred, max)
+     Ensures smooth scaling between 320px and 1280px without breaking desktop views.
+  */
   .heading-1 {
-    @apply font-serif font-bold text-4xl tracking-tight leading-[1.2] py-1;
+    font-size: clamp(2.25rem, 5vw + 1rem, 3.75rem);
+    /* 36px to 60px */
+    @apply font-serif font-bold tracking-tight leading-[1.1] py-2;
   }
 
   .heading-2 {
-    @apply font-serif font-semibold text-3xl tracking-tight leading-[1.2];
+    font-size: clamp(1.875rem, 4vw + 1rem, 3rem);
+    /* 30px to 48px */
+    @apply font-serif font-semibold tracking-tight leading-[1.2];
   }
 
   .heading-3 {
-    @apply font-serif font-semibold text-xl tracking-tight leading-[1.3];
+    font-size: clamp(1.25rem, 2vw + 1rem, 1.875rem);
+    /* 20px to 30px */
+    @apply font-serif font-semibold tracking-tight leading-[1.3];
   }
 
-  @media (min-width: 640px) {
-    .heading-1 {
-      @apply text-5xl;
-    }
-
-    .heading-2 {
-      @apply text-4xl;
-    }
-
-    .heading-3 {
-      @apply text-2xl;
-    }
+  /* Utility for native-feeling touch targets */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
   }
 
-  @media (min-width: 1024px) {
-    .heading-1 {
-      @apply text-6xl;
-    }
+  /* Mobile-first spacing and safe areas */
+  .safe-p-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 1rem);
+  }
 
-    .heading-2 {
-      @apply text-5xl;
-    }
+  .mobile-only {
+    @apply lg:hidden;
+  }
 
-    .heading-3 {
-      @apply text-3xl;
-    }
+  .desktop-only {
+    @apply hidden lg:flex;
   }
 
   /* Glassmorphism Utilities */

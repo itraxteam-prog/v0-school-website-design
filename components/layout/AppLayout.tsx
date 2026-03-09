@@ -9,10 +9,7 @@ import { Bell, ChevronRight, LogOut, Menu, Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import type { LucideIcon } from "lucide-react"
-import { AnimatePresence, motion } from "framer-motion"
-import { formatName } from "@/lib/utils"
-import { useSession } from "next-auth/react"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { formatDistanceToNow } from "date-fns"
 
 export interface SidebarItem {
@@ -31,6 +28,7 @@ interface AppLayoutProps {
 
 export function AppLayout({ children, sidebarItems, userName: propUserName, userRole: propUserRole, userImage: propUserImage }: AppLayoutProps) {
   const { data: session } = useSession()
+  const isMobile = useIsMobile()
 
   // Prefer live session data, fallback to props for initial/server-side state
   const userName = session?.user?.name || propUserName || "User"
@@ -84,10 +82,11 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
     await logout()
   }
 
-  // ✅ Fix: handle possible null value safely
   const safePathname = pathname ?? ""
-
   const breadcrumbs = safePathname.split("/").filter(Boolean).slice(1)
+  const portalBase = safePathname.startsWith('/portal/admin') ? '/portal/admin' :
+    safePathname.startsWith('/portal/teacher') ? '/portal/teacher' :
+      '/portal/student';
 
   return (
     <div ref={portalRef} data-portal-root className="flex h-screen overflow-hidden bg-secondary">
@@ -104,14 +103,14 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
+      {/* Sidebar - Desktop (Static) / Mobile (Slide-over) */}
       <motion.aside
         initial={false}
         animate={{
-          x: sidebarOpen ? 0 : "-100%",
+          x: (isMobile && !sidebarOpen) ? "-100%" : 0,
         }}
         transition={{ type: "spring", bounce: 0, duration: 0.3 }}
-        className="fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-border bg-background lg:static lg:!translate-x-0"
+        className={`fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-border bg-background lg:static lg:!translate-x-0 ${isMobile ? 'shadow-2xl' : ''}`}
       >
         {/* Sidebar Header */}
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
@@ -121,7 +120,7 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
             ) : (
               <Image src="/images/logo.png" alt="Logo" width={60} height={60} className="h-[60px] w-[60px] object-contain" />
             )}
-            <div className="hidden sm:block">
+            <div>
               <p className="text-xs font-bold leading-tight text-foreground">{settings?.schoolName || "Pioneers High"}</p>
               <p className="text-[10px] text-muted-foreground">{userRole}</p>
             </div>
@@ -187,16 +186,19 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
         </div>
       </motion.aside>
 
-      {/* Main Content */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      {/* Main Content Area */}
+      <div className="flex flex-1 flex-col overflow-hidden relative">
         {/* Top Bar */}
-        <header className="flex h-14 items-center justify-between border-b border-border bg-background px-4 lg:px-6">
+        <header className="flex h-14 items-center justify-between border-b border-border bg-background px-4 lg:px-6 shrink-0 z-30">
           <div className="flex items-center gap-3">
-            <button className="text-foreground lg:hidden" onClick={() => setSidebarOpen(true)} aria-label="Open sidebar">
+            <button className={`${isMobile ? 'hidden' : 'text-foreground lg:hidden'}`} onClick={() => setSidebarOpen(true)} aria-label="Open sidebar">
               <Menu className="h-5 w-5" />
             </button>
-            {/* Breadcrumb */}
-            <nav className="hidden items-center gap-1 text-sm md:flex" aria-label="Breadcrumb">
+            <Link href="/" className="lg:hidden">
+              <img src={settings?.schoolLogo || "/images/logo.png"} alt="Logo" className="h-8 w-8 object-contain" />
+            </Link>
+            {/* Breadcrumb - Only desktop or large mobile */}
+            <nav className="hidden items-center gap-1 text-sm sm:flex" aria-label="Breadcrumb">
               {breadcrumbs.map((crumb, i) => {
                 const href = "/portal/" + breadcrumbs.slice(0, i + 1).join("/");
                 const isLast = i === breadcrumbs.length - 1;
@@ -220,24 +222,21 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
                 );
               })}
             </nav>
-            {/* Mobile Back */}
-            <span className="text-sm font-semibold capitalize text-foreground md:hidden truncate max-w-[120px]">
+            {/* Mobile Title */}
+            <span className="text-sm font-bold capitalize text-primary sm:hidden truncate max-w-[150px]">
               {breadcrumbs[breadcrumbs.length - 1]?.replace(/-/g, " ") || "Dashboard"}
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Search - Visible on desktop, clickable icon on mobile */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Search Tool */}
             <div className="relative">
-              <div className={`${isSearchVisible ? 'fixed inset-x-0 top-0 h-14 z-50 bg-background flex items-center px-4 md:relative md:inset-auto md:h-auto md:bg-transparent md:px-0 md:flex' : 'hidden sm:block'}`}>
+              <div className={`${isSearchVisible ? 'fixed inset-x-0 top-0 h-14 z-[60] bg-background flex items-center px-4' : 'hidden md:block'}`}>
                 <Search className="absolute left-7 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground md:left-3" />
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
                     if (searchQuery.trim()) {
-                      const portalBase = safePathname.startsWith('/portal/admin') ? '/portal/admin' :
-                        safePathname.startsWith('/portal/teacher') ? '/portal/teacher' :
-                          '/portal/student';
                       window.location.href = `${portalBase}/search?q=${encodeURIComponent(searchQuery.trim())}`;
                     }
                   }}
@@ -247,22 +246,12 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
                     placeholder="Search..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.currentTarget.form?.requestSubmit();
-                      }
-                    }}
                     className="h-9 w-full pl-9 text-xs transition-all focus:ring-primary md:w-40 md:focus:w-48 lg:w-64"
                     autoFocus={isSearchVisible}
                   />
                 </form>
                 {isSearchVisible && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="ml-2 md:hidden"
-                    onClick={() => setIsSearchVisible(false)}
-                  >
+                  <Button variant="ghost" size="icon" className="ml-2" onClick={() => setIsSearchVisible(false)}>
                     <X className="h-4 w-4" />
                   </Button>
                 )}
@@ -270,119 +259,86 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 sm:hidden"
+                className="h-9 w-9 md:hidden"
                 onClick={() => setIsSearchVisible(true)}
                 aria-label="Search"
               >
                 <Search className="h-[18px] w-[18px]" />
               </Button>
             </div>
-            {/* Notification */}
+
+            {/* Notifications Icon (Mobile Header) */}
             <div className="relative">
               <Button
                 variant="ghost"
                 size="icon"
                 className="relative h-9 w-9"
-                aria-label="Notifications"
                 onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
               >
                 <Bell className="h-[18px] w-[18px]" />
                 {notifications.length > 0 && (
-                  <span className="absolute right-1.5 top-1.5 flex h-2 w-2 rounded-full bg-primary" />
+                  <span className="absolute right-2 top-2 flex h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
                 )}
               </Button>
 
               <AnimatePresence>
                 {isNotificationsOpen && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-10"
-                      onClick={() => setIsNotificationsOpen(false)}
-                    />
+                  <div className="fixed inset-0 z-[70] md:absolute md:inset-auto md:right-0 md:top-full md:mt-2">
+                    <div className="fixed inset-0 bg-transparent" onClick={() => setIsNotificationsOpen(false)} />
                     <motion.div
-                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                      className="absolute right-0 top-full mt-2 z-20 w-80 rounded-xl border border-border bg-background shadow-xl overflow-hidden"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="relative z-10 w-full md:w-80 h-full md:h-auto md:rounded-xl border border-border bg-background shadow-2xl overflow-hidden flex flex-col pt-14 md:pt-0"
                     >
-                      <div className="bg-muted/30 p-3 border-b border-border flex items-center justify-between">
-                        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Notifications</p>
-                        {notifications.length > 0 && (
-                          <Badge variant="secondary" className="text-[10px]">{notifications.length} New</Badge>
-                        )}
+                      <div className="bg-muted/30 p-4 border-b border-border flex items-center justify-between">
+                        <h3 className="text-xs font-bold uppercase text-muted-foreground">Recent Notifications</h3>
+                        <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsNotificationsOpen(false)}><X size={16} /></Button>
                       </div>
-                      <div className="max-h-80 overflow-y-auto">
+                      <div className="flex-1 overflow-y-auto">
                         {notifications.length > 0 ? (
                           notifications.map((n, i) => (
-                            <div key={n.id || i} className="p-3 border-b border-border hover:bg-muted/50 transition-colors cursor-pointer group">
-                              <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">{n.title}</p>
-                              <p className="text-[10px] text-muted-foreground mt-0.5">
-                                {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
-                              </p>
+                            <div key={n.id || i} className="p-4 border-b border-border hover:bg-muted/50">
+                              <p className="text-sm font-semibold">{n.title}</p>
+                              <p className="text-[10px] text-muted-foreground mt-1">{formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}</p>
                               <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{n.content}</p>
                             </div>
                           ))
                         ) : (
-                          <div className="p-8 text-center">
-                            <Bell className="h-8 w-8 text-muted/30 mx-auto mb-2" />
-                            <p className="text-xs text-muted-foreground">No new notifications</p>
+                          <div className="p-12 text-center opacity-30">
+                            <Bell className="h-12 w-12 mx-auto mb-2" />
+                            <p className="text-sm">No notifications</p>
                           </div>
                         )}
                       </div>
                       <Link
-                        href={safePathname.startsWith('/portal/admin') ? '/portal/admin/announcements' :
-                          safePathname.startsWith('/portal/teacher') ? '/portal/teacher/announcements' :
-                            '/portal/student/announcements'}
-                        className="block p-2 text-center text-xs font-semibold text-primary hover:bg-muted transition-colors"
+                        href={`${portalBase}/announcements`}
+                        className="p-4 text-center text-xs font-bold text-primary border-t border-border bg-muted/10"
                         onClick={() => setIsNotificationsOpen(false)}
                       >
                         View All Announcements
                       </Link>
                     </motion.div>
-                  </>
+                  </div>
                 )}
               </AnimatePresence>
             </div>
 
-            {/* Avatar / Profile */}
-            <Link
-              href={safePathname.startsWith('/portal/admin') ? '/portal/admin/profile' :
-                safePathname.startsWith('/portal/teacher') ? '/portal/teacher/profile' :
-                  '/portal/student/profile'}
-              className="flex items-center gap-2 hover:bg-muted/50 p-1 rounded-lg transition-colors"
-              title="View Profile"
-            >
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground shrink-0 overflow-hidden ring-2 ring-primary/20">
-                {userImage ? (
-                  <img src={userImage} alt={userName} className="h-full w-full object-cover" />
-                ) : (
-                  userName && userName.trim()
-                    ? userName.trim().split(/\s+/).filter(Boolean).map((n) => n[0]).join("").toUpperCase().slice(0, 2)
-                    : "U"
-                )}
-              </div>
-              <div className="hidden lg:block mr-2 text-left">
-                <p className="text-xs font-semibold text-foreground truncate max-w-[100px] leading-tight">{formatName(userName)}</p>
-                <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">{userRole}</p>
-              </div>
-            </Link>
-
-            {/* Header Logout - Visible on desktop */}
+            {/* Desktop Logout Icon */}
             <Button
               variant="ghost"
               size="icon"
-              className="hidden h-9 w-9 text-muted-foreground hover:text-destructive md:flex"
+              className="hidden md:flex h-9 w-9 text-muted-foreground transition-colors hover:text-destructive"
               onClick={handleLogout}
               aria-label="Logout"
             >
               <LogOut className="h-[18px] w-[18px]" />
             </Button>
-
           </div>
         </header>
 
-        {/* Content Area */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6 scroll-smooth" style={{ WebkitOverflowScrolling: "touch" }}>
+        {/* Main Content Body */}
+        <main className={`flex-1 overflow-y-auto p-4 lg:p-6 scroll-smooth ${isMobile ? 'pb-24' : ''}`} style={{ WebkitOverflowScrolling: "touch" }}>
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -391,8 +347,38 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
             {children}
           </motion.div>
         </main>
+
+        {/* Mobile Bottom Navigation - Sticky at bottom */}
+        {isMobile && (
+          <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-lg border-t border-border flex items-center justify-between px-2 pb-safe-a pt-2">
+            <BottomNavLink href={portalBase} active={safePathname === portalBase} icon={LayoutDashboard} label="Home" />
+            <BottomNavLink href={`${portalBase}/announcements`} active={safePathname.includes('/announcements')} icon={Megaphone} label="Alerts" />
+            <div className="flex flex-col items-center justify-center flex-1 py-1" onClick={() => setSidebarOpen(true)}>
+              <div className="h-11 w-11 flex items-center justify-center rounded-2xl bg-primary shadow-burgundy-glow/20 text-white">
+                <Menu size={22} />
+              </div>
+              <span className="text-[10px] mt-1 font-bold text-primary uppercase">More</span>
+            </div>
+            <BottomNavLink href={`${portalBase}/profile`} active={safePathname.includes('/profile')} icon={User} label="Profile" />
+            <button onClick={handleLogout} className="flex flex-col items-center justify-center flex-1 py-1 text-muted-foreground">
+              <LogOut size={20} />
+              <span className="text-[10px] mt-1 font-medium">Exit</span>
+            </button>
+          </nav>
+        )}
       </div>
     </div>
   )
 }
+
+function BottomNavLink({ href, icon: Icon, label, active }: { href: string, icon: LucideIcon, label: string, active: boolean }) {
+  return (
+    <Link href={href} className={`flex flex-col items-center justify-center flex-1 py-1 transition-all ${active ? 'text-primary' : 'text-muted-foreground opacity-70'}`}>
+      <Icon size={active ? 22 : 20} strokeWidth={active ? 2.5 : 2} />
+      <span className={`text-[10px] mt-1 font-bold uppercase tracking-tight ${active ? 'visible' : 'visible'}`}>{label}</span>
+      {active && <div className="mt-1 h-1 w-1 rounded-full bg-primary" />}
+    </Link>
+  )
+}
+
 export default AppLayout

@@ -1,31 +1,5 @@
-'use client'
-
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation"
-import { AppLayout } from "@/components/layout/app-layout";
-import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow
-} from "@/components/ui/table";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Users, ShieldCheck, Mail, Calendar, Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import { AnimatedWrapper } from "@/components/ui/animated-wrapper";
-import { useSession } from "next-auth/react";
-import { formatName } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileCardView } from "@/components/ui/mobile-card-view";
 
 interface User {
     id: string;
@@ -37,6 +11,7 @@ interface User {
 
 export function AdminDashboardClient() {
     const router = useRouter()
+    const isMobile = useIsMobile();
     const [users, setUsers] = useState<User[]>([]);
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -92,9 +67,31 @@ export function AdminDashboardClient() {
         }
     }
 
+    // Role selector component for both table and cards
+    const RoleSelector = ({ user }: { user: User }) => (
+        <Select
+            value={user.role}
+            onValueChange={(val) => changeRole(user.id, val as User["role"])}
+        >
+            <SelectTrigger className="w-full sm:w-[140px] h-9 glass-card border-primary/20 bg-background/50 focus:ring-primary/20">
+                <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="glass-panel border-border/50">
+                <SelectItem value="STUDENT">Student</SelectItem>
+                <SelectItem value="TEACHER">Teacher</SelectItem>
+                <SelectItem value="ADMIN">
+                    <div className="flex items-center gap-2">
+                        <ShieldCheck className="h-3 w-3 text-primary" />
+                        <span>Admin</span>
+                    </div>
+                </SelectItem>
+            </SelectContent>
+        </Select>
+    );
+
     return (
         <AppLayout sidebarItems={sidebarItems} userName={session?.user?.name || "Admin"} userRole="admin">
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 space-y-6">
                 <AnimatedWrapper direction="down">
                     <div className="flex flex-col gap-1 mb-6">
                         <h1 className="heading-1 text-burgundy-gradient">Welcome back, {formatName(session?.user?.name?.split(' ')[0]) || 'Admin'}</h1>
@@ -138,19 +135,57 @@ export function AdminDashboardClient() {
                 <AnimatedWrapper delay={0.1}>
                     <Card className="glass-panel border-border/50 overflow-hidden shadow-burgundy-glow/5">
                         <CardHeader className="bg-muted/30 pb-4">
-                            <div className="flex items-center gap-2">
-                                <Users className="h-5 w-5 text-primary" />
-                                <CardTitle className="text-xl">User Directory</CardTitle>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Users className="h-5 w-5 text-primary" />
+                                    <CardTitle className="text-lg sm:text-xl">User Directory</CardTitle>
+                                </div>
+                                <Badge variant="secondary" className="rounded-full text-[10px] sm:text-xs">
+                                    {users.length} Users
+                                </Badge>
                             </div>
-                            <CardDescription>
+                            <CardDescription className="text-xs sm:text-sm">
                                 A complete list of registered users and their current system roles.
                             </CardDescription>
                         </CardHeader>
-                        <CardContent className="p-0">
+                        <CardContent className={cn("p-0", isMobile ? "bg-secondary/40 p-4" : "")}>
                             {loading ? (
                                 <div className="flex justify-center items-center h-64">
                                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                                 </div>
+                            ) : isMobile ? (
+                                <MobileCardView
+                                    data={users}
+                                    primaryFieldKey="name"
+                                    fields={[
+                                        {
+                                            label: "USER", key: "name", render: (val, user) => (
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-base">{val || "Anonymous"}</span>
+                                                    <span className="text-[10px] text-muted-foreground font-mono uppercase">{user.id.slice(0, 8)}...</span>
+                                                </div>
+                                            )
+                                        },
+                                        {
+                                            label: "EMAIL", key: "email", render: (val) => (
+                                                <div className="flex items-center gap-2 text-xs truncate">
+                                                    <Mail size={12} className="opacity-50 text-primary" />
+                                                    {val}
+                                                </div>
+                                            )
+                                        },
+                                        {
+                                            label: "REGISTERED", key: "createdAt", render: (val) => (
+                                                <div className="flex items-center gap-2 text-xs">
+                                                    <Calendar size={12} className="opacity-50 text-primary" />
+                                                    {val ? new Date(val).toLocaleDateString() : 'N/A'}
+                                                </div>
+                                            )
+                                        },
+                                        { label: "PERMISSION", key: "role", render: (_, user) => <RoleSelector user={user} /> }
+                                    ]}
+                                    emptyMessage="No users found."
+                                />
                             ) : (
                                 <div className="overflow-x-auto">
                                     <Table>
@@ -192,24 +227,7 @@ export function AdminDashboardClient() {
                                                         </TableCell>
                                                         <TableCell className="pr-6 text-right py-4">
                                                             <div className="flex justify-end">
-                                                                <Select
-                                                                    value={user.role}
-                                                                    onValueChange={(val) => changeRole(user.id, val as User["role"])}
-                                                                >
-                                                                    <SelectTrigger className="w-[140px] h-9 glass-card border-primary/20 bg-background/50 focus:ring-primary/20">
-                                                                        <SelectValue />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent className="glass-panel border-border/50">
-                                                                        <SelectItem value="STUDENT">Student</SelectItem>
-                                                                        <SelectItem value="TEACHER">Teacher</SelectItem>
-                                                                        <SelectItem value="ADMIN">
-                                                                            <div className="flex items-center gap-2">
-                                                                                <ShieldCheck className="h-3 w-3 text-primary" />
-                                                                                <span>Admin</span>
-                                                                            </div>
-                                                                        </SelectItem>
-                                                                    </SelectContent>
-                                                                </Select>
+                                                                <RoleSelector user={user} />
                                                             </div>
                                                         </TableCell>
                                                     </TableRow>
@@ -236,21 +254,21 @@ export function AdminDashboardClient() {
 function StatCard({ title, value, icon: Icon, loading, trend, trendColor }: any) {
     return (
         <AnimatedWrapper>
-            <Card className="glass-panel border-border/50">
-                <CardContent className="p-6">
+            <Card className="glass-panel border-border/50 transition-all active:scale-95">
+                <CardContent className="p-4 sm:p-6">
                     <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-muted-foreground">{title}</p>
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                            <Icon className="h-4 w-4" />
+                        <p className="text-xs sm:text-sm font-medium text-muted-foreground">{title}</p>
+                        <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                            <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </div>
                     </div>
-                    <div className="mt-4">
+                    <div className="mt-2 sm:mt-4">
                         {loading ? (
-                            <div className="h-9 w-24 bg-muted animate-pulse rounded" />
+                            <div className="h-7 sm:h-9 w-24 bg-muted animate-pulse rounded" />
                         ) : (
-                            <h3 className="text-3xl font-bold tracking-tight">{value}</h3>
+                            <h3 className="text-2xl sm:text-3xl font-bold tracking-tight">{value}</h3>
                         )}
-                        <p className={`text-xs font-medium mt-1 ${trendColor || 'text-muted-foreground'}`}>
+                        <p className={`text-[10px] sm:text-xs font-medium mt-1 ${trendColor || 'text-muted-foreground'}`}>
                             {trend}
                         </p>
                     </div>
