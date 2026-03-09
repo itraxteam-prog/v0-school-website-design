@@ -46,21 +46,26 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
   const { setTheme } = useTheme()
 
   useEffect(() => {
+    // 1. Fetch Global Settings (Logo, School Name)
     fetch('/api/settings')
       .then(res => res.json())
       .then(data => {
         if (!data.error) {
           setSettings(data)
-          // Only synchronize global theme for non-student/teacher roles (Admin)
-          // Students and Teachers use their local preference set in Security Settings
-          const upperRole = userRole?.toUpperCase();
-          if (upperRole !== "STUDENT" && upperRole !== "TEACHER" && data?.portalPreferences?.darkMode !== undefined) {
-            setTheme(data.portalPreferences.darkMode ? "dark" : "light")
-          }
         }
       })
       .catch(console.error)
-  }, [setTheme, userRole])
+
+    // 2. Fetch Personal Preferences (Theme, etc.)
+    fetch('/api/user/preferences')
+      .then(res => res.json())
+      .then(data => {
+        if (!data.error && data.darkMode !== undefined) {
+          setTheme(data.darkMode ? "dark" : "light")
+        }
+      })
+      .catch(console.error)
+  }, [setTheme])
 
   const handleLogout = async () => {
     await logout()

@@ -46,7 +46,7 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
     const router = useRouter()
     const [isEditing, setIsEditing] = useState(false)
     const [loading, setLoading] = useState(false)
-    const [profileData, setProfileData] = useState(initialData) // Renamed teacherData to profileData
+    const [profileData, setProfileData] = useState(initialData)
     const [formData, setFormData] = useState({
         name: initialData.name,
         email: initialData.email,
@@ -117,9 +117,13 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
 
             if (!res.ok) throw new Error("Update failed");
 
-            setProfileData((prev: any) => ({ ...prev, ...formData }));
+            // Update local state and ensure ID reflects Roll Number
+            const updatedProfile = { ...profileData, ...formData, id: formData.rollNumber };
+            setProfileData(updatedProfile);
+
             setIsEditing(false);
             toast.success("Profile updated successfully");
+
             // Update session if name changed
             if (formData.name !== session?.user?.name) {
                 await update({ name: formData.name });
@@ -151,6 +155,7 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
                             className={cn("border-primary/20 text-primary flex items-center gap-2", isEditing && "text-muted-foreground")}
                             onClick={() => {
                                 if (isEditing) {
+                                    // Reset form data to last saved profile data
                                     setFormData({
                                         name: profileData.name,
                                         email: profileData.email,
@@ -163,7 +168,7 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
                                         classes: profileData.classes,
                                         status: profileData.status,
                                         designation: profileData.designation,
-                                        rollNumber: profileData.id
+                                        rollNumber: profileData.id // ID maps to rollNumber
                                     });
                                 }
                                 setIsEditing(!isEditing);

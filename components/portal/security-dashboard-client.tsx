@@ -1,5 +1,4 @@
-"use client"
-
+import { useState, useEffect } from "react"
 import { useTheme } from "next-themes"
 import TwoFactorSetup from "@/components/portal/2fa-setup"
 import { ChangePasswordForm } from "@/components/portal/change-password-form"
@@ -14,9 +13,51 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { toast } from "sonner"
 
 export function SecurityDashboardClient({ user }: { user: any }) {
     const { theme, setTheme } = useTheme()
+    const [isSavingTheme, setIsSavingTheme] = useState(false)
+
+    useEffect(() => {
+        // Sync setting from DB on mount
+        const fetchPreferences = async () => {
+            try {
+                const res = await fetch("/api/user/preferences");
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.darkMode !== undefined) {
+                        setTheme(data.darkMode ? "dark" : "light");
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch preferences", err);
+            }
+        };
+        fetchPreferences();
+    }, [setTheme]);
+
+    const handleThemeToggle = async (checked: boolean) => {
+        setIsSavingTheme(true);
+        const newTheme = checked ? "dark" : "light";
+        setTheme(newTheme);
+
+        try {
+            const res = await fetch("/api/user/preferences", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ darkMode: checked })
+            });
+
+            if (!res.ok) throw new Error("Failed to save preference");
+
+            toast.success(`${newTheme.charAt(0).toUpperCase() + newTheme.slice(1)} mode saved to profile.`);
+        } catch (err) {
+            toast.error("Preference saved locally, but failed to sync to account.");
+        } finally {
+            setIsSavingTheme(false);
+        }
+    };
 
     // Get sidebar items based on role - robust version
     const getSidebarItems = () => {
@@ -104,7 +145,8 @@ export function SecurityDashboardClient({ user }: { user: any }) {
                                         <Switch
                                             id="dark-mode"
                                             checked={theme === 'dark'}
-                                            onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+                                            onCheckedChange={handleThemeToggle}
+                                            disabled={isSavingTheme}
                                         />
                                     </div>
                                 </CardContent>
