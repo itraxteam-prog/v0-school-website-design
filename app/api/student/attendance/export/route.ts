@@ -11,6 +11,7 @@ import { checkExportRateLimit } from "@/lib/pdf/export-rate-limit";
 import { createPdfResponse } from "@/lib/pdf/pdf-response";
 import { assertNodeRuntime } from "@/lib/runtime-assert";
 import path from "path";
+import fs from "fs";
 
 const SCHOOL_NAME = "The Pioneers High School";
 
@@ -40,7 +41,9 @@ export async function GET() {
         const absent = rows.filter((r) => r.status.toUpperCase() === "ABSENT").length;
         const late = rows.filter((r) => r.status.toUpperCase() === "LATE").length;
 
-        const logoUrl = path.join(process.cwd(), "public", "placeholder-logo.png");
+        const logoPath = path.join(process.cwd(), "public", "placeholder-logo.png");
+        const logoBase64 = fs.readFileSync(logoPath).toString("base64");
+        const logoUrl = `data:image/png;base64,${logoBase64}`;
 
         const pdfBuffer = await createPdf(
             React.createElement(StudentAttendancePdf, {
