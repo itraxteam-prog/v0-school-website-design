@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react"
 import { useTheme } from "next-themes"
 import TwoFactorSetup from "@/components/portal/2fa-setup"
