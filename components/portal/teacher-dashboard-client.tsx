@@ -388,29 +388,54 @@ export function TeacherDashboardClient({ user }: TeacherDashboardClientProps) {
                                     {loading ? (
                                         <div className="space-y-3">
                                             <Skeleton className="h-4 w-full" />
-                                            <Skeleton className="h-4 w-5/6" />
                                             <Skeleton className="h-20 w-full rounded-md" />
                                         </div>
                                     ) : (
                                         <div className="space-y-4">
-                                            <div className="flex items-start gap-3">
-                                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                                                    <BookMarked className="h-4 w-4" />
+                                            {data?.stats?.pendingGrades > 0 ? (
+                                                <div className="flex items-start gap-3">
+                                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-burgundy/10 text-burgundy">
+                                                        <BookMarked className="h-4 w-4" />
+                                                    </div>
+                                                    <div className="flex-1 text-left">
+                                                        <p className="text-sm font-semibold">Grade Assignments</p>
+                                                        <p className="text-xs text-muted-foreground mt-0.5">{data.stats.pendingGrades} submissions need review</p>
+                                                    </div>
                                                 </div>
-                                                <div className="flex-1">
-                                                    <p className="text-sm font-semibold">Grade Assignments</p>
-                                                    <p className="text-xs text-muted-foreground mt-0.5">12 pending submissions</p>
+                                            ) : (
+                                                <div className="flex items-start gap-3 opacity-50">
+                                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-green-100 text-green-600">
+                                                        <ShieldCheck className="h-4 w-4" />
+                                                    </div>
+                                                    <div className="flex-1 text-left">
+                                                        <p className="text-sm font-semibold">Grading Complete</p>
+                                                        <p className="text-xs text-muted-foreground mt-0.5">All submissions are graded</p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="flex items-start gap-3">
-                                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                                                    <CalendarCheck className="h-4 w-4" />
+                                            )}
+
+                                            {data?.stats?.attendanceToday === "0%" && data?.stats?.totalClasses > 0 ? (
+                                                <div className="flex items-start gap-3">
+                                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+                                                        <CalendarCheck className="h-4 w-4" />
+                                                    </div>
+                                                    <div className="flex-1 text-left">
+                                                        <p className="text-sm font-semibold">Mark Attendance</p>
+                                                        <p className="text-xs text-muted-foreground mt-0.5">Today's classes need attendance</p>
+                                                    </div>
                                                 </div>
-                                                <div className="flex-1">
-                                                    <p className="text-sm font-semibold">Update Attendance</p>
-                                                    <p className="text-xs text-muted-foreground mt-0.5">For today's classes</p>
+                                            ) : (
+                                                <div className="flex items-start gap-3 opacity-50">
+                                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-green-100 text-green-600">
+                                                        <UserCheck className="h-4 w-4" />
+                                                    </div>
+                                                    <div className="flex-1 text-left">
+                                                        <p className="text-sm font-semibold">Attendance Updated</p>
+                                                        <p className="text-xs text-muted-foreground mt-0.5">Recorded for today's classes</p>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            )}
+
                                             <Button
                                                 className="w-full mt-2 bg-primary text-white hover:bg-primary/90"
                                                 size="sm"

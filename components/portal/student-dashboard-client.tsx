@@ -318,18 +318,23 @@ export function StudentDashboardClient({ user }: StudentDashboardClientProps) {
                                             <Skeleton className="h-4 w-5/6" />
                                             <Skeleton className="h-20 w-full rounded-md" />
                                         </div>
-                                    ) : (
+                                    ) : data?.announcement ? (
                                         <div className="space-y-3">
-                                            <h4 className="text-sm font-semibold">Mid-Term Results Out!</h4>
+                                            <h4 className="text-sm font-semibold">{data.announcement.title}</h4>
                                             <p className="text-xs text-muted-foreground leading-relaxed">
-                                                The results for the latest monthly examinations have been published. Please check your gradebook for details.
+                                                {data.announcement.content}
                                             </p>
                                             <Badge
                                                 className="w-fit bg-primary text-white hover:bg-primary/90 cursor-pointer"
-                                                onClick={() => window.location.href = '/portal/student/grades'}
+                                                onClick={() => window.location.href = '/portal/student/announcements'}
                                             >
-                                                Check Now
+                                                Read More
                                             </Badge>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center py-4 text-center">
+                                            <Megaphone className="h-8 w-8 text-muted/20 mb-2" />
+                                            <p className="text-xs text-muted-foreground">No new announcements</p>
                                         </div>
                                     )}
                                 </CardContent>

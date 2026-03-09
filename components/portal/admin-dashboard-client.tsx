@@ -38,11 +38,13 @@ interface User {
 export function AdminDashboardClient() {
     const router = useRouter()
     const [users, setUsers] = useState<User[]>([]);
+    const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [statsLoading, setStatsLoading] = useState(true);
     const { data: session } = useSession();
 
     useEffect(() => {
-        setLoading(true);
+        // Fetch users
         fetch("/api/admin/users")
             .then((res) => res.json())
             .then((data) => {
@@ -53,6 +55,18 @@ export function AdminDashboardClient() {
                 console.error("Failed to fetch users", err);
                 toast.error("Failed to load users");
                 setLoading(false);
+            });
+
+        // Fetch stats
+        fetch("/api/admin/stats")
+            .then((res) => res.json())
+            .then((data) => {
+                setStats(data);
+                setStatsLoading(false);
+            })
+            .catch((err) => {
+                console.error("Failed to fetch admin stats", err);
+                setStatsLoading(false);
             });
     }, []);
 
@@ -87,6 +101,39 @@ export function AdminDashboardClient() {
                         <p className="text-sm text-muted-foreground">Manage user roles and system-level permissions.</p>
                     </div>
                 </AnimatedWrapper>
+
+                {/* Stats Grid */}
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+                    <StatCard
+                        title="Total Students"
+                        value={stats?.stats?.totalStudents ?? 0}
+                        icon={Users}
+                        loading={statsLoading}
+                        trend="Enrolled across classes"
+                    />
+                    <StatCard
+                        title="Total Teachers"
+                        value={stats?.stats?.totalTeachers ?? 0}
+                        icon={ShieldCheck}
+                        loading={statsLoading}
+                        trend="Active faculty"
+                    />
+                    <StatCard
+                        title="Today's Attendance"
+                        value={stats?.stats?.attendanceToday ?? "0%"}
+                        icon={Calendar}
+                        loading={statsLoading}
+                        trend="System-wide avg"
+                        trendColor="text-green-600"
+                    />
+                    <StatCard
+                        title="Total Classes"
+                        value={stats?.stats?.totalClasses ?? 0}
+                        icon={Calendar}
+                        loading={statsLoading}
+                        trend="Active this term"
+                    />
+                </div>
 
                 <AnimatedWrapper delay={0.1}>
                     <Card className="glass-panel border-border/50 overflow-hidden shadow-burgundy-glow/5">
@@ -184,4 +231,31 @@ export function AdminDashboardClient() {
             </div>
         </AppLayout>
     );
+}
+
+function StatCard({ title, value, icon: Icon, loading, trend, trendColor }: any) {
+    return (
+        <AnimatedWrapper>
+            <Card className="glass-panel border-border/50">
+                <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-muted-foreground">{title}</p>
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                            <Icon className="h-4 w-4" />
+                        </div>
+                    </div>
+                    <div className="mt-4">
+                        {loading ? (
+                            <div className="h-9 w-24 bg-muted animate-pulse rounded" />
+                        ) : (
+                            <h3 className="text-3xl font-bold tracking-tight">{value}</h3>
+                        )}
+                        <p className={`text-xs font-medium mt-1 ${trendColor || 'text-muted-foreground'}`}>
+                            {trend}
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
+        </AnimatedWrapper>
+    )
 }

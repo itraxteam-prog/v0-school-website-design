@@ -100,10 +100,34 @@ export default function ParentDashboard() {
                     ? `${grades[0].marks} (${getTermDisplayLabel(grades[0].term)})`
                     : "No data"
 
-                // Get next class (simplified: first class of the day or first in list)
-                const nextClass = timetable.length > 0
-                    ? `${timetable[0].subjectName} – ${timetable[0].startTime}`
-                    : "No classes"
+                // Improved Next Class logic
+                const days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']
+                const today = days[new Date().getDay()]
+                const now = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })
+
+                let nextClass = "No classes"
+                if (timetable.length > 0) {
+                    const todayClasses = timetable
+                        .filter((t: any) => t.dayOfWeek === today)
+                        .sort((a: any, b: any) => a.startTime.localeCompare(b.startTime))
+
+                    const upcoming = todayClasses.find((t: any) => t.startTime > now)
+
+                    if (upcoming) {
+                        nextClass = `${upcoming.subjectName} – ${upcoming.startTime}`
+                    } else if (todayClasses.length > 0) {
+                        nextClass = "Finished for today"
+                    } else {
+                        // Find first class of the next available day
+                        const otherDays = timetable.sort((a: any, b: any) => {
+                            const diff = days.indexOf(a.dayOfWeek) - days.indexOf(b.dayOfWeek)
+                            return diff === 0 ? a.startTime.localeCompare(b.startTime) : diff
+                        })
+                        if (otherDays.length > 0) {
+                            nextClass = `${otherDays[0].subjectName} (${otherDays[0].dayOfWeek.slice(0, 3)})`
+                        }
+                    }
+                }
 
                 setStats({
                     attendance: attendanceRate,
