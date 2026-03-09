@@ -50,16 +50,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  let lang = "en";
-  let defaultTheme = "light";
-
-  try {
-    const langSet = await prisma.setting.findUnique({ where: { key: 'portalPreferences.language' } });
-    if (langSet?.value) lang = langSet.value;
-
-    const themeSet = await prisma.setting.findUnique({ where: { key: 'portalPreferences.darkMode' } });
-    if (themeSet?.value === 'true') defaultTheme = "dark";
-  } catch (e) { }
+  const lang = "en";
+  const defaultTheme = "light";
 
   return (
     <html lang={lang} className={`${inter.variable} ${playfair.variable}`} suppressHydrationWarning>

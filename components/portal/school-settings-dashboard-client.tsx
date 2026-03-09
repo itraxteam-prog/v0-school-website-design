@@ -63,13 +63,6 @@ const settingsSchema = z.object({
         endTime: z.string()
     }),
     maxClassesPerDay: z.coerce.number().min(1),
-    portalPreferences: z.object({
-        darkMode: z.boolean(),
-        language: z.string(),
-        timezone: z.string(),
-        smsNotifications: z.boolean(),
-        emailNotifications: z.boolean(),
-    }),
     schoolLogo: z.string().optional(),
 })
 
@@ -97,7 +90,6 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
     const [settings, setSettings] = useState<SettingsFormValues | null>(null)
     const [previewLogo, setPreviewLogo] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
-    const { setTheme } = useTheme()
 
     const { toast } = useToast()
 
@@ -117,22 +109,8 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
                 endTime: "02:00 PM"
             },
             maxClassesPerDay: 8,
-            portalPreferences: {
-                darkMode: false,
-                language: "en",
-                timezone: "pk",
-                smsNotifications: true,
-                emailNotifications: true,
-            }
         }
     })
-
-    // Update theme when setting is fetched
-    useEffect(() => {
-        if (settings) {
-            setTheme(settings.portalPreferences.darkMode ? "dark" : "light")
-        }
-    }, [settings, setTheme])
 
     const fetchSettings = useCallback(async () => {
         setLoading(true)
@@ -145,23 +123,17 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
             // Map array of key/value pairs to the form structure
             const mappedSettings: any = {
                 schoolHours: { startTime: "08:00 AM", endTime: "02:00 PM" },
-                portalPreferences: {
-                    darkMode: false,
-                    language: "en",
-                    timezone: "pk",
-                    smsNotifications: true,
-                    emailNotifications: true
-                }
             };
 
             data.forEach((s: any) => {
                 if (s.key.includes('.')) {
                     const [parent, child] = s.key.split('.');
                     if (!mappedSettings[parent]) mappedSettings[parent] = {};
-                    // Handle booleans
+
+                    // Specific logic for boolean or number conversion
                     if (s.value === 'true' || s.value === 'false') {
                         mappedSettings[parent][child] = s.value === 'true';
-                    } else if (!isNaN(s.value) && s.key !== 'contactNumber') {
+                    } else if (!isNaN(Number(s.value)) && !s.key.toLowerCase().includes('time') && s.key !== 'contactNumber') {
                         mappedSettings[parent][child] = Number(s.value);
                     } else {
                         mappedSettings[parent][child] = s.value;
@@ -169,7 +141,7 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
                 } else {
                     if (s.value === 'true' || s.value === 'false') {
                         mappedSettings[s.key] = s.value === 'true';
-                    } else if (!isNaN(s.value) && s.key !== 'schoolCode' && s.key !== 'contactNumber') {
+                    } else if (!isNaN(Number(s.value)) && s.key !== 'schoolCode' && s.key !== 'contactNumber' && !s.key.toLowerCase().includes('time')) {
                         mappedSettings[s.key] = Number(s.value);
                     } else {
                         mappedSettings[s.key] = s.value;
@@ -214,7 +186,7 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
                     }
                 });
             };
-            flatten(data); // ← populate flattened object
+            flatten(data);
             const flattenedArray = Object.keys(flattened).map(key => ({
                 key,
                 value: String(flattened[key])
@@ -234,7 +206,6 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
                 description: "Global configuration has been successfully synchronized.",
             })
             setSettings(data)
-            setTheme(data.portalPreferences.darkMode ? "dark" : "light")
         } catch (err: any) {
             toast({
                 title: "Update Failed",
@@ -325,7 +296,6 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
                             <TabsList className="bg-muted/50 p-1 mb-6 glass-panel border-border/50 overflow-x-auto inline-flex whitespace-nowrap scrollbar-hide">
                                 <TabsTrigger value="general" className="data-[state=active]:bg-primary data-[state=active]:text-white">General Info</TabsTrigger>
                                 <TabsTrigger value="academic" className="data-[state=active]:bg-primary data-[state=active]:text-white">Academic Rules</TabsTrigger>
-                                <TabsTrigger value="preferences" className="data-[state=active]:bg-primary data-[state=active]:text-white">Portal Preferences</TabsTrigger>
                             </TabsList>
 
                             <motion.div
@@ -483,10 +453,9 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
                                                                     </SelectTrigger>
                                                                 </FormControl>
                                                                 <SelectContent>
-                                                                    <SelectItem value="1">Annual System (1 Term)</SelectItem>
-                                                                    <SelectItem value="2">Semester System (2 Terms)</SelectItem>
-                                                                    <SelectItem value="3">Trimester System (3 Terms)</SelectItem>
-                                                                    <SelectItem value="4">Quarterly System (4 Terms)</SelectItem>
+                                                                    <SelectItem value="2">Semester System (Term 1 & 2)</SelectItem>
+                                                                    <SelectItem value="3">Trimester System (Term 1, 2 & 3)</SelectItem>
+                                                                    <SelectItem value="12">Monthly Assessment (Monthly + Finals)</SelectItem>
                                                                 </SelectContent>
                                                             </Select>
                                                             <FormMessage />
@@ -506,8 +475,7 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
                                                                     </SelectTrigger>
                                                                 </FormControl>
                                                                 <SelectContent>
-                                                                    <SelectItem value="percentage">Percentage based (0-100%)</SelectItem>
-                                                                    <SelectItem value="relative">Relative Grading (Curved)</SelectItem>
+                                                                    <SelectItem value="percentage">Percentage based (A, B, C...)</SelectItem>
                                                                     <SelectItem value="gpa">Standard GPA (4.0 Scale)</SelectItem>
                                                                 </SelectContent>
                                                             </Select>
@@ -567,120 +535,6 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
                                                         </FormItem>
                                                     )}
                                                 />
-                                            </CardContent>
-                                        </Card>
-                                    </motion.div>
-                                </TabsContent>
-
-                                {/* Preferences Section */}
-                                <TabsContent value="preferences" className="space-y-6">
-                                    <motion.div variants={itemVariant}>
-                                        <Card className="glass-panel border-border/50">
-                                            <CardHeader>
-                                                <CardTitle className="heading-3 flex items-center gap-2">
-                                                    <Globe className="h-5 w-5 text-primary" />
-                                                    Portal Preferences
-                                                </CardTitle>
-                                                <CardDescription>Global defaults for student and teacher dashboards.</CardDescription>
-                                            </CardHeader>
-                                            <CardContent className="space-y-6">
-                                                <FormField
-                                                    control={form.control}
-                                                    name="portalPreferences.darkMode"
-                                                    render={({ field }) => (
-                                                        <FormItem className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border border-border/50">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="p-2 rounded-lg bg-primary/10">
-                                                                    <Moon className="h-5 w-5 text-primary" />
-                                                                </div>
-                                                                <div>
-                                                                    <FormLabel className="text-sm font-semibold">Default Dark Mode</FormLabel>
-                                                                    <FormDescription className="text-xs text-muted-foreground">Force high-contrast dark theme for all users.</FormDescription>
-                                                                </div>
-                                                            </div>
-                                                            <FormControl>
-                                                                <Switch checked={field.value} onCheckedChange={field.onChange} />
-                                                            </FormControl>
-                                                        </FormItem>
-                                                    )}
-                                                />
-
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                    <FormField
-                                                        control={form.control}
-                                                        name="portalPreferences.language"
-                                                        render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel>Primary Portal Language</FormLabel>
-                                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                                    <FormControl>
-                                                                        <SelectTrigger className="glass-card">
-                                                                            <SelectValue placeholder="Select language" />
-                                                                        </SelectTrigger>
-                                                                    </FormControl>
-                                                                    <SelectContent>
-                                                                        <SelectItem value="en">English (UK)</SelectItem>
-                                                                        <SelectItem value="ar">Arabic (UAE)</SelectItem>
-                                                                        <SelectItem value="ur">Urdu (PK)</SelectItem>
-                                                                    </SelectContent>
-                                                                </Select>
-                                                                <FormMessage />
-                                                            </FormItem>
-                                                        )}
-                                                    />
-                                                    <FormField
-                                                        control={form.control}
-                                                        name="portalPreferences.timezone"
-                                                        render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel>Default Timezone</FormLabel>
-                                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                                    <FormControl>
-                                                                        <SelectTrigger className="glass-card">
-                                                                            <SelectValue placeholder="Select timezone" />
-                                                                        </SelectTrigger>
-                                                                    </FormControl>
-                                                                    <SelectContent>
-                                                                        <SelectItem value="pk">(GMT+5) Karachi/Islamabad</SelectItem>
-                                                                        <SelectItem value="ae">(GMT+4) Dubai/Abu Dhabi</SelectItem>
-                                                                        <SelectItem value="uk">(GMT+0) London</SelectItem>
-                                                                    </SelectContent>
-                                                                </Select>
-                                                                <FormMessage />
-                                                            </FormItem>
-                                                        )}
-                                                    />
-                                                </div>
-
-                                                <div className="space-y-4 pt-4 border-t border-border/50">
-                                                    <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">System Notifications</h4>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                        <FormField
-                                                            control={form.control}
-                                                            name="portalPreferences.smsNotifications"
-                                                            render={({ field }) => (
-                                                                <FormItem className="flex items-center gap-3 space-y-0">
-                                                                    <FormControl>
-                                                                        <Switch checked={field.value} onCheckedChange={field.onChange} />
-                                                                    </FormControl>
-                                                                    <FormLabel className="text-sm font-medium">Automatic Attendance SMS to Parents</FormLabel>
-                                                                </FormItem>
-                                                            )}
-                                                        />
-                                                        <FormField
-                                                            control={form.control}
-                                                            name="portalPreferences.emailNotifications"
-                                                            render={({ field }) => (
-                                                                <FormItem className="flex items-center gap-3 space-y-0">
-                                                                    <FormControl>
-                                                                        <Switch checked={field.value} onCheckedChange={field.onChange} />
-                                                                    </FormControl>
-                                                                    <FormLabel className="text-sm font-medium">Result Publication Email</FormLabel>
-                                                                </FormItem>
-                                                            )}
-                                                        />
-                                                    </div>
-                                                </div>
                                             </CardContent>
                                         </Card>
                                     </motion.div>

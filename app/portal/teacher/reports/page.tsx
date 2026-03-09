@@ -54,9 +54,18 @@ export default async function TeacherReportsPage() {
     studentReports = [];
   }
 
+  // Fetch academic settings for dynamic terms
+  let termStructure = "3";
+  try {
+    const setting = await prisma.setting.findUnique({ where: { key: "termStructure" } });
+    if (setting?.value) termStructure = setting.value;
+  } catch (e) { }
+
   // Calculate real performance overview from grades
-  const terms = ["term1", "term2", "term3"];
-  const performanceData = terms.map(t => {
+  const termCount = parseInt(termStructure) || 3;
+  const terms = Array.from({ length: termCount }, (_, i) => `term${i + 1}`);
+
+  const performanceData = terms.map((t, index) => {
     const termGrades = studentReports.length > 0
       ? studentReports.flatMap(s => (s.classes || []).flatMap((c: any) => (c.grades || []).filter((g: any) => g.term === t)))
       : [];
@@ -69,14 +78,12 @@ export default async function TeacherReportsPage() {
       ? Math.max(...termGrades.map(g => g.marks || 0))
       : 0;
 
-    const termLabels: Record<string, string> = {
-      term1: "Term 1",
-      term2: "Term 2",
-      term3: "Term 3"
-    };
+    const termLabel = termCount === 12
+      ? ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][index]
+      : `Term ${index + 1}`;
 
-    return { name: termLabels[t], avg, top };
-  }).filter(d => d.avg > 0 || d.top > 0);
+    return { name: termLabel, avg, top };
+  }).filter(d => (d.avg > 0 || d.top > 0) || termCount < 5); // Show all if terms are few, otherwise filter empty months
 
   // Calculate real attendance trend by month
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];

@@ -19,6 +19,8 @@ import {
 } from "lucide-react"
 import { getTermDisplayLabel, ACADEMIC_YEARS, ASSESSMENT_PERIOD_OPTIONS } from "@/lib/academic-constants"
 
+import { calculateGrade, isEligibleForPromotion, getGradeBadge } from "@/lib/academic-utils"
+
 const PARENT_SIDEBAR = [
     { href: "/portal/parent", label: "Dashboard", icon: LayoutDashboard },
     { href: "/portal/parent/timetable", label: "Timetable", icon: Clock },
@@ -53,6 +55,24 @@ export default function ParentGradesPage() {
     const [availableTerms, setAvailableTerms] = useState<string[]>(["All Periods"])
     const [loading, setLoading] = useState(true)
     const [gradesLoading, setGradesLoading] = useState(false)
+    const [gradingSystem, setGradingSystem] = useState("percentage")
+    const [promotionThreshold, setPromotionThreshold] = useState(40)
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const res = await fetch("/api/settings")
+                if (res.ok) {
+                    const data = await res.json()
+                    if (data.gradingSystem) setGradingSystem(data.gradingSystem)
+                    if (data.promotionThreshold) setPromotionThreshold(Number(data.promotionThreshold))
+                }
+            } catch (e) {
+                console.error("Failed to fetch settings:", e)
+            }
+        }
+        fetchSettings()
+    }, [])
 
     useEffect(() => {
         const fetchChildren = async () => {
@@ -102,13 +122,10 @@ export default function ParentGradesPage() {
         fetchGrades()
     }, [selectedChildId])
 
-    // Term generation removed/replaced in above chunk
-
     const filtered = grades.filter(g => {
         const termMatches = activeTerm === "All Periods" || getTermDisplayLabel(g.term) === activeTerm;
         const subjectMatches = activeSubject === "All Subjects" || g.class?.name === activeSubject || (g.class as any)?.subject === activeSubject;
 
-        // Year matching logic
         const yearPrefix = g.term?.split('-')[0];
         const isYearPrefixed = /^\d{4}$/.test(yearPrefix);
         const gradeYear = isYearPrefixed ? yearPrefix : new Date(g.createdAt).getFullYear().toString();
@@ -116,6 +133,10 @@ export default function ParentGradesPage() {
 
         return termMatches && yearMatches && subjectMatches;
     })
+
+    const averageMarks = filtered.length > 0
+        ? filtered.reduce((acc, g) => acc + g.marks, 0) / filtered.length
+        : 0;
 
     const selectedChildName = children.find(c => c.id === selectedChildId)?.name || "Child"
 
@@ -137,7 +158,7 @@ export default function ParentGradesPage() {
                         <div>
                             <h1 className="heading-1 text-burgundy-gradient">Grades</h1>
                             <p className="text-sm text-muted-foreground">
-                                Read-only academic performance report for your child.
+                                Detailed academic performance report for your child.
                             </p>
                         </div>
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center flex-wrap">
@@ -190,6 +211,55 @@ export default function ParentGradesPage() {
                     </div>
                 </AnimatedWrapper>
 
+                {/* Performance Summary Banner */}
+                {filtered.length > 0 && (
+                    <AnimatedWrapper delay={0.1}>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <Card className="glass-panel border-border/50 bg-primary/5">
+                                <CardContent className="p-6 flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Average Marks</p>
+                                        <h3 className="text-3xl font-bold text-primary">{Math.round(averageMarks)}%</h3>
+                                    </div>
+                                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                        <GraduationCap className="h-6 w-6 text-primary" />
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card className={`glass-panel border-border/50 ${isEligibleForPromotion(averageMarks, promotionThreshold) ? 'bg-green-500/5' : 'bg-destructive/5'}`}>
+                                <CardContent className="p-6 flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Instituion Standard</p>
+                                        <h3 className={`text-3xl font-bold ${isEligibleForPromotion(averageMarks, promotionThreshold) ? 'text-green-600' : 'text-destructive'}`}>
+                                            {isEligibleForPromotion(averageMarks, promotionThreshold) ? "PASS" : "FAIL"}
+                                        </h3>
+                                    </div>
+                                    <div className={`h-12 w-12 rounded-full flex items-center justify-center ${isEligibleForPromotion(averageMarks, promotionThreshold) ? 'bg-green-500/10' : 'bg-destructive/10'}`}>
+                                        <Badge variant={isEligibleForPromotion(averageMarks, promotionThreshold) ? "default" : "destructive"}>
+                                            Min: {promotionThreshold}%
+                                        </Badge>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="glass-panel border-border/50 bg-burgundy-900/5">
+                                <CardContent className="p-6 flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Overall Grade</p>
+                                        <h3 className="text-3xl font-bold text-burgundy-900">
+                                            {calculateGrade(averageMarks, gradingSystem)}
+                                        </h3>
+                                    </div>
+                                    <div className="h-12 w-12 rounded-full bg-burgundy-900/10 flex items-center justify-center font-bold text-burgundy-900">
+                                        {gradingSystem.toUpperCase()}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </AnimatedWrapper>
+                )}
+
                 {/* Grades Table */}
                 <AnimatedWrapper delay={0.2}>
                     <Card className="glass-panel overflow-hidden border-border/50">
@@ -232,10 +302,10 @@ export default function ParentGradesPage() {
                                                         <TableCell className="text-right font-medium">{grade.marks}</TableCell>
                                                         <TableCell className="text-right">
                                                             <Badge
-                                                                variant={grade.marks >= 90 ? "default" : grade.marks >= 80 ? "default" : "secondary"}
+                                                                variant={getGradeBadge(grade.marks).variant}
                                                                 className="font-bold min-w-[2.5rem] justify-center"
                                                             >
-                                                                {grade.marks >= 90 ? "A+" : grade.marks >= 80 ? "A" : grade.marks >= 70 ? "B" : grade.marks >= 60 ? "C" : grade.marks >= 40 ? "D" : "F"}
+                                                                {calculateGrade(grade.marks, gradingSystem)}
                                                             </Badge>
                                                         </TableCell>
                                                     </TableRow>
