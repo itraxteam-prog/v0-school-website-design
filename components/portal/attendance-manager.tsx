@@ -1,5 +1,36 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import {
+    CheckCircle2,
+    XCircle,
+    AlertCircle,
+    ShieldCheck,
+    Calendar as CalendarIcon,
+    Search,
+    Save,
+    Users,
+    Loader2,
+    MessageSquare
+} from "lucide-react"
+import { AppLayout } from "@/components/layout/app-layout"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import { toast } from "sonner"
+import { cn } from "@/lib/utils"
+import { format } from "date-fns"
+import { useSession } from "next-auth/react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { MobileCardView } from "@/components/ui/mobile-card-view"
+import { TEACHER_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
 type AttendanceStatus = "present" | "absent" | "late" | "excused";
 

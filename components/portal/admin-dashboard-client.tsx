@@ -1,5 +1,23 @@
-import { useIsMobile } from "@/hooks/use-mobile";
-import { MobileCardView } from "@/components/ui/mobile-card-view";
+"use client"
+
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
+import { Users, ShieldCheck, Calendar, Loader2, Mail, CheckCircle, Search, Save } from "lucide-react"
+import { AppLayout } from "@/components/layout/app-layout"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { toast } from "sonner"
+import { cn, formatName } from "@/lib/utils"
+import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
+import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { MobileCardView } from "@/components/ui/mobile-card-view"
 
 interface User {
     id: string;

@@ -1,6 +1,32 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import {
+    BookMarked,
+    CheckCircle2,
+    FileText,
+    Search,
+    ChevronRight,
+    Calculator,
+    AlertCircle,
+    Loader2,
+} from "lucide-react"
+import { AppLayout } from "@/components/layout/app-layout"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { toast } from "sonner"
+import { cn } from "@/lib/utils"
+import { useSession } from "next-auth/react"
+import { ASSESSMENT_PERIOD_OPTIONS, ACADEMIC_YEARS } from "@/lib/academic-constants"
+import { TEACHER_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { MobileCardView } from "@/components/ui/mobile-card-view"
-import { Loader2 } from "lucide-react"
 
 interface Student {
     id: string;

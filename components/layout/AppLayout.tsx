@@ -5,12 +5,14 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useAuth } from "@/context/AuthContext"
-import { Bell, ChevronRight, LogOut, Menu, Search, X } from "lucide-react"
+import { Bell, ChevronRight, LogOut, Menu, Search, X, LayoutDashboard, Megaphone, User, type LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { formatDistanceToNow } from "date-fns"
+import { motion, AnimatePresence } from "framer-motion"
+import { useSession } from "next-auth/react"
 
 export interface SidebarItem {
   href: string
