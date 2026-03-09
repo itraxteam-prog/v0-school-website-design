@@ -310,7 +310,7 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
                                 onChange={(val: string) => setFormData(f => ({ ...f, classes: val }))}
                                 val={formData.classes}
                             />
-                            <InfoItem label="Joining Date" value={profileData.joiningDate} />
+                            <InfoItem label="Joining Date" value={formatDateDisplay(profileData.joiningDate)} />
                         </ProfileInfoSection>
 
                         <ProfileInfoSection title="Contact Details" icon={<Mail size={20} className="text-primary" />}>
@@ -347,6 +347,20 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
     )
 }
 
+function formatDateDisplay(dateStr: string) {
+    if (!dateStr) return "Not set";
+    try {
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return dateStr;
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    } catch {
+        return dateStr;
+    }
+}
+
 function ProfileInfoSection({ title, icon, children }: any) {
     return (
         <Card className="glass-panel border-border/50 overflow-hidden">
@@ -359,18 +373,22 @@ function ProfileInfoSection({ title, icon, children }: any) {
 }
 
 function InfoItem({ label, value, fullWidth = false, isEditing = false, onChange, val, type = "text" }: any) {
+    const displayValue = type === "date" ? formatDateDisplay(value) : value;
+
     return (
         <div className={cn("flex flex-col gap-2", fullWidth && "sm:col-span-2")}>
             <span className="text-xs font-bold text-muted-foreground uppercase">{label}</span>
             {isEditing && onChange ? (
                 <input
                     type={type}
-                    className="rounded-lg border bg-background px-3.5 py-2.5 text-sm font-medium focus:outline-primary w-full"
+                    className="rounded-lg border bg-background px-3.5 py-2.5 text-sm font-medium focus:outline-primary w-full h-[46px]"
                     value={val || ""}
                     onChange={(e) => onChange(e.target.value)}
                 />
             ) : (
-                <div className="rounded-lg border bg-muted/40 p-3.5 text-sm font-medium">{value}</div>
+                <div className="rounded-lg border bg-muted/40 p-3.5 text-sm font-medium min-h-[46px] flex items-center">
+                    {displayValue}
+                </div>
             )}
         </div>
     )
