@@ -168,10 +168,12 @@ export const authOptions: NextAuthOptions = {
                 token.status = user.status;
                 token.accountStatus = user.status;
                 token.name = user.name;
+                token.picture = user.image;
+            }
 
-                // Prevent REQUEST_HEADER_TOO_LARGE: Never store base64 images in JWT
-                const image = user.image as string | null;
-                token.picture = (image && !image.startsWith("data:image")) ? image : null;
+            // Global Fail-safe: Always strip base64 from token to prevent 431/494 errors
+            if (token.picture && typeof token.picture === "string" && token.picture.startsWith("data:image")) {
+                token.picture = null;
             }
 
             if (trigger === "update") {
