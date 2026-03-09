@@ -5,6 +5,7 @@ import {
     Text,
     View,
     StyleSheet,
+    Image,
 } from "@react-pdf/renderer";
 
 export interface StudentPerformanceRow {
@@ -19,6 +20,7 @@ export interface StudentPerformanceReportPdfProps {
     generatedAt: string;
     schoolName: string;
     userEmail: string;
+    logoUrl: string;
     rows: StudentPerformanceRow[];
     title: string;
 }
@@ -32,7 +34,9 @@ const styles = StyleSheet.create({
         fontSize: 10,
         color: "#1a1a2e"
     },
-    header: { marginBottom: 20 },
+    header: { flexDirection: "row", marginBottom: 20, alignItems: "flex-start" },
+    logo: { width: 50, height: 50, marginRight: 15 },
+    headerText: { flex: 1 },
     schoolName: { fontSize: 18, fontFamily: "Helvetica-Bold", color: "#1a1a2e", marginBottom: 4 },
     reportTitle: { fontSize: 13, color: "#4b5563", marginBottom: 2 },
     meta: { fontSize: 9, color: "#6b7280", marginTop: 4 },
@@ -86,6 +90,7 @@ export function StudentPerformanceReportPdf({
     generatedAt,
     schoolName,
     userEmail,
+    logoUrl,
     rows,
     title,
 }: StudentPerformanceReportPdfProps) {
@@ -94,10 +99,13 @@ export function StudentPerformanceReportPdf({
         <Document title={title} author={schoolName}>
             <Page size="A4" style={styles.page}>
                 <View style={styles.header}>
-                    <Text style={styles.schoolName}>{schoolName}</Text>
-                    <Text style={styles.reportTitle}>{title}</Text>
-                    <Text style={styles.meta}>Generated: {generatedAt}</Text>
-                    <Text style={styles.meta}>Exported by: {userEmail}</Text>
+                    <Image style={styles.logo} src={logoUrl} />
+                    <View style={styles.headerText}>
+                        <Text style={styles.schoolName}>{schoolName}</Text>
+                        <Text style={styles.reportTitle}>{title}</Text>
+                        <Text style={styles.meta}>Generated: {generatedAt}</Text>
+                        <Text style={styles.meta}>Exported by: {userEmail}</Text>
+                    </View>
                 </View>
                 <View style={styles.divider} />
 

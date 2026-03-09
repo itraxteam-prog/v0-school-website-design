@@ -13,8 +13,9 @@ import { checkExportRateLimit } from "@/lib/pdf/export-rate-limit";
 import { createPdfResponse } from "@/lib/pdf/pdf-response";
 import { assertNodeRuntime } from "@/lib/runtime-assert";
 import { fetchReportData } from "@/lib/reports-utils";
+import path from "path";
 
-const SCHOOL_NAME = "Vibe School Management System";
+const SCHOOL_NAME = "The Pioneers High School";
 
 export async function GET(req: NextRequest) {
     try {
@@ -33,6 +34,8 @@ export async function GET(req: NextRequest) {
 
         const { data } = await fetchReportData({ term, classId, startDate, endDate });
 
+        const logoUrl = path.join(process.cwd(), "public", "placeholder-logo.png");
+
         let pdfElement: React.ReactElement;
         const filename = `admin_report_${type}`;
         const generatedAt = new Date().toLocaleString("en-US", { timeZone: "UTC" }) + " UTC";
@@ -42,6 +45,7 @@ export async function GET(req: NextRequest) {
                 pdfElement = React.createElement(StudentPerformanceReportPdf, {
                     generatedAt,
                     schoolName: SCHOOL_NAME,
+                    logoUrl,
                     userEmail: user.email ?? "unknown",
                     rows: data.studentPerformance,
                     title: "Student Performance Report"
@@ -51,6 +55,7 @@ export async function GET(req: NextRequest) {
                 pdfElement = React.createElement(TeacherPerformanceReportPdf, {
                     generatedAt,
                     schoolName: SCHOOL_NAME,
+                    logoUrl,
                     userEmail: user.email ?? "unknown",
                     rows: data.teacherPerformance,
                     title: "Teacher Performance Report"
@@ -61,6 +66,7 @@ export async function GET(req: NextRequest) {
                 pdfElement = React.createElement(AdminAnalyticsPdf, {
                     generatedAt,
                     schoolName: SCHOOL_NAME,
+                    logoUrl,
                     userEmail: user.email ?? "unknown",
                     stats: {
                         totalStudents: data.summary.totalStudents,
@@ -79,6 +85,7 @@ export async function GET(req: NextRequest) {
                 pdfElement = React.createElement(AdminAnalyticsPdf, {
                     generatedAt,
                     schoolName: SCHOOL_NAME,
+                    logoUrl,
                     userEmail: user.email ?? "unknown",
                     stats: {
                         totalStudents: data.summary.totalStudents,

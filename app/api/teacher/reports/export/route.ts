@@ -12,8 +12,9 @@ import { checkExportRateLimit } from "@/lib/pdf/export-rate-limit";
 import { createPdfResponse } from "@/lib/pdf/pdf-response";
 import { assertNodeRuntime } from "@/lib/runtime-assert";
 import { getTermDisplayLabel } from "@/lib/academic-constants";
+import path from "path";
 
-const SCHOOL_NAME = "Vibe School Management System";
+const SCHOOL_NAME = "The Pioneers High School";
 
 /**
  * GET /api/teacher/reports/export
@@ -145,10 +146,13 @@ export async function GET(req: NextRequest) {
             }));
         }
 
+        const logoUrl = path.join(process.cwd(), "public", "placeholder-logo.png");
+
         const pdfBuffer = await createPdf(
             React.createElement(TeacherClassReportPdf, {
                 teacherName,
                 schoolName: SCHOOL_NAME,
+                logoUrl,
                 userEmail: user.email ?? "unknown",
                 className: cls.name,
                 subject,

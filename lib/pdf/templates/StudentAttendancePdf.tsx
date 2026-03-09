@@ -5,6 +5,7 @@ import {
     Text,
     View,
     StyleSheet,
+    Image,
 } from "@react-pdf/renderer";
 
 export interface AttendanceRow {
@@ -20,6 +21,7 @@ export interface StudentAttendancePdfProps {
     schoolName: string;
     userEmail: string;
     generatedAt: string;
+    logoUrl: string;
     rows: AttendanceRow[];
     summary: {
         total: number;
@@ -45,7 +47,9 @@ const styles = StyleSheet.create({
         fontSize: 10,
         color: "#1a1a2e"
     },
-    header: { marginBottom: 20 },
+    header: { flexDirection: "row", marginBottom: 20, alignItems: "flex-start" },
+    logo: { width: 50, height: 50, marginRight: 15 },
+    headerText: { flex: 1 },
     schoolName: { fontSize: 18, fontFamily: "Helvetica-Bold", color: "#1a1a2e", marginBottom: 4 },
     reportTitle: { fontSize: 13, color: "#4b5563", marginBottom: 2 },
     meta: { fontSize: 9, color: "#6b7280", marginTop: 4 },
@@ -105,6 +109,7 @@ export function StudentAttendancePdf({
     schoolName,
     userEmail,
     generatedAt,
+    logoUrl,
     rows,
     summary,
 }: StudentAttendancePdfProps) {
@@ -115,12 +120,15 @@ export function StudentAttendancePdf({
         <Document title={`Attendance Report – ${studentName}`} author={schoolName}>
             <Page size="A4" style={styles.page}>
                 <View style={styles.header}>
-                    <Text style={styles.schoolName}>{schoolName}</Text>
-                    <Text style={styles.reportTitle}>Student Attendance Report</Text>
-                    <Text style={styles.meta}>
-                        Student: {studentName} ({studentEmail})
-                    </Text>
-                    <Text style={styles.meta}>Generated: {generatedAt}</Text>
+                    <Image style={styles.logo} src={logoUrl} />
+                    <View style={styles.headerText}>
+                        <Text style={styles.schoolName}>{schoolName}</Text>
+                        <Text style={styles.reportTitle}>Student Attendance Report</Text>
+                        <Text style={styles.meta}>
+                            Student: {studentName} ({studentEmail})
+                        </Text>
+                        <Text style={styles.meta}>Generated: {generatedAt}</Text>
+                    </View>
                 </View>
                 <View style={styles.divider} />
 

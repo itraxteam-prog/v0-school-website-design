@@ -5,6 +5,7 @@ import {
     Text,
     View,
     StyleSheet,
+    Image,
 } from "@react-pdf/renderer";
 
 export interface StudentGradeRow {
@@ -21,6 +22,7 @@ export interface StudentGradesPdfProps {
     schoolName: string;
     userEmail: string;
     generatedAt: string;
+    logoUrl: string;
     rows: StudentGradeRow[];
 }
 
@@ -33,7 +35,9 @@ const styles = StyleSheet.create({
         fontSize: 10,
         color: "#1a1a2e"
     },
-    header: { marginBottom: 20 },
+    header: { flexDirection: "row", marginBottom: 20, alignItems: "flex-start" },
+    logo: { width: 50, height: 50, marginRight: 15 },
+    headerText: { flex: 1 },
     schoolName: { fontSize: 18, fontFamily: "Helvetica-Bold", color: "#1a1a2e", marginBottom: 4 },
     reportTitle: { fontSize: 13, color: "#4b5563", marginBottom: 2 },
     meta: { fontSize: 9, color: "#6b7280", marginTop: 4 },
@@ -87,18 +91,21 @@ function getGradeStyle(grade: string) {
     return styles.gradeAverage;
 }
 
-export function StudentGradesPdf({ studentName, studentEmail, schoolName, userEmail, generatedAt, rows }: StudentGradesPdfProps) {
+export function StudentGradesPdf({ studentName, studentEmail, schoolName, userEmail, generatedAt, logoUrl, rows }: StudentGradesPdfProps) {
     const timestamp = new Date().toISOString();
     return (
         <Document title={`Grades Report – ${studentName}`} author={schoolName}>
             <Page size="A4" style={styles.page}>
                 <View style={styles.header}>
-                    <Text style={styles.schoolName}>{schoolName}</Text>
-                    <Text style={styles.reportTitle}>Student Grades Report</Text>
-                    <Text style={styles.meta}>
-                        Student: {studentName} ({studentEmail})
-                    </Text>
-                    <Text style={styles.meta}>Generated: {generatedAt}</Text>
+                    <Image style={styles.logo} src={logoUrl} />
+                    <View style={styles.headerText}>
+                        <Text style={styles.schoolName}>{schoolName}</Text>
+                        <Text style={styles.reportTitle}>Student Grades Report</Text>
+                        <Text style={styles.meta}>
+                            Student: {studentName} ({studentEmail})
+                        </Text>
+                        <Text style={styles.meta}>Generated: {generatedAt}</Text>
+                    </View>
                 </View>
                 <View style={styles.divider} />
 

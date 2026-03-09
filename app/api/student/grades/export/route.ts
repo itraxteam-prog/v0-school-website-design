@@ -11,8 +11,9 @@ import { logAudit } from "@/lib/audit";
 import { checkExportRateLimit } from "@/lib/pdf/export-rate-limit";
 import { createPdfResponse } from "@/lib/pdf/pdf-response";
 import { assertNodeRuntime } from "@/lib/runtime-assert";
+import path from "path";
 
-const SCHOOL_NAME = "Vibe School Management System";
+const SCHOOL_NAME = "The Pioneers High School";
 
 export async function GET() {
     try {
@@ -62,11 +63,14 @@ export async function GET() {
             };
         });
 
+        const logoUrl = path.join(process.cwd(), "public", "placeholder-logo.png");
+
         const pdfBuffer = await createPdf(
             React.createElement(StudentGradesPdf, {
                 studentName: user.name ?? "Student",
                 studentEmail: user.email ?? "",
                 schoolName: SCHOOL_NAME,
+                logoUrl,
                 userEmail: user.email ?? "unknown",
                 generatedAt: new Date().toLocaleString("en-US", { timeZone: "UTC" }) + " UTC",
                 rows,
