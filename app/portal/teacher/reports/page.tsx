@@ -2,6 +2,7 @@ import { TeacherReportsManager } from "@/components/portal/teacher-reports-manag
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { ASSESSMENT_MONTHS } from "@/lib/academic-constants"
 
 export default async function TeacherReportsPage() {
   const session = await getServerSession(authOptions)
@@ -61,13 +62,14 @@ export default async function TeacherReportsPage() {
     if (setting?.value) termStructure = setting.value;
   } catch (e) { }
 
-  // Calculate real performance overview from grades
-  const termCount = parseInt(termStructure) || 3;
-  const terms = Array.from({ length: termCount }, (_, i) => `term${i + 1}`);
-
-  const performanceData = terms.map((t, index) => {
+  // Calculate real performance overview from months
+  const performanceData = ASSESSMENT_MONTHS.map((month) => {
+    // Check for both the month value alone and the month value with a year prefix
     const termGrades = studentReports.length > 0
-      ? studentReports.flatMap(s => (s.classes || []).flatMap((c: any) => (c.grades || []).filter((g: any) => g.term === t)))
+      ? studentReports.flatMap(s => (s.classes || []).flatMap((c: any) => (c.grades || []).filter((g: any) => {
+        const cleanTerm = g.term.toLowerCase().replace(/^\d{4}-/, "").replace(/-draft$/, "");
+        return cleanTerm === month.value || cleanTerm === `term${ASSESSMENT_MONTHS.indexOf(month) + 1}`;
+      })))
       : [];
 
     const avg = termGrades.length > 0
@@ -78,12 +80,8 @@ export default async function TeacherReportsPage() {
       ? Math.max(...termGrades.map(g => g.marks || 0))
       : 0;
 
-    const termLabel = termCount === 12
-      ? ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][index]
-      : `Term ${index + 1}`;
-
-    return { name: termLabel, avg, top };
-  }).filter(d => (d.avg > 0 || d.top > 0) || termCount < 5); // Show all if terms are few, otherwise filter empty months
+    return { name: month.label, avg, top };
+  }).filter(d => d.avg > 0 || d.top > 0);
 
   // Calculate real attendance trend by month
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];

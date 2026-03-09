@@ -29,13 +29,24 @@ export async function GET(
         const grades = await prisma.grade.findMany({
             where: { studentId },
             include: {
-                class: { select: { name: true } },
+                class: { select: { name: true, subjects: true, subject: true } },
                 submission: { select: { assignment: { select: { title: true } } } }
             },
             orderBy: { createdAt: "desc" }
         });
 
-        return NextResponse.json(grades);
+        const formatted = grades.map(g => {
+            const classSubs = (g.class.subjects || g.class.subject || "").split(',').map(s => s.trim());
+            const subjectName = classSubs.find(s => s.toLowerCase().replace(/\s+/g, '-') === g.subjectId) || g.subjectId;
+
+            return {
+                ...g,
+                subjectName,
+                total: 100
+            }
+        });
+
+        return NextResponse.json(formatted);
     } catch (error) {
         return handleAuthError(error);
     }

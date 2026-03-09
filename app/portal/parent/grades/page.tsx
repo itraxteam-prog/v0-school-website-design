@@ -32,7 +32,9 @@ const PARENT_SIDEBAR = [
 interface Grade {
     id: string;
     marks: number;
+    total: number;
     term: string;
+    subjectName: string;
     class: { name: string };
     submission?: { assignment: { title: string } };
     createdAt: string;
@@ -105,7 +107,7 @@ export default function ParentGradesPage() {
                     const data = await res.json()
                     setGrades(data)
 
-                    const uniqueSubjects = Array.from(new Set(data.map((g: any) => g.class?.name || g.class?.subject || "Unknown"))) as string[];
+                    const uniqueSubjects = Array.from(new Set(data.map((g: any) => g.subjectName || "Unknown"))) as string[];
                     setAvailableSubjects(["All Subjects", ...uniqueSubjects])
 
                     const officialTerms = ASSESSMENT_PERIOD_OPTIONS.map(opt => opt.label);
@@ -124,7 +126,7 @@ export default function ParentGradesPage() {
 
     const filtered = grades.filter(g => {
         const termMatches = activeTerm === "All Periods" || getTermDisplayLabel(g.term) === activeTerm;
-        const subjectMatches = activeSubject === "All Subjects" || g.class?.name === activeSubject || (g.class as any)?.subject === activeSubject;
+        const subjectMatches = activeSubject === "All Subjects" || g.subjectName === activeSubject;
 
         const yearPrefix = g.term?.split('-')[0];
         const isYearPrefixed = /^\d{4}$/.test(yearPrefix);
@@ -230,13 +232,13 @@ export default function ParentGradesPage() {
                             <Card className={`glass-panel border-border/50 ${isEligibleForPromotion(averageMarks, promotionThreshold) ? 'bg-green-500/5' : 'bg-destructive/5'}`}>
                                 <CardContent className="p-6 flex items-center justify-between">
                                     <div>
-                                        <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Instituion Standard</p>
+                                        <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Institution Standard</p>
                                         <h3 className={`text-3xl font-bold ${isEligibleForPromotion(averageMarks, promotionThreshold) ? 'text-green-600' : 'text-destructive'}`}>
                                             {isEligibleForPromotion(averageMarks, promotionThreshold) ? "PASS" : "FAIL"}
                                         </h3>
                                     </div>
                                     <div className={`h-12 w-12 rounded-full flex items-center justify-center ${isEligibleForPromotion(averageMarks, promotionThreshold) ? 'bg-green-500/10' : 'bg-destructive/10'}`}>
-                                        <Badge variant={isEligibleForPromotion(averageMarks, promotionThreshold) ? "default" : "destructive"}>
+                                        <Badge variant={isEligibleForPromotion(averageMarks, promotionThreshold) ? "default" : "destructive"} className="text-[10px] px-1">
                                             Min: {promotionThreshold}%
                                         </Badge>
                                     </div>
@@ -251,7 +253,7 @@ export default function ParentGradesPage() {
                                             {calculateGrade(averageMarks, gradingSystem)}
                                         </h3>
                                     </div>
-                                    <div className="h-12 w-12 rounded-full bg-burgundy-900/10 flex items-center justify-center font-bold text-burgundy-900">
+                                    <div className="h-12 w-12 rounded-full bg-burgundy-900/10 flex items-center justify-center font-bold text-burgundy-900 text-[10px]">
                                         {gradingSystem.toUpperCase()}
                                     </div>
                                 </CardContent>
@@ -281,7 +283,7 @@ export default function ParentGradesPage() {
                                     <Table>
                                         <TableHeader>
                                             <TableRow className="border-border/50 bg-muted/20 hover:bg-muted/20">
-                                                <TableHead className="w-[180px]">Class / Subject</TableHead>
+                                                <TableHead className="w-[180px]">Subject</TableHead>
                                                 <TableHead>Assessment Period</TableHead>
                                                 <TableHead>Date</TableHead>
                                                 <TableHead className="text-right">Marks</TableHead>
@@ -293,13 +295,13 @@ export default function ParentGradesPage() {
                                                 filtered.map((grade) => (
                                                     <TableRow key={grade.id} className="group border-border/50 transition-colors hover:bg-primary/5">
                                                         <TableCell className="font-medium">
-                                                            {grade.class.name}
+                                                            {grade.subjectName}
                                                         </TableCell>
                                                         <TableCell className="text-muted-foreground">{getTermDisplayLabel(grade.term)}</TableCell>
                                                         <TableCell className="text-muted-foreground">
-                                                            {new Date(grade.createdAt).toLocaleDateString()}
+                                                            {new Date(grade.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                                         </TableCell>
-                                                        <TableCell className="text-right font-medium">{grade.marks}</TableCell>
+                                                        <TableCell className="text-right font-medium">{grade.marks} / {grade.total || 100}</TableCell>
                                                         <TableCell className="text-right">
                                                             <Badge
                                                                 variant={getGradeBadge(grade.marks).variant}

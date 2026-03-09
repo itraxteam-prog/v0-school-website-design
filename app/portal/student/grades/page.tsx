@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import dynamic from "next/dynamic"
-const PerformanceTrendChart = dynamic(() => import("@/components/portal/dashboard-charts").then(mod => mod.PerformanceTrendChart), { ssr: false });
+const SubjectComparisonChart = dynamic(() => import("@/components/portal/dashboard-charts").then(mod => mod.SubjectComparisonChart), { ssr: false });
 import { Skeleton } from "@/components/ui/skeleton"
 import { useSession } from "next-auth/react"
 
@@ -30,7 +30,7 @@ export default function GradesPage() {
   const [loading, setLoading] = useState(true)
   const [grades, setGrades] = useState<any[]>([])
   const [availableSubjects, setAvailableSubjects] = useState<string[]>(["All Subjects"])
-  const [availableTerms, setAvailableTerms] = useState<string[]>(["All Periods"])
+  const [availableTerms, setAvailableTerms] = useState<any[]>(["All Periods", ...ASSESSMENT_PERIOD_OPTIONS])
   const [availableYears, setAvailableYears] = useState<string[]>(["All Years", ...ACADEMIC_YEARS])
   const [schoolSettings, setSchoolSettings] = useState<any>(null)
   const { data: session } = useSession()
@@ -58,12 +58,7 @@ export default function GradesPage() {
         setGrades(result.data || []);
         if (result.subjects) setAvailableSubjects(result.subjects);
 
-        // Only show terms that are part of our official academic system
-        const officialTerms = ASSESSMENT_PERIOD_OPTIONS.map(opt => opt.label);
-        const uniqueResultTerms = Array.from(new Set((result.data || []).map((g: any) => g.termDisplay))) as string[];
-        const alignedTerms = uniqueResultTerms.filter((t: string) => officialTerms.includes(t));
-
-        setAvailableTerms(["All Periods", ...alignedTerms]);
+        setAvailableTerms(["All Periods", ...ASSESSMENT_PERIOD_OPTIONS]);
       } catch (error: any) {
         console.error("Failed to fetch grades", error);
       } finally {
@@ -125,7 +120,11 @@ export default function GradesPage() {
                   <SelectValue placeholder="Period" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableTerms.map(term => <SelectItem key={term} value={term}>{term}</SelectItem>)}
+                  {availableTerms.map(term => (
+                    <SelectItem key={typeof term === 'string' ? term : term.value} value={typeof term === 'string' ? term : term.label}>
+                      {typeof term === 'string' ? term : term.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
 
@@ -152,17 +151,17 @@ export default function GradesPage() {
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="heading-3 flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-primary" />
-                Performance Trend - {activeTerm === "All Periods" ? "Last 6 assessments" : activeTerm}
+                Subject Performance - {activeTerm === "All Periods" ? "All assessments combined" : activeTerm}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {loading ? (
                 <Skeleton className="h-[300px] w-full rounded-xl" />
               ) : (
-                <PerformanceTrendChart data={filteredGrades.map(g => ({
-                  month: g.termDisplay,
+                <SubjectComparisonChart data={filteredGrades.map(g => ({
+                  subject: g.subject,
                   score: g.marks
-                })).slice(-6)} />
+                }))} />
 
               )}
             </CardContent>
@@ -204,8 +203,8 @@ export default function GradesPage() {
                       filteredGrades.map((grade, index) => (
                         <TableRow key={index} className="group border-border/50 transition-colors hover:bg-primary/5">
                           <TableCell className="font-medium">{grade.subject}</TableCell>
-                          <TableCell className="text-muted-foreground">{grade.termDisplay || grade.term}</TableCell>
-                          <TableCell className="text-muted-foreground">{grade.date ? new Date(grade.date).toLocaleDateString() : '-'}</TableCell>
+                          <TableCell className="text-muted-foreground">{getTermDisplayLabel(grade.term)}</TableCell>
+                          <TableCell className="text-muted-foreground">{grade.date ? new Date(grade.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-'}</TableCell>
                           <TableCell className="text-right font-medium">{grade.marks}</TableCell>
                           <TableCell className="text-right text-muted-foreground">{grade.total}</TableCell>
                           <TableCell className="text-right">
