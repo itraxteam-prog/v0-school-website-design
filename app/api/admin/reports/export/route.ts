@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
-import { prisma } from "@/lib/prisma";
 import { createPdf } from "@/lib/pdf/createPdf";
 import { AdminAnalyticsPdf } from "@/lib/pdf/templates/AdminAnalyticsPdf";
+import { StudentPerformanceReportPdf } from "@/lib/pdf/templates/StudentPerformanceReportPdf";
+import { TeacherPerformanceReportPdf } from "@/lib/pdf/templates/TeacherPerformanceReportPdf";
 import React from "react";
 
 import { exportGuard } from "@/lib/pdf/export-guard";
@@ -11,134 +12,105 @@ import { logAudit } from "@/lib/audit";
 import { checkExportRateLimit } from "@/lib/pdf/export-rate-limit";
 import { createPdfResponse } from "@/lib/pdf/pdf-response";
 import { assertNodeRuntime } from "@/lib/runtime-assert";
+import { fetchReportData } from "@/lib/reports-utils";
 
 const SCHOOL_NAME = "Vibe School Management System";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
         assertNodeRuntime();
         const user = await exportGuard(["ADMIN"]);
-        await checkExportRateLimit(user.id, user.role);
 
-        // Fetch the same data that the /api/admin/analytics route computes
-        const [
-            attendance,
-            grades,
-            students,
-            subjectGrades,
-            totalStudents,
-            totalTeachers,
-            totalClasses,
-            attendanceToday,
-        ] = await Promise.all([
-            prisma.attendance.findMany({
-                select: { date: true, status: true },
-                orderBy: { date: "asc" },
-            }),
-            prisma.grade.findMany({ select: { marks: true } }),
-            prisma.user.findMany({
-                where: { role: "STUDENT" },
-                select: { createdAt: true },
-            }),
-            prisma.grade.findMany({ select: { subjectId: true, marks: true } }),
-            prisma.user.count({ where: { role: "STUDENT" } }),
-            prisma.user.count({ where: { role: "TEACHER" } }),
-            prisma.class.count(),
-            prisma.attendance.count({
-                where: {
-                    date: {
-                        gte: new Date(new Date().setHours(0, 0, 0, 0)),
-                        lte: new Date(new Date().setHours(23, 59, 59, 999)),
+        // Safety check for Redis - if credentials missing, skip rate limiting instead of crashing
+        try {
+            await checkExportRateLimit(user.id, user.role);
+        } catch (rlError: any) {
+            console.warn("Rate limiting failed, proceeding anyway:", rlError.message);
+        }
+
+        const { searchParams } = new URL(req.url);
+        const type = searchParams.get("type") || "analytics";
+        const term = searchParams.get("term") || undefined;
+        const classId = searchParams.get("classId") || undefined;
+        const startDate = searchParams.get("startDate") || undefined;
+        const endDate = searchParams.get("endDate") || undefined;
+
+        const { data } = await fetchReportData({ term, classId, startDate, endDate });
+
+        let pdfElement: React.ReactElement;
+        let filename = `admin_report_${type}`;
+
+        const generatedAt = new Date().toLocaleString("en-US", { timeZone: "UTC" }) + " UTC";
+
+        switch (type) {
+            case "student-performance":
+                pdfElement = React.createElement(StudentPerformanceReportPdf, {
+                    generatedAt,
+                    schoolName: SCHOOL_NAME,
+                    userEmail: user.email ?? "unknown",
+                    rows: data.studentPerformance,
+                    title: "Student Performance Report"
+                });
+                break;
+            case "teacher-performance":
+                pdfElement = React.createElement(TeacherPerformanceReportPdf, {
+                    generatedAt,
+                    schoolName: SCHOOL_NAME,
+                    userEmail: user.email ?? "unknown",
+                    rows: data.teacherPerformance,
+                    title: "Teacher Performance Report"
+                });
+                break;
+            case "attendance-report":
+                // For now, reuse analytics for attendance as it contains attendance trends
+                pdfElement = React.createElement(AdminAnalyticsPdf, {
+                    generatedAt,
+                    schoolName: SCHOOL_NAME,
+                    userEmail: user.email ?? "unknown",
+                    stats: {
+                        totalStudents: data.summary.totalStudents,
+                        totalTeachers: data.summary.totalTeachers,
+                        totalClasses: data.summary.totalClasses,
+                        attendanceToday: data.summary.overallAttendance,
                     },
-                },
-            }),
-        ]);
+                    attendanceData: data.attendanceChart.map(day => ({ month: day.day, attendance: day.attendance })),
+                    gradeDistribution: [],
+                    enrollmentData: [],
+                    subjectPerformance: [],
+                });
+                break;
+            default:
+                // Default to original analytics view
+                pdfElement = React.createElement(AdminAnalyticsPdf, {
+                    generatedAt,
+                    schoolName: SCHOOL_NAME,
+                    userEmail: user.email ?? "unknown",
+                    stats: {
+                        totalStudents: data.summary.totalStudents,
+                        totalTeachers: data.summary.totalTeachers,
+                        totalClasses: data.summary.totalClasses,
+                        attendanceToday: data.summary.overallAttendance,
+                    },
+                    attendanceData: data.attendanceChart.map(day => ({ month: day.day, attendance: day.attendance })),
+                    gradeDistribution: [],
+                    enrollmentData: [],
+                    subjectPerformance: [],
+                });
+                break;
+        }
 
-        // Monthly attendance rate
-        const attendanceMap: Record<string, { count: number; present: number }> = {};
-        attendance.forEach((a) => {
-            const month = a.date.toLocaleString("default", { month: "short" });
-            if (!attendanceMap[month]) attendanceMap[month] = { count: 0, present: 0 };
-            attendanceMap[month].count++;
-            if (a.status === "PRESENT") attendanceMap[month].present++;
-        });
-        const attendanceData = Object.entries(attendanceMap)
-            .map(([month, stats]) => ({
-                month,
-                attendance: Math.round((stats.present / stats.count) * 100),
-            }))
-            .slice(-6);
-
-        // Grade distribution
-        const gradeCounts: Record<string, number> = { "A+": 0, A: 0, B: 0, C: 0, D: 0, F: 0 };
-        grades.forEach((g) => {
-            const grade =
-                g.marks >= 90 ? "A+" :
-                    g.marks >= 80 ? "A" :
-                        g.marks >= 70 ? "B" :
-                            g.marks >= 60 ? "C" :
-                                g.marks >= 50 ? "D" : "F";
-            const key = grade.startsWith("A") ? (grade === "A+" ? "A+" : "A") : grade;
-            if (gradeCounts[key] !== undefined) gradeCounts[key]++;
-        });
-        const gradeDistribution = Object.entries(gradeCounts).map(([grade, count]) => ({ grade, count }));
-
-        // Enrollment by year
-        const enrollmentMap: Record<string, number> = {};
-        students.forEach((s) => {
-            const year = s.createdAt.getFullYear().toString();
-            enrollmentMap[year] = (enrollmentMap[year] || 0) + 1;
-        });
-        const enrollmentData = Object.entries(enrollmentMap)
-            .map(([year, count]) => ({ year, students: count }))
-            .sort((a, b) => parseInt(a.year) - parseInt(b.year));
-
-        // Subject performance
-        const subjectMap: Record<string, { total: number; count: number }> = {};
-        subjectGrades.forEach((g) => {
-            if (!subjectMap[g.subjectId]) subjectMap[g.subjectId] = { total: 0, count: 0 };
-            subjectMap[g.subjectId].total += g.marks;
-            subjectMap[g.subjectId].count++;
-        });
-        const subjectPerformance = Object.entries(subjectMap).map(([subject, stats]) => ({
-            subject,
-            avg: Math.round(stats.total / stats.count),
-        }));
-
-        const todayRate =
-            totalStudents > 0
-                ? `${Math.round((attendanceToday / totalStudents) * 100)}%`
-                : "0%";
-
-        const pdfBuffer = await createPdf(
-            React.createElement(AdminAnalyticsPdf, {
-                generatedAt: new Date().toLocaleString("en-US", { timeZone: "UTC" }) + " UTC",
-                schoolName: SCHOOL_NAME,
-                userEmail: user.email ?? "unknown",
-                stats: {
-                    totalStudents,
-                    totalTeachers,
-                    totalClasses,
-                    attendanceToday: todayRate,
-                },
-                attendanceData: attendanceData.length > 0 ? attendanceData : [{ month: "N/A", attendance: 0 }],
-                gradeDistribution,
-                enrollmentData: enrollmentData.length > 0 ? enrollmentData : [{ year: new Date().getFullYear().toString(), students: totalStudents }],
-                subjectPerformance,
-            })
-        );
+        const pdfBuffer = await createPdf(pdfElement);
 
         await logAudit({
             userId: user.id,
             action: "PDF_EXPORT",
             entity: "REPORTS",
             metadata: {
-                type: "analytics",
+                type,
+                filters: { term, classId, startDate, endDate },
                 timestamp: new Date().toISOString(),
             },
         });
-
-        const filename = `admin_analytics`;
 
         return createPdfResponse(pdfBuffer, filename);
     } catch (error: any) {

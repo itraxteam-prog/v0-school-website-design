@@ -289,8 +289,40 @@ export function ReportsManager({ initialData, classes, currentFilters }: Reports
 
                         <div className="flex items-center justify-end gap-3 pt-4">
                             <Button variant="outline" size="sm" onClick={handleExportCSV} className="gap-2 glass-card"><FileText className="h-4 w-4 text-primary" /> Export CSV</Button>
-                            <Button variant="outline" size="sm" onClick={() => { toast.success("Downloading PDF..."); window.open("/api/admin/reports/export", "_blank"); }} className="gap-2 glass-card"><Download className="h-4 w-4 text-primary" /> Export PDF</Button>
-                            <Button className="h-10 px-6 bg-primary text-white shadow-burgundy-glow" onClick={() => { toast.success("Printing..."); window.open("/api/admin/reports/export", "_blank"); }}><Printer className="mr-2 h-4 w-4" /> Print Report</Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                    const params = new URLSearchParams();
+                                    params.set("type", reportType);
+                                    if (filters.term) params.set("term", filters.term);
+                                    if (filters.classId) params.set("classId", filters.classId);
+                                    if (filters.startDate) params.set("startDate", filters.startDate);
+                                    if (filters.endDate) params.set("endDate", filters.endDate);
+
+                                    toast.success("Downloading PDF...");
+                                    window.open(`/api/admin/reports/export?${params.toString()}`, "_blank");
+                                }}
+                                className="gap-2 glass-card"
+                            >
+                                <Download className="h-4 w-4 text-primary" /> Export PDF
+                            </Button>
+                            <Button
+                                className="h-10 px-6 bg-primary text-white shadow-burgundy-glow"
+                                onClick={() => {
+                                    const params = new URLSearchParams();
+                                    params.set("type", reportType);
+                                    if (filters.term) params.set("term", filters.term);
+                                    if (filters.classId) params.set("classId", filters.classId);
+                                    if (filters.startDate) params.set("startDate", filters.startDate);
+                                    if (filters.endDate) params.set("endDate", filters.endDate);
+
+                                    toast.success("Preparing Print...");
+                                    window.open(`/api/admin/reports/export?${params.toString()}`, "_blank");
+                                }}
+                            >
+                                <Printer className="mr-2 h-4 w-4" /> Print Report
+                            </Button>
                         </div>
                     </div>
                 )}
