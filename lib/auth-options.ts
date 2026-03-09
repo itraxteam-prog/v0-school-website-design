@@ -168,12 +168,18 @@ export const authOptions: NextAuthOptions = {
                 token.status = user.status;
                 token.accountStatus = user.status;
                 token.name = user.name;
-                token.picture = user.image;
+
+                // Prevent REQUEST_HEADER_TOO_LARGE: Never store base64 images in JWT
+                const image = user.image as string | null;
+                token.picture = (image && !image.startsWith("data:image")) ? image : null;
             }
 
             if (trigger === "update") {
                 if (session?.name) token.name = session.name;
-                if (session?.image) token.picture = session.image;
+                if (session?.image) {
+                    const image = session.image as string;
+                    token.picture = (!image.startsWith("data:image")) ? image : null;
+                }
             }
 
             // Task 4: Invalidate ADMIN sessions after 8 hours
