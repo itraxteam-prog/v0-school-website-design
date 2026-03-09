@@ -73,6 +73,16 @@ export async function POST(req: Request) {
         // Async Email Notification
         (async () => {
             try {
+                // RACE CONDITION CHECK: Verify announcement still exists before sending
+                const check = await prisma.announcement.findUnique({
+                    where: { id: announcement.id }
+                });
+
+                if (!check) {
+                    console.log(`[Email skipped] Announcement ${announcement.id} was deleted before processing.`);
+                    return;
+                }
+
                 const users = await prisma.user.findMany({
                     where: {
                         status: "ACTIVE",
@@ -93,8 +103,13 @@ export async function POST(req: Request) {
                     emails.push(...parentEmails);
                 }
 
-                if (emails.length > 0) {
-                    sendAnnouncementEmail(Array.from(new Set(emails)), title, content);
+                const finalEmails = Array.from(new Set(emails));
+
+                if (finalEmails.length > 0) {
+                    console.log(`[Email queue] Sending announcement ${announcement.id} to ${finalEmails.length} recipients.`);
+                    sendAnnouncementEmail(finalEmails, title, content);
+                } else {
+                    console.log(`[Email skipped] No active users found for role: ${targetRole}`);
                 }
             } catch (err) {
                 console.error("Failed to trigger announcement emails:", err);

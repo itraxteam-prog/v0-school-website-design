@@ -117,8 +117,12 @@ export function sendAnnouncementEmail(emails: string[], title: string, content: 
     </div>
   `;
 
-  // Use BCC for privacy if sending to many, or send individually for reliability/tracking
-  // For simplicity and to ensure deliverability, we'll send to the list (BCC is usually better for bulk)
+  // Log the attempt
+  logger.info({
+    recipientCount: emails.length,
+    announcementTitle: title
+  }, "Processing announcement email broadcast");
+
   sendAsync({
     bcc: emails,
     subject: `New Announcement: ${title}`,
