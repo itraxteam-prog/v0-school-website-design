@@ -21,14 +21,10 @@ export async function GET(req: NextRequest) {
         assertNodeRuntime();
         const user = await exportGuard(["ADMIN"]);
 
-        // Safety check for Redis - if credentials missing, skip rate limiting instead of crashing
-        try {
-            await checkExportRateLimit(user.id, user.role);
-        } catch (rlError: any) {
-            console.warn("Rate limiting failed, proceeding anyway:", rlError.message);
-        }
+        // Rate limiting is now internally guarded for missing Redis credentials
+        await checkExportRateLimit(user.id, user.role);
 
-        const { searchParams } = new URL(req.url);
+        const { searchParams } = req.nextUrl;
         const type = searchParams.get("type") || "analytics";
         const term = searchParams.get("term") || undefined;
         const classId = searchParams.get("classId") || undefined;
@@ -38,8 +34,7 @@ export async function GET(req: NextRequest) {
         const { data } = await fetchReportData({ term, classId, startDate, endDate });
 
         let pdfElement: React.ReactElement;
-        let filename = `admin_report_${type}`;
-
+        const filename = `admin_report_${type}`;
         const generatedAt = new Date().toLocaleString("en-US", { timeZone: "UTC" }) + " UTC";
 
         switch (type) {
@@ -80,7 +75,7 @@ export async function GET(req: NextRequest) {
                 });
                 break;
             default:
-                // Default to original analytics view
+                // Default to original analytics view for attendance or others
                 pdfElement = React.createElement(AdminAnalyticsPdf, {
                     generatedAt,
                     schoolName: SCHOOL_NAME,
@@ -114,7 +109,12 @@ export async function GET(req: NextRequest) {
 
         return createPdfResponse(pdfBuffer, filename);
     } catch (error: any) {
-        console.error("[GET /api/admin/reports/export]", error);
+        // Detailed logging to help identify the 500 cause
+        console.error("[CRITICAL] PDF Export Failure:", {
+            message: error.message,
+            stack: error.stack,
+            type: error.constructor.name
+        });
 
         if (error.message === "PDF export rate limit exceeded. Please wait.") {
             return NextResponse.json(
@@ -131,10 +131,8 @@ export async function GET(req: NextRequest) {
         }
 
         return NextResponse.json(
-            { error: "Internal Server Error" },
+            { error: "Internal Server Error", message: error.message },
             { status: 500 }
         );
     }
 }
-
-

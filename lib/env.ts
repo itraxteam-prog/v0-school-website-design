@@ -17,8 +17,8 @@ const envSchema = z.object({
         const email = match ? match[1] : val;
         return z.string().email().safeParse(email).success;
     }, { message: "Invalid SMTP_FROM format. Use 'email@example.com' or 'Name <email@example.com>'" }),
-    UPSTASH_REDIS_REST_URL: z.string().url(),
-    UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
+    UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+    UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
     SENTRY_DSN: z.string().url(),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 });
