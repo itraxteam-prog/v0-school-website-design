@@ -6,6 +6,14 @@ export function useScrollAnimation() {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    // Optimization: Skip animations if user prefers reduced motion
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    if (prefersReducedMotion) {
+      const children = ref.current?.querySelectorAll(".animate-on-scroll")
+      children?.forEach((child) => child.classList.add("visible"))
+      return
+    }
+
     const el = ref.current
     if (!el) return
 

@@ -13,6 +13,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { formatDistanceToNow } from "date-fns"
 import { motion, AnimatePresence } from "framer-motion"
 import { useSession } from "next-auth/react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export interface SidebarItem {
   href: string
@@ -91,7 +92,7 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
       '/portal/student';
 
   return (
-    <div ref={portalRef} data-portal-root className="flex h-screen overflow-hidden bg-secondary">
+    <div ref={portalRef} data-portal-root className="flex h-[100dvh] overflow-hidden bg-secondary">
       {/* Sidebar Overlay (mobile) */}
       <AnimatePresence>
         {sidebarOpen && (
@@ -325,6 +326,16 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
                 )}
               </AnimatePresence>
             </div>
+
+            {/* Profile Icon (Mobile Header) */}
+            <Link href={`${portalBase}/profile`} className="md:hidden">
+              <Avatar className="h-8 w-8 border border-border">
+                <AvatarImage src={userImage} />
+                <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-bold">
+                  {userName.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
 
             {/* Desktop Logout Icon */}
             <Button
