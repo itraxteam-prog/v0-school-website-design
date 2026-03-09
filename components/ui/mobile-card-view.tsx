@@ -60,10 +60,12 @@ export function MobileCardView({
                         {primaryFieldKey && (
                             <div className="bg-muted/30 px-4 py-3 border-b border-border/50 flex items-center justify-between">
                                 <div className="font-bold text-foreground truncate">
-                                    {fields.find(f => f.key === primaryFieldKey)?.render
-                                        ? fields.find(f => f.key === primaryFieldKey)?.render(item[primaryFieldKey], item)
-                                        : item[primaryFieldKey]
-                                    }
+                                    {(() => {
+                                        const field = fields.find(f => f.key === primaryFieldKey);
+                                        return field?.render
+                                            ? field.render(item[primaryFieldKey], item)
+                                            : item[primaryFieldKey];
+                                    })()}
                                 </div>
                                 {actions && <div className="flex items-center gap-2">{actions(item)}</div>}
                             </div>
