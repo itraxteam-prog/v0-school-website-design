@@ -16,6 +16,7 @@ import { useSession } from "next-auth/react"
 
 import { STUDENT_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 import { ACADEMIC_YEARS, getTermDisplayLabel, ASSESSMENT_PERIOD_OPTIONS } from "@/lib/academic-constants"
+import { toast } from "sonner"
 
 // Internal API base path
 const API_BASE = "/api";
@@ -137,7 +138,10 @@ export default function GradesPage() {
                 </SelectContent>
               </Select>
 
-              <Button variant="outline" className="gap-2" onClick={() => window.print()}>
+              <Button variant="outline" className="gap-2" onClick={() => {
+                toast.success("Generating Grades PDF...");
+                window.open('/api/student/grades/export', '_blank');
+              }}>
                 <Download className="h-4 w-4" />
                 <span className="hidden sm:inline">Export PDF</span>
               </Button>
