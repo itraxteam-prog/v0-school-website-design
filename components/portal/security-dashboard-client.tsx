@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useTheme } from "next-themes"
 import TwoFactorSetup from "@/components/portal/2fa-setup"
 import { ChangePasswordForm } from "@/components/portal/change-password-form"
 import AppLayout from "@/components/layout/AppLayout"
@@ -18,7 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner"
 
 export function SecurityDashboardClient({ user }: { user: any }) {
-    const { theme, setTheme } = useTheme()
+    const [isDark, setIsDark] = useState(false)
     const [isSavingTheme, setIsSavingTheme] = useState(false)
 
     useEffect(() => {
@@ -29,7 +28,12 @@ export function SecurityDashboardClient({ user }: { user: any }) {
                 if (res.ok) {
                     const data = await res.json();
                     if (data.darkMode !== undefined) {
-                        setTheme(data.darkMode ? "dark" : "light");
+                        setIsDark(!!data.darkMode);
+                        // Apply to portal root only (AppLayout handles this on its own mount too)
+                        const portalRoot = document.querySelector<HTMLElement>('[data-portal-root]');
+                        if (portalRoot) {
+                            portalRoot.classList.toggle('portal-dark', !!data.darkMode);
+                        }
                     }
                 }
             } catch (err) {
@@ -37,12 +41,17 @@ export function SecurityDashboardClient({ user }: { user: any }) {
             }
         };
         fetchPreferences();
-    }, [setTheme]);
+    }, []);
 
     const handleThemeToggle = async (checked: boolean) => {
         setIsSavingTheme(true);
-        const newTheme = checked ? "dark" : "light";
-        setTheme(newTheme);
+        setIsDark(checked);
+
+        // Apply portal-dark class to the portal root container only
+        const portalRoot = document.querySelector<HTMLElement>('[data-portal-root]');
+        if (portalRoot) {
+            portalRoot.classList.toggle('portal-dark', checked);
+        }
 
         try {
             const res = await fetch("/api/user/preferences", {
@@ -53,7 +62,8 @@ export function SecurityDashboardClient({ user }: { user: any }) {
 
             if (!res.ok) throw new Error("Failed to save preference");
 
-            toast.success(`${newTheme.charAt(0).toUpperCase() + newTheme.slice(1)} mode saved to profile.`);
+            const label = checked ? "Dark" : "Light";
+            toast.success(`${label} mode saved to profile.`);
         } catch (err) {
             toast.error("Preference saved locally, but failed to sync to account.");
         } finally {
@@ -133,7 +143,7 @@ export function SecurityDashboardClient({ user }: { user: any }) {
                                     <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border border-border/50">
                                         <div className="flex items-center gap-3">
                                             <div className="p-2 rounded-lg bg-primary/10">
-                                                {theme === 'dark' ? (
+                                                {isDark ? (
                                                     <Moon className="h-5 w-5 text-primary" />
                                                 ) : (
                                                     <Sun className="h-5 w-5 text-primary" />
@@ -146,7 +156,7 @@ export function SecurityDashboardClient({ user }: { user: any }) {
                                         </div>
                                         <Switch
                                             id="dark-mode"
-                                            checked={theme === 'dark'}
+                                            checked={isDark}
                                             onCheckedChange={handleThemeToggle}
                                             disabled={isSavingTheme}
                                         />

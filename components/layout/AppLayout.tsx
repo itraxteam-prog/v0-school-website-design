@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import type { LucideIcon } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
-import { useTheme } from "next-themes"
 import { formatName } from "@/lib/utils"
 import { useSession } from "next-auth/react"
 import { formatDistanceToNow } from "date-fns"
@@ -45,7 +44,7 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
   const [settings, setSettings] = useState<any>(null)
   const pathname = usePathname()
   const { logout } = useAuth()
-  const { setTheme } = useTheme()
+  const portalRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     // 1. Fetch Global Settings (Logo, School Name)
@@ -58,12 +57,14 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
       })
       .catch(console.error)
 
-    // 2. Fetch Personal Preferences (Theme, etc.)
+    // 2. Fetch Personal Preferences (Theme, etc.) — apply as portal-scoped class only
     fetch('/api/user/preferences')
       .then(res => res.json())
       .then(data => {
         if (!data.error && data.darkMode !== undefined) {
-          setTheme(data.darkMode ? "dark" : "light")
+          if (portalRef.current) {
+            portalRef.current.classList.toggle('portal-dark', !!data.darkMode)
+          }
         }
       })
       .catch(console.error)
@@ -77,7 +78,7 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
         }
       })
       .catch(console.error)
-  }, [setTheme])
+  }, [])
 
   const handleLogout = async () => {
     await logout()
@@ -89,7 +90,7 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
   const breadcrumbs = safePathname.split("/").filter(Boolean).slice(1)
 
   return (
-    <div className="flex h-screen overflow-hidden bg-secondary">
+    <div ref={portalRef} data-portal-root className="flex h-screen overflow-hidden bg-secondary">
       {/* Sidebar Overlay (mobile) */}
       <AnimatePresence>
         {sidebarOpen && (
