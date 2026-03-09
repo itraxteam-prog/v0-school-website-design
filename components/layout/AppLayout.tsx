@@ -14,6 +14,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { useTheme } from "next-themes"
 import { formatName } from "@/lib/utils"
 import { useSession } from "next-auth/react"
+import { formatDistanceToNow } from "date-fns"
 
 export interface SidebarItem {
   href: string
@@ -40,6 +41,7 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
   const [searchQuery, setSearchQuery] = useState("")
   const [isSearchVisible, setIsSearchVisible] = useState(false)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
+  const [notifications, setNotifications] = useState<any[]>([])
   const [settings, setSettings] = useState<any>(null)
   const pathname = usePathname()
   const { logout } = useAuth()
@@ -62,6 +64,16 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
       .then(data => {
         if (!data.error && data.darkMode !== undefined) {
           setTheme(data.darkMode ? "dark" : "light")
+        }
+      })
+      .catch(console.error)
+
+    // 3. Fetch Real-time Notifications/Announcements
+    fetch('/api/notifications')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setNotifications(data)
         }
       })
       .catch(console.error)
@@ -274,7 +286,9 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
                 onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
               >
                 <Bell className="h-[18px] w-[18px]" />
-                <span className="absolute right-1.5 top-1.5 flex h-2 w-2 rounded-full bg-primary" />
+                {notifications.length > 0 && (
+                  <span className="absolute right-1.5 top-1.5 flex h-2 w-2 rounded-full bg-primary" />
+                )}
               </Button>
 
               <AnimatePresence>
@@ -292,23 +306,36 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
                     >
                       <div className="bg-muted/30 p-3 border-b border-border flex items-center justify-between">
                         <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Notifications</p>
-                        <Badge variant="secondary" className="text-[10px]">3 New</Badge>
+                        {notifications.length > 0 && (
+                          <Badge variant="secondary" className="text-[10px]">{notifications.length} New</Badge>
+                        )}
                       </div>
                       <div className="max-h-80 overflow-y-auto">
-                        {[
-                          { title: "New Assignment Submission", time: "5 mins ago", desc: "Ahmed Khan submitted Math HW" },
-                          { title: "Meeting Reminder", time: "1 hour ago", desc: "Staff meeting in Conference Room B" },
-                          { title: "Policy Update", time: "Yesterday", desc: "New attendance policy for Spring 2026" },
-                        ].map((n, i) => (
-                          <div key={i} className="p-3 border-b border-border hover:bg-muted/50 transition-colors cursor-pointer group">
-                            <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{n.title}</p>
-                            <p className="text-[10px] text-muted-foreground mt-0.5">{n.time}</p>
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{n.desc}</p>
+                        {notifications.length > 0 ? (
+                          notifications.map((n, i) => (
+                            <div key={n.id || i} className="p-3 border-b border-border hover:bg-muted/50 transition-colors cursor-pointer group">
+                              <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">{n.title}</p>
+                              <p className="text-[10px] text-muted-foreground mt-0.5">
+                                {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{n.content}</p>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="p-8 text-center">
+                            <Bell className="h-8 w-8 text-muted/30 mx-auto mb-2" />
+                            <p className="text-xs text-muted-foreground">No new notifications</p>
                           </div>
-                        ))}
+                        )}
                       </div>
-                      <Link href="#" className="block p-2 text-center text-xs font-semibold text-primary hover:bg-muted transition-colors">
-                        View All Notifications
+                      <Link
+                        href={safePathname.startsWith('/portal/admin') ? '/portal/admin/announcements' :
+                          safePathname.startsWith('/portal/teacher') ? '/portal/teacher/announcements' :
+                            '/portal/student/announcements'}
+                        className="block p-2 text-center text-xs font-semibold text-primary hover:bg-muted transition-colors"
+                        onClick={() => setIsNotificationsOpen(false)}
+                      >
+                        View All Announcements
                       </Link>
                     </motion.div>
                   </>
