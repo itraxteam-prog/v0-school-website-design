@@ -72,9 +72,9 @@ export default function ParentProfilePage() {
     return (
         <AppLayout
             sidebarItems={PARENT_SIDEBAR}
-            userName={displayUser.name}
+            userName={displayUser.name || "Parent User"}
             userRole="Parent"
-            userImage={session?.user?.image}
+            userImage={session?.user?.image ?? undefined}
         >
             <div className="flex flex-col gap-8 pb-8">
                 {/* Header */}
@@ -94,7 +94,7 @@ export default function ParentProfilePage() {
                                     <Skeleton className="h-32 w-32 rounded-full" />
                                 ) : (
                                     <Avatar className="h-32 w-32 border-4 border-primary/20 shadow-xl">
-                                        <AvatarImage src={session?.user?.image || ""} alt={displayUser.name} />
+                                        <AvatarImage src={session?.user?.image || ""} alt={displayUser.name || "User"} />
                                         <AvatarFallback className="bg-primary text-3xl font-bold text-primary-foreground">
                                             {initials}
                                         </AvatarFallback>
