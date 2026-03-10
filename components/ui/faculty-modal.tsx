@@ -34,9 +34,11 @@ export function FacultyModal({ member, isOpen, onClose }: FacultyModalProps) {
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[600px] glass-panel border-none">
                 <div className="flex flex-col md:flex-row gap-6 p-4">
-                    <div className="w-full md:w-1/3 aspect-square bg-muted rounded-xl relative overflow-hidden flex items-center justify-center border border-white/20">
-                        <span className="text-muted-foreground text-xs uppercase font-medium">Photo Placeholder</span>
-                    </div>
+                    {member.image ? (
+                        <div className="w-full md:w-1/3 aspect-square bg-muted rounded-xl relative overflow-hidden flex items-center justify-center border border-white/20">
+                            <img src={member.image} alt={member.name} className="h-full w-full object-cover" />
+                        </div>
+                    ) : null}
                     <div className="flex-1 space-y-4">
                         <DialogHeader>
                             <DialogTitle className={`${playfair.className} text-3xl font-bold text-burgundy-gradient`}>

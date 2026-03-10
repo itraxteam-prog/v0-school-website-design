@@ -344,8 +344,8 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
               </AnimatePresence>
             </div>
 
-            {/* Profile Icon (Mobile Header) */}
-            <Link href={`${portalBase}/profile`} className="md:hidden">
+            {/* Profile Icon */}
+            <Link href={`${portalBase}/profile`}>
               <Avatar className="h-8 w-8 border border-border">
                 <AvatarImage src={userImage} />
                 <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-bold">
