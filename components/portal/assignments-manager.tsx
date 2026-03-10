@@ -54,7 +54,7 @@ const assignmentSchema = z.object({
     dueDate: z.string().min(1, { message: "Please select a due date." }),
     maxPoints: z.string().optional(),
     classId: z.string().min(1, { message: "Please select a class." }),
-    subject: z.string().min(1, { message: "Please select a subject." }),
+    subject: z.string().optional(),
 })
 
 type AssignmentFormValues = z.infer<typeof assignmentSchema>
