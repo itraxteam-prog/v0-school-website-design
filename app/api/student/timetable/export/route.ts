@@ -10,8 +10,7 @@ import { logAudit } from "@/lib/audit";
 import { checkExportRateLimit } from "@/lib/pdf/export-rate-limit";
 import { createPdfResponse } from "@/lib/pdf/pdf-response";
 import { assertNodeRuntime } from "@/lib/runtime-assert";
-import path from "path";
-import fs from "fs";
+import { getSchoolLogo } from "@/lib/pdf/pdf-assets";
 
 const SCHOOL_NAME = "The Pioneers High School";
 
@@ -54,9 +53,7 @@ export async function GET() {
         // Use term/academicYear from first entry if available
         const firstEntry = timetableEntries[0] ?? null;
 
-        const logoPath = path.join(process.cwd(), "public", "placeholder-logo.png");
-        const logoBase64 = fs.readFileSync(logoPath).toString("base64");
-        const logoUrl = `data:image/png;base64,${logoBase64}`;
+        const logoUrl = await getSchoolLogo();
 
         const pdfBuffer = await createPdf(
             React.createElement(StudentTimetablePdf, {

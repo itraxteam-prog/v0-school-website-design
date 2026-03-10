@@ -13,8 +13,7 @@ import { checkExportRateLimit } from "@/lib/pdf/export-rate-limit";
 import { createPdfResponse } from "@/lib/pdf/pdf-response";
 import { assertNodeRuntime } from "@/lib/runtime-assert";
 import { fetchReportData } from "@/lib/reports-utils";
-import path from "path";
-import fs from "fs";
+import { getSchoolLogo } from "@/lib/pdf/pdf-assets";
 
 const SCHOOL_NAME = "The Pioneers High School";
 
@@ -35,9 +34,7 @@ export async function GET(req: NextRequest) {
 
         const { data } = await fetchReportData({ term, classId, startDate, endDate });
 
-        const logoPath = path.join(process.cwd(), "public", "placeholder-logo.png");
-        const logoBase64 = fs.readFileSync(logoPath).toString("base64");
-        const logoUrl = `data:image/png;base64,${logoBase64}`;
+        const logoUrl = await getSchoolLogo();
 
         let pdfElement: React.ReactElement;
         const filename = `admin_report_${type}`;
