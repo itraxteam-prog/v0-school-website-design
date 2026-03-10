@@ -9,10 +9,61 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { toast } from "sonner"
 
+import { useState } from "react"
+
 export function AdmissionForm() {
-    const handleSubmit = (e: React.FormEvent) => {
+    const [loading, setLoading] = useState(false)
+    const [formData, setFormData] = useState({
+        parentName: "",
+        studentName: "",
+        email: "",
+        phone: "",
+        grade: "",
+        message: ""
+    })
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        toast.success("Inquiry submitted successfully!")
+        setLoading(true)
+
+        try {
+            const res = await fetch("/api/contact", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: `${formData.parentName} (Parent of ${formData.studentName})`,
+                    email: formData.email,
+                    phone: formData.phone,
+                    subject: `Admission Inquiry for ${formData.grade}`,
+                    message: formData.message,
+                    type: "admissions"
+                }),
+            })
+
+            if (res.ok) {
+                toast.success("Inquiry submitted successfully! We'll contact you soon.")
+                setFormData({
+                    parentName: "",
+                    studentName: "",
+                    email: "",
+                    phone: "",
+                    grade: "",
+                    message: ""
+                })
+            } else {
+                throw new Error("Failed to send")
+            }
+        } catch (error) {
+            toast.error("Failed to submit inquiry. Please try again later.")
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { id, value } = e.target
+        const field = id === "parent-name" ? "parentName" : id === "student-name" ? "studentName" : id
+        setFormData(prev => ({ ...prev, [field]: value }))
     }
 
     return (
@@ -23,43 +74,89 @@ export function AdmissionForm() {
                         <div className="grid gap-6 sm:grid-cols-2">
                             <div className="flex flex-col gap-2">
                                 <Label htmlFor="parent-name" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Parent Name</Label>
-                                <Input id="parent-name" placeholder="Full name" className="h-12 border-primary/10 focus-visible:ring-primary" required />
+                                <Input
+                                    id="parent-name"
+                                    placeholder="Full name"
+                                    className="h-12 border-primary/10 focus-visible:ring-primary"
+                                    required
+                                    value={formData.parentName}
+                                    onChange={handleChange}
+                                />
                             </div>
                             <div className="flex flex-col gap-2">
                                 <Label htmlFor="student-name" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Student Name</Label>
-                                <Input id="student-name" placeholder="Student name" className="h-12 border-primary/10 focus-visible:ring-primary" required />
+                                <Input
+                                    id="student-name"
+                                    placeholder="Student name"
+                                    className="h-12 border-primary/10 focus-visible:ring-primary"
+                                    required
+                                    value={formData.studentName}
+                                    onChange={handleChange}
+                                />
                             </div>
                         </div>
                         <div className="grid gap-6 sm:grid-cols-2">
                             <div className="flex flex-col gap-2">
                                 <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email</Label>
-                                <Input id="email" type="email" placeholder="email@example.com" className="h-12 border-primary/10 focus-visible:ring-primary" required />
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="email@example.com"
+                                    className="h-12 border-primary/10 focus-visible:ring-primary"
+                                    required
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                />
                             </div>
                             <div className="flex flex-col gap-2">
                                 <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Phone</Label>
-                                <Input id="phone" type="tel" placeholder="+92 3XX XXXXXXX" className="h-12 border-primary/10 focus-visible:ring-primary" required />
+                                <Input
+                                    id="phone"
+                                    type="tel"
+                                    placeholder="+92 3XX XXXXXXX"
+                                    className="h-12 border-primary/10 focus-visible:ring-primary"
+                                    required
+                                    value={formData.phone}
+                                    onChange={handleChange}
+                                />
                             </div>
                         </div>
                         <div className="flex flex-col gap-2">
                             <Label htmlFor="grade" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Applying For</Label>
-                            <Select required>
+                            <Select
+                                required
+                                onValueChange={(val) => setFormData(prev => ({ ...prev, grade: val }))}
+                                value={formData.grade}
+                            >
                                 <SelectTrigger className="h-12 border-primary/10 focus-visible:ring-primary">
                                     <SelectValue placeholder="Select level" />
                                 </SelectTrigger>
                                 <SelectContent className="glass-panel border-primary/10">
-                                    <SelectItem value="1-5">Primary (Grade 1-5)</SelectItem>
-                                    <SelectItem value="6-8">Middle (Grade 6-8)</SelectItem>
-                                    <SelectItem value="9-10">O-Level (Grade 9-10)</SelectItem>
-                                    <SelectItem value="11-12">A-Level (Grade 11-12)</SelectItem>
+                                    <SelectItem value="Primary (Grade 1-5)">Primary (Grade 1-5)</SelectItem>
+                                    <SelectItem value="Middle (Grade 6-8)">Middle (Grade 6-8)</SelectItem>
+                                    <SelectItem value="O-Level (Grade 9-10)">O-Level (Grade 9-10)</SelectItem>
+                                    <SelectItem value="A-Level (Grade 11-12)">A-Level (Grade 11-12)</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                         <div className="flex flex-col gap-2">
                             <Label htmlFor="message" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Message</Label>
-                            <Textarea id="message" placeholder="Include any specific queries..." rows={4} className="border-primary/10 focus-visible:ring-primary resize-none" required />
+                            <Textarea
+                                id="message"
+                                placeholder="Include any specific queries..."
+                                rows={4}
+                                className="border-primary/10 focus-visible:ring-primary resize-none"
+                                required
+                                value={formData.message}
+                                onChange={handleChange}
+                            />
                         </div>
-                        <Button type="submit" className="h-12 bg-burgundy-gradient text-white font-bold text-sm uppercase tracking-[0.2em] shadow-lg hover:shadow-primary/20 transition-all border-none">
-                            Submit Inquiry
+                        <Button
+                            type="submit"
+                            disabled={loading}
+                            className="h-12 bg-burgundy-gradient text-white font-bold text-sm uppercase tracking-[0.2em] shadow-lg hover:shadow-primary/20 transition-all border-none"
+                        >
+                            {loading ? "Submitting..." : "Submit Inquiry"}
                         </Button>
                     </form>
                 </CardContent>

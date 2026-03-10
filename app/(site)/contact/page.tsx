@@ -23,8 +23,58 @@ const departments = [
   { name: "Student Affairs", phone: "+92 313 8692098, +92 315 8020097", email: "thepioneershighschool@gmail.com" },
 ]
 
+import { useState } from "react"
+import { toast } from "sonner"
+
 function ContactContent() {
   const ref = useScrollAnimation()
+  const [loading, setLoading] = useState(false)
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: ""
+  })
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          type: "general"
+        }),
+      })
+
+      if (res.ok) {
+        toast.success("Message sent successfully! We'll get back to you soon.")
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          subject: "",
+          message: ""
+        })
+      } else {
+        throw new Error("Failed to send")
+      }
+    } catch (error) {
+      toast.error("Failed to send message. Please try again later.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target
+    const field = id === "c-name" ? "name" : id === "c-email" ? "email" : id === "c-phone" ? "phone" : id === "c-subject" ? "subject" : id
+    setFormData(prev => ({ ...prev, [field]: value }))
+  }
 
   return (
     <div ref={ref}>
@@ -53,45 +103,84 @@ function ContactContent() {
               </div>
               <Card className="animate-on-scroll border-border">
                 <CardContent className="flex flex-col gap-4 p-6">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="flex flex-col gap-2">
-                      <Label htmlFor="c-name">Full Name</Label>
-                      <Input id="c-name" placeholder="Your name" className="h-11" />
+                  <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="flex flex-col gap-2">
+                        <Label htmlFor="c-name">Full Name</Label>
+                        <Input
+                          id="c-name"
+                          placeholder="Your name"
+                          className="h-11"
+                          required
+                          value={formData.name}
+                          onChange={handleChange}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Label htmlFor="c-email">Email Address</Label>
+                        <Input
+                          id="c-email"
+                          type="email"
+                          placeholder="email@example.com"
+                          className="h-11"
+                          required
+                          value={formData.email}
+                          onChange={handleChange}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="flex flex-col gap-2">
+                        <Label htmlFor="c-phone">Phone Number</Label>
+                        <Input
+                          id="c-phone"
+                          type="tel"
+                          placeholder="+92 300 0000000"
+                          className="h-11"
+                          required
+                          value={formData.phone}
+                          onChange={handleChange}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Label htmlFor="c-subject">Subject</Label>
+                        <Select
+                          required
+                          onValueChange={(val) => setFormData(prev => ({ ...prev, subject: val }))}
+                          value={formData.subject}
+                        >
+                          <SelectTrigger className="h-11">
+                            <SelectValue placeholder="Select subject" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="General Inquiry">General Inquiry</SelectItem>
+                            <SelectItem value="Admissions">Admissions</SelectItem>
+                            <SelectItem value="Academics">Academics</SelectItem>
+                            <SelectItem value="Fee Information">Fee Information</SelectItem>
+                            <SelectItem value="Other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                     <div className="flex flex-col gap-2">
-                      <Label htmlFor="c-email">Email Address</Label>
-                      <Input id="c-email" type="email" placeholder="email@example.com" className="h-11" />
+                      <Label htmlFor="c-message">Message</Label>
+                      <Textarea
+                        id="c-message"
+                        placeholder="Write your message here..."
+                        rows={5}
+                        required
+                        value={formData.message}
+                        onChange={handleChange}
+                      />
                     </div>
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="flex flex-col gap-2">
-                      <Label htmlFor="c-phone">Phone Number</Label>
-                      <Input id="c-phone" type="tel" placeholder="+92 300 0000000" className="h-11" />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <Label htmlFor="c-subject">Subject</Label>
-                      <Select>
-                        <SelectTrigger className="h-11">
-                          <SelectValue placeholder="Select subject" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="general">General Inquiry</SelectItem>
-                          <SelectItem value="admissions">Admissions</SelectItem>
-                          <SelectItem value="academics">Academics</SelectItem>
-                          <SelectItem value="fees">Fee Information</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="c-message">Message</Label>
-                    <Textarea id="c-message" placeholder="Write your message here..." rows={5} />
-                  </div>
-                  <Button className="h-11 bg-primary text-primary-foreground hover:bg-primary/90">
-                    Send Message
-                  </Button>
-                  <p className="text-xs text-muted-foreground">This form is a visual mockup only. No data will be submitted.</p>
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="h-11 bg-primary text-primary-foreground hover:bg-primary/90"
+                    >
+                      {loading ? "Sending..." : "Send Message"}
+                    </Button>
+                  </form>
                 </CardContent>
               </Card>
             </div>
