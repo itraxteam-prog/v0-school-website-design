@@ -55,9 +55,8 @@ import { NotifyParentsToggle } from "@/components/portal/admin/notify-parents-to
 const announcementSchema = z.object({
     title: z.string().min(5, { message: "Title must be at least 5 characters." }),
     content: z.string().min(10, { message: "Content must be at least 10 characters." }),
-    targetRole: z.enum(["ALL", "STUDENT", "TEACHER", "ADMIN", "HOMEPAGE"]),
+    targetRole: z.enum(["ALL", "STUDENT", "TEACHER", "ADMIN", "PARENT", "HOMEPAGE"]),
     expiresAt: z.string().optional(),
-    notifyParents: z.boolean().default(false),
 })
 
 type AnnouncementFormValues = z.infer<typeof announcementSchema>
@@ -93,7 +92,6 @@ export function AnnouncementsManager({ initialAnnouncements }: AnnouncementsMana
             content: "",
             targetRole: "ALL",
             expiresAt: "",
-            notifyParents: false,
         },
     })
 
@@ -224,6 +222,7 @@ export function AnnouncementsManager({ initialAnnouncements }: AnnouncementsMana
                                                                 <SelectItem value="ALL">Everyone</SelectItem>
                                                                 <SelectItem value="STUDENT">Students Only</SelectItem>
                                                                 <SelectItem value="TEACHER">Teachers Only</SelectItem>
+                                                                <SelectItem value="PARENT">Parents Only</SelectItem>
                                                                 <SelectItem value="ADMIN">Admins Only</SelectItem>
                                                                 <SelectItem value="HOMEPAGE">Home Page</SelectItem>
                                                             </SelectContent>
@@ -247,21 +246,6 @@ export function AnnouncementsManager({ initialAnnouncements }: AnnouncementsMana
                                             />
                                         </div>
 
-                                        <FormField
-                                            control={form.control}
-                                            name="notifyParents"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormControl>
-                                                        <NotifyParentsToggle
-                                                            defaultChecked={field.value}
-                                                            onChange={field.onChange}
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
 
                                         <DialogFooter className="pt-4">
                                             <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>

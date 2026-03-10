@@ -14,7 +14,6 @@ const announcementSchema = z.object({
     content: z.string().min(1, "Content is required"),
     targetRole: z.nativeEnum(TargetRole).optional().default(TargetRole.ALL),
     expiresAt: z.string().optional().nullable(),
-    notifyParents: z.boolean().optional().default(false),
 }).strict();
 
 export async function GET() {
@@ -57,7 +56,7 @@ export async function POST(req: Request) {
             }, { status: 400 });
         }
 
-        const { title, content, targetRole, expiresAt, notifyParents } = validated.data;
+        const { title, content, targetRole, expiresAt } = validated.data;
 
         const announcement = await prisma.announcement.create({
             data: {
@@ -66,7 +65,6 @@ export async function POST(req: Request) {
                 targetRole: targetRole || "ALL",
                 expiresAt: expiresAt ? new Date(expiresAt) : null,
                 createdBy: session.user.id,
-                notifyParents,
             },
         });
 
@@ -93,15 +91,6 @@ export async function POST(req: Request) {
 
                 const emails = users.map(u => u.email).filter(Boolean) as string[];
 
-                // If notifyParents is true, also get all parent emails
-                if (notifyParents) {
-                    const parents = await prisma.user.findMany({
-                        where: { role: "PARENT", status: "ACTIVE" },
-                        select: { email: true }
-                    });
-                    const parentEmails = parents.map(p => p.email).filter(Boolean) as string[];
-                    emails.push(...parentEmails);
-                }
 
                 const finalEmails = Array.from(new Set(emails));
 

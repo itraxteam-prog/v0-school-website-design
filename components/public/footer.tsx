@@ -103,7 +103,15 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-2 text-sm text-white/70">
                 <Phone className="h-4 w-4 shrink-0" />
-                <span>+92 313 8692098, +92 315 8020097</span>
+                <div className="flex flex-wrap gap-x-2">
+                  <a href="https://wa.me/923138692098" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                    +92 313 8692098
+                  </a>
+                  <span>,</span>
+                  <a href="https://wa.me/923158020097" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                    +92 315 8020097
+                  </a>
+                </div>
               </li>
               <li className="flex items-center gap-2 text-sm text-white/70">
                 <Mail className="h-4 w-4 shrink-0" />
