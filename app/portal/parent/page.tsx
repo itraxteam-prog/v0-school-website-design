@@ -161,7 +161,6 @@ export default function ParentDashboard() {
     }
 
     return (
-    return (
         <div className="flex flex-col gap-8 pb-8">
             {/* Welcome Header */}
             <AnimatedWrapper direction="down">
