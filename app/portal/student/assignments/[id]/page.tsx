@@ -12,12 +12,14 @@ import {
     Send,
     AlertCircle,
     Info,
+    Image as ImageIcon,
 } from "lucide-react"
 import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { Input } from "@/components/ui/input"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { useToast } from "@/components/ui/use-toast"
 import { cn } from "@/lib/utils"
@@ -43,6 +45,7 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [assignment, setAssignment] = useState<Assignment | null>(null)
     const [submissionContent, setSubmissionContent] = useState("")
+    const [imageUrl, setImageUrl] = useState("")
 
     useEffect(() => {
         const fetchAssignment = async () => {
@@ -54,6 +57,7 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
 
                 if (data.submissions?.[0]) {
                     setSubmissionContent(data.submissions[0].content)
+                    setImageUrl(data.submissions[0].imageUrl || "")
                 }
             } catch (err) {
                 toast({
@@ -85,7 +89,10 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
             const res = await fetch(`/api/student/assignments/${params.id}/submit`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ content: submissionContent }),
+                body: JSON.stringify({
+                    content: submissionContent,
+                    imageUrl: imageUrl
+                }),
             })
 
             if (!res.ok) throw new Error("Failed to submit")
@@ -191,11 +198,39 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
                                 <CardContent>
                                     <Textarea
                                         placeholder="Enter your response here..."
-                                        className="min-h-[300px] glass-card focus:ring-primary/20 leading-relaxed resize-none"
+                                        className="min-h-[200px] glass-card focus:ring-primary/20 leading-relaxed resize-none mb-6"
                                         value={submissionContent}
                                         onChange={(e) => setSubmissionContent(e.target.value)}
                                         disabled={isGraded || isSubmitting}
                                     />
+
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <ImageIcon className="h-4 w-4 text-primary" />
+                                            <span className="text-sm font-semibold">Image Attachment (Optional)</span>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Input
+                                                placeholder="Paste image URL here..."
+                                                className="glass-card"
+                                                value={imageUrl}
+                                                onChange={(e) => setImageUrl(e.target.value)}
+                                                disabled={isGraded || isSubmitting}
+                                            />
+                                        </div>
+                                        {imageUrl && (
+                                            <div className="relative mt-4 rounded-xl overflow-hidden border border-border/50 aspect-video bg-muted/20">
+                                                <img
+                                                    src={imageUrl}
+                                                    alt="Submission preview"
+                                                    className="w-full h-full object-contain"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Invalid+Image+URL';
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
                                 </CardContent>
                                 <CardFooter className="flex justify-between border-t border-border/50 bg-muted/20 pt-6">
                                     <div className="text-xs text-muted-foreground italic flex items-center gap-2">

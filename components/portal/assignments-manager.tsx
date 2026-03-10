@@ -35,10 +35,10 @@ import {
     Calendar,
     Users,
     ChevronRight,
-    Loader2,
-    CheckCircle2,
     AlertCircle,
     RefreshCcw,
+    Eye,
+    ExternalLink,
 } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -68,6 +68,7 @@ interface Assignment {
     classId: string;
     subject?: string;
     class?: { name: string };
+    _count?: { submissions: number };
 }
 
 interface AssignmentsManagerProps {
@@ -82,6 +83,9 @@ export function AssignmentsManager({ initialClasses }: AssignmentsManagerProps) 
     const [searchTerm, setSearchTerm] = useState("")
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [viewingSubmissions, setViewingSubmissions] = useState<Assignment | null>(null)
+    const [submissions, setSubmissions] = useState<any[]>([])
+    const [submissionsLoading, setSubmissionsLoading] = useState(false)
     const { toast } = useToast()
 
     const form = useForm<AssignmentFormValues>({
@@ -114,6 +118,25 @@ export function AssignmentsManager({ initialClasses }: AssignmentsManagerProps) 
             setLoading(false)
         }
     }, [])
+
+    const openSubmissions = async (a: Assignment) => {
+        setViewingSubmissions(a)
+        setSubmissionsLoading(true)
+        try {
+            const res = await fetch(`/api/teacher/assignments/${a.id}/submissions`)
+            if (!res.ok) throw new Error("Failed to fetch submissions")
+            const data = await res.json()
+            setSubmissions(data)
+        } catch (err: any) {
+            toast({
+                title: "Error",
+                description: "Failed to load submissions.",
+                variant: "destructive",
+            })
+        } finally {
+            setSubmissionsLoading(false)
+        }
+    }
 
     useEffect(() => {
         fetchAssignments()
@@ -386,8 +409,20 @@ export function AssignmentsManager({ initialClasses }: AssignmentsManagerProps) 
                                                     <CheckCircle2 size={14} />
                                                     <span>{a.maxMarks ? `${a.maxMarks} Points` : 'Ungraded Task'}</span>
                                                 </div>
+                                                <div className="flex items-center gap-2 text-muted-foreground">
+                                                    <Users size={14} />
+                                                    <span>{a._count?.submissions || 0} Submissions</span>
+                                                </div>
                                             </div>
-                                            <div className="pt-2 flex items-center justify-end border-t border-border/50">
+                                            <div className="pt-2 flex items-center justify-between border-t border-border/50">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="text-primary hover:text-primary hover:bg-primary/5 text-xs font-bold gap-2"
+                                                    onClick={() => openSubmissions(a)}
+                                                >
+                                                    <Eye size={14} /> View Submissions
+                                                </Button>
                                                 <Button variant="link" className="text-primary p-0 h-auto text-xs font-bold gap-1">
                                                     Details <ChevronRight size={12} />
                                                 </Button>
@@ -406,6 +441,91 @@ export function AssignmentsManager({ initialClasses }: AssignmentsManagerProps) 
                         </div>
                     )}
                 </AnimatedWrapper>
+
+                <Dialog open={!!viewingSubmissions} onOpenChange={(open) => !open && setViewingSubmissions(null)}>
+                    <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-y-auto glass-panel border-border/50">
+                        <DialogHeader>
+                            <DialogTitle className="heading-3 flex items-center gap-2">
+                                <Users className="h-5 w-5 text-primary" />
+                                Submissions: {viewingSubmissions?.title}
+                            </DialogTitle>
+                            <DialogDescription>
+                                Review work submitted by your students.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-6 pt-4">
+                            {submissionsLoading ? (
+                                <div className="flex flex-col gap-4">
+                                    {[1, 2].map(i => <Skeleton key={i} className="h-32 w-full" />)}
+                                </div>
+                            ) : submissions.length > 0 ? (
+                                <div className="grid gap-4">
+                                    {submissions.map((sub) => (
+                                        <Card key={sub.id} className="border-border/40 bg-muted/10">
+                                            <CardHeader className="py-3 px-4 border-b border-border/20 flex flex-row items-center justify-between space-y-0">
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-sm">{sub.student.name}</span>
+                                                    <span className="text-[10px] text-muted-foreground">{sub.student.email}</span>
+                                                </div>
+                                                <Badge
+                                                    className={cn(
+                                                        "text-[10px] uppercase font-black",
+                                                        sub.status === "LATE" ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"
+                                                    )}
+                                                >
+                                                    {sub.status}
+                                                </Badge>
+                                            </CardHeader>
+                                            <CardContent className="p-4 space-y-4">
+                                                <div className="text-sm bg-background/50 p-3 rounded-lg border border-border/10 whitespace-pre-wrap leading-relaxed">
+                                                    {sub.content}
+                                                </div>
+                                                {sub.imageUrl && (
+                                                    <div className="space-y-2">
+                                                        <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase">
+                                                            <ImageIcon size={12} /> Attachment
+                                                        </div>
+                                                        <a
+                                                            href={sub.imageUrl}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="block relative rounded-lg overflow-hidden border border-border/20 aspect-video group"
+                                                        >
+                                                            <img
+                                                                src={sub.imageUrl}
+                                                                alt="Student attachment"
+                                                                className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                                            />
+                                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                <ExternalLink className="text-white h-6 w-6" />
+                                                            </div>
+                                                        </a>
+                                                    </div>
+                                                )}
+                                            </CardContent>
+                                            <CardFooter className="py-2 px-4 bg-muted/5 border-t border-border/10 flex justify-between items-center text-[10px]">
+                                                <span className="text-muted-foreground italic">
+                                                    Submitted: {new Date(sub.submittedAt).toLocaleString()}
+                                                </span>
+                                                {sub.grade ? (
+                                                    <span className="font-bold text-primary">Graded: {sub.grade.marks}</span>
+                                                ) : (
+                                                    <span className="text-amber-600 font-bold uppercase tracking-wider">Pending Grade</span>
+                                                )}
+                                            </CardFooter>
+                                        </Card>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="py-12 text-center text-muted-foreground">
+                                    <FileText className="h-10 w-10 mx-auto mb-2 opacity-20" />
+                                    <p>No submissions found yet for this assignment.</p>
+                                </div>
+                            )}
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </div>
         </AppLayout>
     )

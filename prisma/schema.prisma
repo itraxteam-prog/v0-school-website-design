@@ -218,6 +218,7 @@ model Attendance {
 model Submission {
   id           String           @id @default(uuid())
   content      String
+  imageUrl     String?
   status       SubmissionStatus
   submittedAt  DateTime         @default(now())
   studentId    String

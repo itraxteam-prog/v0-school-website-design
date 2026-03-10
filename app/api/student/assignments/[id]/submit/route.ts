@@ -9,6 +9,7 @@ import { SubmissionStatus } from "@prisma/client";
 
 const submitSchema = z.object({
     content: z.string().min(1, "Submission content is required"),
+    imageUrl: z.string().optional(),
 });
 
 export async function POST(
@@ -71,6 +72,7 @@ export async function POST(
                 where: { id: existingSubmission.id },
                 data: {
                     content: parsed.data.content,
+                    imageUrl: parsed.data.imageUrl,
                     status,
                     submittedAt: new Date()
                 }
@@ -81,6 +83,7 @@ export async function POST(
                     assignmentId,
                     studentId: session.user.id,
                     content: parsed.data.content,
+                    imageUrl: parsed.data.imageUrl,
                     status,
                     submittedAt: new Date()
                 }
