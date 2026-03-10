@@ -27,6 +27,7 @@ const PARENT_SIDEBAR = [
     { href: "/portal/parent/attendance", label: "Attendance", icon: CalendarCheck },
     { href: "/portal/parent/grades", label: "Grades", icon: GraduationCap },
     { href: "/portal/parent/announcements", label: "Announcements", icon: Megaphone },
+    { href: "/portal/parent/profile", label: "Profile", icon: Users },
 ]
 
 interface Grade {

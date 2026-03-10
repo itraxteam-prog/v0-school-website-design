@@ -105,7 +105,8 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
   const breadcrumbs = safePathname.split("/").filter(Boolean).slice(1)
   const portalBase = safePathname.startsWith('/portal/admin') ? '/portal/admin' :
     safePathname.startsWith('/portal/teacher') ? '/portal/teacher' :
-      '/portal/student';
+      safePathname.startsWith('/portal/parent') ? '/portal/parent' :
+        '/portal/student';
 
   return (
     <div ref={portalRef} data-portal-root className="flex h-[100dvh] overflow-hidden bg-secondary">
