@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
@@ -39,6 +39,9 @@ import {
     RefreshCcw,
     Eye,
     ExternalLink,
+    Loader2,
+    CheckCircle2,
+    Image as ImageIcon,
 } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -47,6 +50,7 @@ import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { AppLayout } from "@/components/layout/app-layout"
 import { useSession } from "next-auth/react"
 import { TEACHER_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+import { cn } from "@/lib/utils"
 
 const assignmentSchema = z.object({
     title: z.string().min(2, { message: "Title must be at least 2 characters." }),
