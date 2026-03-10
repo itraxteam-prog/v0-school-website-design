@@ -134,8 +134,7 @@ export function AdmissionForm() {
                                 <SelectContent className="glass-panel border-primary/10">
                                     <SelectItem value="Primary (Grade 1-5)">Primary (Grade 1-5)</SelectItem>
                                     <SelectItem value="Middle (Grade 6-8)">Middle (Grade 6-8)</SelectItem>
-                                    <SelectItem value="O-Level (Grade 9-10)">O-Level (Grade 9-10)</SelectItem>
-                                    <SelectItem value="A-Level (Grade 11-12)">A-Level (Grade 11-12)</SelectItem>
+                                    <SelectItem value="High (9-10)">High (9-10)</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>

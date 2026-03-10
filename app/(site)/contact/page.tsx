@@ -72,7 +72,7 @@ function ContactContent() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target
-    const field = id === "c-name" ? "name" : id === "c-email" ? "email" : id === "c-phone" ? "phone" : id === "c-subject" ? "subject" : id
+    const field = id === "c-name" ? "name" : id === "c-email" ? "email" : id === "c-phone" ? "phone" : id === "c-subject" ? "subject" : id === "c-message" ? "message" : id
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
