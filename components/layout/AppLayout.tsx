@@ -27,13 +27,23 @@ interface AppLayoutProps {
   userName: string
   userRole: string
   userImage?: string
+  initialIsDark?: boolean
+  initialPreferences?: any
 }
 
 // Module-level cache to survive client-side navigation
 let cachedSettings: any = null;
 let cachedPreferences: any = null;
 
-export function AppLayout({ children, sidebarItems, userName: propUserName, userRole: propUserRole, userImage: propUserImage }: AppLayoutProps) {
+export function AppLayout({
+  children,
+  sidebarItems,
+  userName: propUserName,
+  userRole: propUserRole,
+  userImage: propUserImage,
+  initialIsDark = false,
+  initialPreferences = null
+}: AppLayoutProps) {
   const { data: session } = useSession()
   const isMobile = useIsMobile()
 
@@ -47,7 +57,7 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [notifications, setNotifications] = useState<any[]>([])
   const [settings, setSettings] = useState<any>(cachedSettings)
-  const [isDark, setIsDark] = useState(false)
+  const [isDark, setIsDark] = useState(initialIsDark)
   const pathname = usePathname()
   const { logout } = useAuth()
   const portalRef = useRef<HTMLDivElement>(null)
@@ -55,6 +65,10 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
   // Identify portal and its specific theme key
   const portalSegment = pathname?.split('/')[2] || (pathname?.startsWith('/portal') ? pathname?.split('/')[1] : null);
   const themeKey = portalSegment ? `darkMode_${portalSegment}` : 'darkMode';
+
+  if (!cachedPreferences && initialPreferences) {
+    cachedPreferences = initialPreferences;
+  }
 
   useEffect(() => {
     // 1. Listen for theme-update events (emitted by individual portal components)
@@ -81,17 +95,23 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
     }
 
     // 3. Fetch Personal Preferences (Theme, etc.) - Apply to state
-    fetch('/api/user/preferences')
-      .then(res => res.json())
-      .then(data => {
-        if (!data.error) {
-          cachedPreferences = data;
-          // Use portal-specific key if it exists, otherwise fallback to universal darkMode
-          const isPortalDark = data[themeKey] === true || (data[themeKey] === undefined && data.darkMode === true);
-          setIsDark(isPortalDark);
-        }
-      })
-      .catch(console.error)
+    // Use initialPreferences if available to skip the first fetch
+    if (cachedPreferences) {
+      const isPortalDark = cachedPreferences[themeKey] === true || (cachedPreferences[themeKey] === undefined && cachedPreferences.darkMode === true);
+      setIsDark(isPortalDark);
+    } else {
+      fetch('/api/user/preferences')
+        .then(res => res.json())
+        .then(data => {
+          if (!data.error) {
+            cachedPreferences = data;
+            // Use portal-specific key if it exists, otherwise fallback to universal darkMode
+            const isPortalDark = data[themeKey] === true || (data[themeKey] === undefined && data.darkMode === true);
+            setIsDark(isPortalDark);
+          }
+        })
+        .catch(console.error)
+    }
 
     // 4. Fetch Real-time Notifications/Announcements
     fetch('/api/notifications')

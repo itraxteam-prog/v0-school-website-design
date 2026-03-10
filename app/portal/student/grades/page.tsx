@@ -1,9 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { LayoutDashboard, BookOpen, CalendarCheck, Clock, Megaphone, User, TrendingUp, Download, Filter, ShieldCheck } from "lucide-react"
+import { TrendingUp, Download } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -13,8 +12,6 @@ import dynamic from "next/dynamic"
 const SubjectComparisonChart = dynamic(() => import("@/components/portal/dashboard-charts").then(mod => mod.SubjectComparisonChart), { ssr: false });
 import { Skeleton } from "@/components/ui/skeleton"
 import { useSession } from "next-auth/react"
-
-import { STUDENT_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 import { ACADEMIC_YEARS, getTermDisplayLabel, ASSESSMENT_PERIOD_OPTIONS } from "@/lib/academic-constants"
 import { toast } from "sonner"
 
@@ -83,155 +80,148 @@ export default function GradesPage() {
   })
 
   return (
-    <AppLayout
-      sidebarItems={sidebarItems}
-      userName={session?.user?.name || "Student"}
-      userRole="student"
-      userImage={session?.user?.image || undefined}
-    >
-      <div className="flex flex-col gap-8 pb-8">
+    <div className="flex flex-col gap-8 pb-8">
 
-        {/* Header Section */}
-        <AnimatedWrapper direction="down">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h1 className="heading-1 text-burgundy-gradient">My Grades</h1>
-              <p className="text-sm text-muted-foreground">Detailed academic performance report.</p>
-              {schoolSettings?.gradingSystem && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  System: <span className="font-semibold text-primary capitalize">{schoolSettings.gradingSystem === 'gpa' ? 'Standard GPA (4.0 Scale)' : schoolSettings.gradingSystem === 'relative' ? 'Relative Grading (Curved)' : 'Percentage Based (0–100%)'}</span>
-                  {schoolSettings?.promotionThreshold !== undefined && (
-                    <> &nbsp;·&nbsp; Pass: <span className="font-semibold text-primary">&ge;{schoolSettings.promotionThreshold}%</span></>
-                  )}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <Select value={activeYear} onValueChange={setActiveYear}>
-                <SelectTrigger className="w-full sm:w-[120px] bg-background text-xs font-semibold">
-                  <SelectValue placeholder="Year" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
-                </SelectContent>
-              </Select>
-
-              <Select value={activeTerm} onValueChange={setActiveTerm}>
-                <SelectTrigger className="w-full sm:w-[170px] bg-background text-xs font-semibold">
-                  <SelectValue placeholder="Period" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableTerms.map(term => (
-                    <SelectItem key={typeof term === 'string' ? term : term.value} value={typeof term === 'string' ? term : term.label}>
-                      {typeof term === 'string' ? term : term.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={activeSubject} onValueChange={setActiveSubject}>
-                <SelectTrigger className="w-full sm:w-[180px] bg-background text-xs font-semibold">
-                  <SelectValue placeholder="All Subjects" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableSubjects.map(sub => <SelectItem key={sub} value={sub}>{sub}</SelectItem>)}
-                </SelectContent>
-              </Select>
-
-              <Button variant="outline" className="gap-2" onClick={() => {
-                toast.success("Generating Grades PDF...");
-                window.open('/api/student/grades/export', '_blank');
-              }}>
-                <Download className="h-4 w-4" />
-                <span className="hidden sm:inline">Export PDF</span>
-              </Button>
-            </div>
+      {/* Header Section */}
+      <AnimatedWrapper direction="down">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="heading-1 text-burgundy-gradient">My Grades</h1>
+            <p className="text-sm text-muted-foreground">Detailed academic performance report.</p>
+            {schoolSettings?.gradingSystem && (
+              <p className="text-xs text-muted-foreground mt-1">
+                System: <span className="font-semibold text-primary capitalize">{schoolSettings.gradingSystem === 'gpa' ? 'Standard GPA (4.0 Scale)' : schoolSettings.gradingSystem === 'relative' ? 'Relative Grading (Curved)' : 'Percentage Based (0–100%)'}</span>
+                {schoolSettings?.promotionThreshold !== undefined && (
+                  <> &nbsp;·&nbsp; Pass: <span className="font-semibold text-primary">&ge;{schoolSettings.promotionThreshold}%</span></>
+                )}
+              </p>
+            )}
           </div>
-        </AnimatedWrapper>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <Select value={activeYear} onValueChange={setActiveYear}>
+              <SelectTrigger className="w-full sm:w-[120px] bg-background text-xs font-semibold">
+                <SelectValue placeholder="Year" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
+              </SelectContent>
+            </Select>
 
-        {/* Charts Section */}
-        <AnimatedWrapper delay={0.2}>
-          <Card className="glass-panel overflow-hidden border-border/50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="heading-3 flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" />
-                Subject Performance - {activeTerm === "All Periods" ? "All assessments combined" : activeTerm}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <Skeleton className="h-[300px] w-full rounded-xl" />
-              ) : (
-                <SubjectComparisonChart data={filteredGrades.map(g => ({
-                  subject: g.subject,
-                  score: g.marks
-                }))} />
+            <Select value={activeTerm} onValueChange={setActiveTerm}>
+              <SelectTrigger className="w-full sm:w-[170px] bg-background text-xs font-semibold">
+                <SelectValue placeholder="Period" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableTerms.map(term => (
+                  <SelectItem key={typeof term === 'string' ? term : term.value} value={typeof term === 'string' ? term : term.label}>
+                    {typeof term === 'string' ? term : term.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-              )}
-            </CardContent>
-          </Card>
-        </AnimatedWrapper>
+            <Select value={activeSubject} onValueChange={setActiveSubject}>
+              <SelectTrigger className="w-full sm:w-[180px] bg-background text-xs font-semibold">
+                <SelectValue placeholder="All Subjects" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableSubjects.map(sub => <SelectItem key={sub} value={sub}>{sub}</SelectItem>)}
+              </SelectContent>
+            </Select>
 
-        {/* Grades Table */}
-        <AnimatedWrapper delay={0.3}>
-          <Card className="glass-panel overflow-hidden border-border/50">
-            <CardHeader>
-              <CardTitle className="heading-3">Detailed Grades</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-border/50 bg-muted/20 hover:bg-muted/20">
-                      <TableHead className="w-[180px]">Subject</TableHead>
-                      <TableHead>Assessment Period</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead className="text-right">Marks</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
-                      <TableHead className="text-right">Grade</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {loading ? (
-                      Array.from({ length: 5 }).map((_, i) => (
-                        <TableRow key={i} className="border-border/50">
-                          <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                          <TableCell><Skeleton className="mx-auto h-4 w-12" /></TableCell>
-                          <TableCell><Skeleton className="mx-auto h-4 w-12" /></TableCell>
-                          <TableCell><Skeleton className="mx-auto h-4 w-12" /></TableCell>
-                          <TableCell><Skeleton className="mx-auto h-4 w-12" /></TableCell>
-                          <TableCell><Skeleton className="ml-auto h-6 w-8 rounded" /></TableCell>
-                        </TableRow>
-                      ))
-                    ) : filteredGrades.length > 0 ? (
-                      filteredGrades.map((grade, index) => (
-                        <TableRow key={index} className="group border-border/50 transition-colors hover:bg-primary/5">
-                          <TableCell className="font-medium">{grade.subject}</TableCell>
-                          <TableCell className="text-muted-foreground">{getTermDisplayLabel(grade.term)}</TableCell>
-                          <TableCell className="text-muted-foreground">{grade.date ? new Date(grade.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-'}</TableCell>
-                          <TableCell className="text-right font-medium">{grade.marks}</TableCell>
-                          <TableCell className="text-right text-muted-foreground">{grade.total}</TableCell>
-                          <TableCell className="text-right">
-                            <Badge variant={grade.grade?.startsWith("A") ? "default" : "secondary"} className="font-bold w-10 justify-center">
-                              {grade.grade}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                          No grades found for selected filter.
+            <Button variant="outline" className="gap-2" onClick={() => {
+              toast.success("Generating Grades PDF...");
+              window.open('/api/student/grades/export', '_blank');
+            }}>
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline">Export PDF</span>
+            </Button>
+          </div>
+        </div>
+      </AnimatedWrapper>
+
+      {/* Charts Section */}
+      <AnimatedWrapper delay={0.2}>
+        <Card className="glass-panel overflow-hidden border-border/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="heading-3 flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              Subject Performance - {activeTerm === "All Periods" ? "All assessments combined" : activeTerm}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <Skeleton className="h-[300px] w-full rounded-xl" />
+            ) : (
+              <SubjectComparisonChart data={filteredGrades.map(g => ({
+                subject: g.subject,
+                score: g.marks
+              }))} />
+
+            )}
+          </CardContent>
+        </Card>
+      </AnimatedWrapper>
+
+      {/* Grades Table */}
+      <AnimatedWrapper delay={0.3}>
+        <Card className="glass-panel overflow-hidden border-border/50">
+          <CardHeader>
+            <CardTitle className="heading-3">Detailed Grades</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-border/50 bg-muted/20 hover:bg-muted/20">
+                    <TableHead className="w-[180px]">Subject</TableHead>
+                    <TableHead>Assessment Period</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Marks</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                    <TableHead className="text-right">Grade</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i} className="border-border/50">
+                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                        <TableCell><Skeleton className="mx-auto h-4 w-12" /></TableCell>
+                        <TableCell><Skeleton className="mx-auto h-4 w-12" /></TableCell>
+                        <TableCell><Skeleton className="mx-auto h-4 w-12" /></TableCell>
+                        <TableCell><Skeleton className="mx-auto h-4 w-12" /></TableCell>
+                        <TableCell><Skeleton className="ml-auto h-6 w-8 rounded" /></TableCell>
+                      </TableRow>
+                    ))
+                  ) : filteredGrades.length > 0 ? (
+                    filteredGrades.map((grade, index) => (
+                      <TableRow key={index} className="group border-border/50 transition-colors hover:bg-primary/5">
+                        <TableCell className="font-medium">{grade.subject}</TableCell>
+                        <TableCell className="text-muted-foreground">{getTermDisplayLabel(grade.term)}</TableCell>
+                        <TableCell className="text-muted-foreground">{grade.date ? new Date(grade.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-'}</TableCell>
+                        <TableCell className="text-right font-medium">{grade.marks}</TableCell>
+                        <TableCell className="text-right text-muted-foreground">{grade.total}</TableCell>
+                        <TableCell className="text-right">
+                          <Badge variant={grade.grade?.startsWith("A") ? "default" : "secondary"} className="font-bold w-10 justify-center">
+                            {grade.grade}
+                          </Badge>
                         </TableCell>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </AnimatedWrapper>
-      </div>
-    </AppLayout>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                        No grades found for selected filter.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </AnimatedWrapper>
+    </div>
   )
 }

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
-import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
@@ -18,15 +17,6 @@ import {
     User,
 } from "lucide-react"
 import { getTermDisplayLabel } from "@/lib/academic-constants"
-
-const PARENT_SIDEBAR = [
-    { href: "/portal/parent", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/portal/parent/timetable", label: "Timetable", icon: Clock },
-    { href: "/portal/parent/attendance", label: "Attendance", icon: CalendarCheck },
-    { href: "/portal/parent/grades", label: "Grades", icon: GraduationCap },
-    { href: "/portal/parent/announcements", label: "Announcements", icon: Megaphone },
-    { href: "/portal/parent/profile", label: "Profile", icon: User },
-]
 
 interface Child {
     id: string;
@@ -148,201 +138,196 @@ export default function ParentDashboard() {
 
     if (loading) {
         return (
-            <AppLayout sidebarItems={PARENT_SIDEBAR} userName={session?.user?.name || "Parent"} userRole="Parent">
-                <div className="flex flex-col gap-8 pb-8">
-                    <Skeleton className="h-12 w-64" />
-                    <Skeleton className="h-10 w-full" />
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32" />)}
-                    </div>
+            <div className="flex flex-col gap-8 pb-8">
+                <Skeleton className="h-12 w-64" />
+                <Skeleton className="h-10 w-full" />
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32" />)}
                 </div>
-            </AppLayout>
+            </div>
         )
     }
 
     if (children.length === 0) {
         return (
-            <AppLayout sidebarItems={PARENT_SIDEBAR} userName={session?.user?.name || "Parent"} userRole="Parent">
-                <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-                    <Users className="h-16 w-16 text-muted-foreground opacity-20" />
-                    <h2 className="text-2xl font-bold">No Children Linked</h2>
-                    <p className="text-muted-foreground text-center max-w-sm">
-                        There are no students linked to your parent account. Please contact the school administration if this is an error.
-                    </p>
-                </div>
-            </AppLayout>
+            <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+                <Users className="h-16 w-16 text-muted-foreground opacity-20" />
+                <h2 className="text-2xl font-bold">No Children Linked</h2>
+                <p className="text-muted-foreground text-center max-w-sm">
+                    There are no students linked to your parent account. Please contact the school administration if this is an error.
+                </p>
+            </div>
         )
     }
 
     return (
-        <AppLayout sidebarItems={PARENT_SIDEBAR} userName={session?.user?.name || "Parent"} userRole="Parent">
-            <div className="flex flex-col gap-8 pb-8">
-                {/* Welcome Header */}
-                <AnimatedWrapper direction="down">
-                    <div className="flex flex-col gap-1">
-                        <h1 className="heading-1 text-burgundy-gradient">Welcome, {session?.user?.name?.split(" ")[0]}</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Monitor your children&apos;s academic progress at a glance.
-                        </p>
-                    </div>
-                </AnimatedWrapper>
-
-                {/* Child Selector */}
-                <AnimatedWrapper delay={0.1}>
-                    <div className="flex items-center gap-3 flex-wrap">
-                        <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                            <Users className="h-4 w-4" /> Select Child:
-                        </span>
-                        {children.map((child) => (
-                            <button
-                                key={child.id}
-                                onClick={() => setSelectedChild(child)}
-                                className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all ${selectedChild?.id === child.id
-                                    ? "bg-primary text-white border-primary shadow-md"
-                                    : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:bg-primary/5"
-                                    }`}
-                            >
-                                {child.name}
-                            </button>
-                        ))}
-                    </div>
-                </AnimatedWrapper>
-
-                {/* Summary Cards */}
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <AnimatedWrapper delay={0.15}>
-                        <Card className="glass-panel border-border/50">
-                            <CardContent className="p-6">
-                                <div className="flex items-center justify-between">
-                                    <p className="text-sm font-medium text-muted-foreground">Attendance</p>
-                                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30">
-                                        <CalendarCheck className="h-4 w-4 text-green-600 dark:text-green-400" />
-                                    </div>
-                                </div>
-                                <div className="mt-4">
-                                    {statsLoading ? <Skeleton className="h-9 w-16" /> : (
-                                        <>
-                                            <h3 className="text-3xl font-bold tracking-tight">{stats?.attendance}</h3>
-                                            <p className="text-xs font-medium mt-1 text-muted-foreground">Academic Year</p>
-                                        </>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </AnimatedWrapper>
-
-                    <AnimatedWrapper delay={0.2}>
-                        <Card className="glass-panel border-border/50">
-                            <CardContent className="p-6">
-                                <div className="flex items-center justify-between">
-                                    <p className="text-sm font-medium text-muted-foreground">Latest Grade</p>
-                                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
-                                        <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                                    </div>
-                                </div>
-                                <div className="mt-4">
-                                    {statsLoading ? <Skeleton className="h-9 w-24" /> : (
-                                        <>
-                                            <h3 className="text-xl font-bold tracking-tight truncate">{stats?.latestGrade}</h3>
-                                            <p className="text-xs font-medium mt-1 text-green-600">Most recent result</p>
-                                        </>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </AnimatedWrapper>
-
-                    <AnimatedWrapper delay={0.25}>
-                        <Card className="glass-panel border-border/50">
-                            <CardContent className="p-6">
-                                <div className="flex items-center justify-between">
-                                    <p className="text-sm font-medium text-muted-foreground">Next Class</p>
-                                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
-                                        <Clock className="h-4 w-4 text-muted-foreground" />
-                                    </div>
-                                </div>
-                                <div className="mt-4">
-                                    {statsLoading ? <Skeleton className="h-9 w-full" /> : (
-                                        <>
-                                            <h3 className="text-base font-bold tracking-tight leading-snug">
-                                                {stats?.nextClass}
-                                            </h3>
-                                            <p className="text-xs font-medium mt-1 text-muted-foreground">Upcoming period</p>
-                                        </>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </AnimatedWrapper>
-
-                    <AnimatedWrapper delay={0.3}>
-                        <Card className="glass-panel border-border/50 border-primary/50 shadow-md ring-1 ring-primary/20">
-                            <CardContent className="p-6">
-                                <div className="flex items-center justify-between">
-                                    <p className="text-sm font-medium text-muted-foreground">Announcements</p>
-                                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white">
-                                        <Megaphone className="h-4 w-4" />
-                                    </div>
-                                </div>
-                                <div className="mt-4">
-                                    {statsLoading ? <Skeleton className="h-9 w-12" /> : (
-                                        <>
-                                            <h3 className="text-3xl font-bold tracking-tight">
-                                                {stats?.unreadAnnouncements}
-                                            </h3>
-                                            <p className="text-xs font-medium mt-1 text-primary">Active</p>
-                                        </>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </AnimatedWrapper>
+    return (
+        <div className="flex flex-col gap-8 pb-8">
+            {/* Welcome Header */}
+            <AnimatedWrapper direction="down">
+                <div className="flex flex-col gap-1">
+                    <h1 className="heading-1 text-burgundy-gradient">Welcome, {session?.user?.name?.split(" ")[0]}</h1>
+                    <p className="text-sm text-muted-foreground">
+                        Monitor your children&apos;s academic progress at a glance.
+                    </p>
                 </div>
+            </AnimatedWrapper>
 
-                {/* Child Info Panel */}
-                <AnimatedWrapper delay={0.35}>
+            {/* Child Selector */}
+            <AnimatedWrapper delay={0.1}>
+                <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <Users className="h-4 w-4" /> Select Child:
+                    </span>
+                    {children.map((child) => (
+                        <button
+                            key={child.id}
+                            onClick={() => setSelectedChild(child)}
+                            className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all ${selectedChild?.id === child.id
+                                ? "bg-primary text-white border-primary shadow-md"
+                                : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:bg-primary/5"
+                                }`}
+                        >
+                            {child.name}
+                        </button>
+                    ))}
+                </div>
+            </AnimatedWrapper>
+
+            {/* Summary Cards */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <AnimatedWrapper delay={0.15}>
                     <Card className="glass-panel border-border/50">
-                        <CardHeader>
-                            <CardTitle className="heading-3 flex items-center gap-2">
-                                <TrendingUp className="h-5 w-5 text-primary" />
-                                {selectedChild?.name} — Overview
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex flex-wrap gap-4">
-                                <div className="flex flex-col gap-1">
-                                    <span className="text-xs text-muted-foreground uppercase font-semibold tracking-wide">
-                                        Class
-                                    </span>
-                                    <Badge variant="outline" className="w-fit text-sm px-3 py-1">
-                                        {selectedChild?.class}
-                                    </Badge>
-                                </div>
-                                <div className="flex flex-col gap-1">
-                                    <span className="text-xs text-muted-foreground uppercase font-semibold tracking-wide">
-                                        Yearly Attendance
-                                    </span>
-                                    <Badge variant="outline" className="w-fit text-sm px-3 py-1 border-green-400 text-green-700 dark:text-green-400">
-                                        {stats?.attendance}
-                                    </Badge>
-                                </div>
-                                <div className="flex flex-col gap-1">
-                                    <span className="text-xs text-muted-foreground uppercase font-semibold tracking-wide">
-                                        Roll Number
-                                    </span>
-                                    <Badge variant="outline" className="w-fit text-sm px-3 py-1">
-                                        {selectedChild?.rollNumber}
-                                    </Badge>
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <p className="text-sm font-medium text-muted-foreground">Attendance</p>
+                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30">
+                                    <CalendarCheck className="h-4 w-4 text-green-600 dark:text-green-400" />
                                 </div>
                             </div>
-                            <p className="text-sm text-muted-foreground mt-6">
-                                Use the sidebar to view detailed grades, attendance records, timetable, and
-                                announcements for {selectedChild?.name?.split(" ")[0]}.
-                            </p>
+                            <div className="mt-4">
+                                {statsLoading ? <Skeleton className="h-9 w-16" /> : (
+                                    <>
+                                        <h3 className="text-3xl font-bold tracking-tight">{stats?.attendance}</h3>
+                                        <p className="text-xs font-medium mt-1 text-muted-foreground">Academic Year</p>
+                                    </>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </AnimatedWrapper>
+
+                <AnimatedWrapper delay={0.2}>
+                    <Card className="glass-panel border-border/50">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <p className="text-sm font-medium text-muted-foreground">Latest Grade</p>
+                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
+                                    <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                                </div>
+                            </div>
+                            <div className="mt-4">
+                                {statsLoading ? <Skeleton className="h-9 w-24" /> : (
+                                    <>
+                                        <h3 className="text-xl font-bold tracking-tight truncate">{stats?.latestGrade}</h3>
+                                        <p className="text-xs font-medium mt-1 text-green-600">Most recent result</p>
+                                    </>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </AnimatedWrapper>
+
+                <AnimatedWrapper delay={0.25}>
+                    <Card className="glass-panel border-border/50">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <p className="text-sm font-medium text-muted-foreground">Next Class</p>
+                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
+                                    <Clock className="h-4 w-4 text-muted-foreground" />
+                                </div>
+                            </div>
+                            <div className="mt-4">
+                                {statsLoading ? <Skeleton className="h-9 w-full" /> : (
+                                    <>
+                                        <h3 className="text-base font-bold tracking-tight leading-snug">
+                                            {stats?.nextClass}
+                                        </h3>
+                                        <p className="text-xs font-medium mt-1 text-muted-foreground">Upcoming period</p>
+                                    </>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </AnimatedWrapper>
+
+                <AnimatedWrapper delay={0.3}>
+                    <Card className="glass-panel border-border/50 border-primary/50 shadow-md ring-1 ring-primary/20">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <p className="text-sm font-medium text-muted-foreground">Announcements</p>
+                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white">
+                                    <Megaphone className="h-4 w-4" />
+                                </div>
+                            </div>
+                            <div className="mt-4">
+                                {statsLoading ? <Skeleton className="h-9 w-12" /> : (
+                                    <>
+                                        <h3 className="text-3xl font-bold tracking-tight">
+                                            {stats?.unreadAnnouncements}
+                                        </h3>
+                                        <p className="text-xs font-medium mt-1 text-primary">Active</p>
+                                    </>
+                                )}
+                            </div>
                         </CardContent>
                     </Card>
                 </AnimatedWrapper>
             </div>
-        </AppLayout>
+
+            {/* Child Info Panel */}
+            <AnimatedWrapper delay={0.35}>
+                <Card className="glass-panel border-border/50">
+                    <CardHeader>
+                        <CardTitle className="heading-3 flex items-center gap-2">
+                            <TrendingUp className="h-5 w-5 text-primary" />
+                            {selectedChild?.name} — Overview
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex flex-wrap gap-4">
+                            <div className="flex flex-col gap-1">
+                                <span className="text-xs text-muted-foreground uppercase font-semibold tracking-wide">
+                                    Class
+                                </span>
+                                <Badge variant="outline" className="w-fit text-sm px-3 py-1">
+                                    {selectedChild?.class}
+                                </Badge>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <span className="text-xs text-muted-foreground uppercase font-semibold tracking-wide">
+                                    Yearly Attendance
+                                </span>
+                                <Badge variant="outline" className="w-fit text-sm px-3 py-1 border-green-400 text-green-700 dark:text-green-400">
+                                    {stats?.attendance}
+                                </Badge>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <span className="text-xs text-muted-foreground uppercase font-semibold tracking-wide">
+                                    Roll Number
+                                </span>
+                                <Badge variant="outline" className="w-fit text-sm px-3 py-1">
+                                    {selectedChild?.rollNumber}
+                                </Badge>
+                            </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-6">
+                            Use the sidebar to view detailed grades, attendance records, timetable, and
+                            announcements for {selectedChild?.name?.split(" ")[0]}.
+                        </p>
+                    </CardContent>
+                </Card>
+            </AnimatedWrapper>
+        </div>
     )
 }

@@ -57,6 +57,15 @@ export const STUDENT_SIDEBAR = [
     { href: "/portal/student/security", label: "Security", icon: ShieldCheck },
 ]
 
+export const PARENT_SIDEBAR = [
+    { href: "/portal/parent", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/portal/parent/timetable", label: "Timetable", icon: Clock },
+    { href: "/portal/parent/attendance", label: "Attendance", icon: CalendarCheck },
+    { href: "/portal/parent/grades", label: "Grades", icon: GraduationCap },
+    { href: "/portal/parent/announcements", label: "Announcements", icon: Megaphone },
+    { href: "/portal/parent/profile", label: "Profile", icon: User },
+]
+
 export const PUBLIC_NAV_LINKS = [
     { href: "/", label: "Home" },
     { href: "/about", label: "About" },

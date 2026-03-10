@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { LayoutDashboard, BookOpen, CalendarCheck, Clock, Megaphone, User, TrendingUp, Book, AlertCircle, ShieldCheck, Loader2 } from "lucide-react"
-import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
@@ -12,8 +11,6 @@ const SubjectComparisonChart = dynamic(() => import("@/components/portal/dashboa
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { formatName } from "@/lib/utils"
-
-import { STUDENT_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 
 
 interface StudentDashboardClientProps {
@@ -57,295 +54,288 @@ export function StudentDashboardClient({ user }: StudentDashboardClientProps) {
 
 
     return (
-        <AppLayout
-            sidebarItems={sidebarItems}
-            userName={user?.name || "Student"}
-            userRole="student"
-            userImage={user?.image || undefined}
-        >
-            <div className="flex flex-col gap-8 pb-8">
+        <div className="flex flex-col gap-8 pb-8">
 
-                {/* Welcome Section */}
-                <AnimatedWrapper direction="down">
-                    <div className="flex flex-col gap-1">
-                        <h1 className="heading-1 text-burgundy-gradient">Welcome back, {formatName(user?.name?.split(' ')[0]) || 'Student'}</h1>
-                        <p className="text-sm text-muted-foreground">Here is your academic overview for today.</p>
-                    </div>
-                </AnimatedWrapper>
-
-                {/* Stats Grid */}
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <StatCard
-                        title="Overall Performance"
-                        value={data?.stats?.performance ?? "N/A"}
-                        icon={TrendingUp}
-                        loading={loading}
-                        trend="Recent average"
-                        trendColor="text-green-600"
-                    />
-                    <StatCard
-                        title="Attendance"
-                        value={data?.stats?.attendance ?? "N/A"}
-                        icon={CalendarCheck}
-                        loading={loading}
-                        trend="Current semester"
-                        trendColor="text-amber-600"
-                    />
-                    <StatCard
-                        title="Total Subjects"
-                        value={data?.stats?.totalSubjects ?? 0}
-                        icon={Book}
-                        loading={loading}
-                        trend="Enrolled"
-                        trendColor="text-muted-foreground"
-                    />
-                    <StatCard
-                        title="Assignments"
-                        value={data?.stats?.assignments ?? 0}
-                        icon={AlertCircle}
-                        loading={loading}
-                        trend="Pending"
-                        trendColor="text-primary"
-                        highlight
-                    />
+            {/* Welcome Section */}
+            <AnimatedWrapper direction="down">
+                <div className="flex flex-col gap-1">
+                    <h1 className="heading-1 text-burgundy-gradient">Welcome back, {formatName(user?.name?.split(' ')[0]) || 'Student'}</h1>
+                    <p className="text-sm text-muted-foreground">Here is your academic overview for today.</p>
                 </div>
+            </AnimatedWrapper>
 
-                {/* Main Content Grid */}
-                <div className="grid gap-6 lg:grid-cols-3">
+            {/* Stats Grid */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <StatCard
+                    title="Overall Performance"
+                    value={data?.stats?.performance ?? "N/A"}
+                    icon={TrendingUp}
+                    loading={loading}
+                    trend="Recent average"
+                    trendColor="text-green-600"
+                />
+                <StatCard
+                    title="Attendance"
+                    value={data?.stats?.attendance ?? "N/A"}
+                    icon={CalendarCheck}
+                    loading={loading}
+                    trend="Current semester"
+                    trendColor="text-amber-600"
+                />
+                <StatCard
+                    title="Total Subjects"
+                    value={data?.stats?.totalSubjects ?? 0}
+                    icon={Book}
+                    loading={loading}
+                    trend="Enrolled"
+                    trendColor="text-muted-foreground"
+                />
+                <StatCard
+                    title="Assignments"
+                    value={data?.stats?.assignments ?? 0}
+                    icon={AlertCircle}
+                    loading={loading}
+                    trend="Pending"
+                    trendColor="text-primary"
+                    highlight
+                />
+            </div>
 
-                    {/* Left Column - Charts & Grades */}
-                    <div className="flex flex-col gap-6 lg:col-span-2">
+            {/* Main Content Grid */}
+            <div className="grid gap-6 lg:grid-cols-3">
 
-                        {/* Performance Chart */}
-                        <AnimatedWrapper delay={0.2}>
-                            <Card className="glass-panel overflow-hidden border-border/50">
-                                <CardHeader>
-                                    <CardTitle className="heading-3 flex items-center gap-2">
-                                        <TrendingUp className="h-5 w-5 text-primary" />
-                                        Performance Trend
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    {loading ? (
-                                        <Skeleton className="h-[300px] w-full rounded-xl" />
-                                    ) : (
-                                        <PerformanceTrendChart data={data?.performanceTrend || []} />
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </AnimatedWrapper>
+                {/* Left Column - Charts & Grades */}
+                <div className="flex flex-col gap-6 lg:col-span-2">
 
-                        {/* Subject Comparison Chart */}
-                        <AnimatedWrapper delay={0.3}>
-                            <Card className="glass-panel overflow-hidden border-border/50">
-                                <CardHeader>
-                                    <CardTitle className="heading-3 flex items-center gap-2">
-                                        <BookOpen className="h-5 w-5 text-primary" />
-                                        Subject Analysis
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    {loading ? (
-                                        <Skeleton className="h-[300px] w-full rounded-xl" />
-                                    ) : (
-                                        <SubjectComparisonChart data={data?.subjectComparison || []} />
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </AnimatedWrapper>
+                    {/* Performance Chart */}
+                    <AnimatedWrapper delay={0.2}>
+                        <Card className="glass-panel overflow-hidden border-border/50">
+                            <CardHeader>
+                                <CardTitle className="heading-3 flex items-center gap-2">
+                                    <TrendingUp className="h-5 w-5 text-primary" />
+                                    Performance Trend
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {loading ? (
+                                    <Skeleton className="h-[300px] w-full rounded-xl" />
+                                ) : (
+                                    <PerformanceTrendChart data={data?.performanceTrend || []} />
+                                )}
+                            </CardContent>
+                        </Card>
+                    </AnimatedWrapper>
 
-                        {/* Recent Grades Table */}
-                        <AnimatedWrapper delay={0.4}>
-                            <Card className="glass-panel overflow-hidden border-border/50">
-                                <CardHeader>
-                                    <CardTitle className="heading-3">Recent Grades</CardTitle>
-                                </CardHeader>
-                                <CardContent className="p-0">
-                                    <div className="overflow-x-auto">
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow className="border-border/50 bg-muted/20 hover:bg-muted/20">
-                                                    <TableHead className="w-[180px]">Subject</TableHead>
-                                                    <TableHead>Type</TableHead>
-                                                    <TableHead>Date</TableHead>
-                                                    <TableHead className="text-right">Marks</TableHead>
-                                                    <TableHead className="text-right">Grade</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {loading ? (
-                                                    Array.from({ length: 5 }).map((_, i) => (
-                                                        <TableRow key={i} className="border-border/50">
-                                                            <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                                                            <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                                                            <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                                                            <TableCell><Skeleton className="ml-auto h-4 w-12" /></TableCell>
-                                                            <TableCell><Skeleton className="ml-auto h-6 w-8 rounded" /></TableCell>
+                    {/* Subject Comparison Chart */}
+                    <AnimatedWrapper delay={0.3}>
+                        <Card className="glass-panel overflow-hidden border-border/50">
+                            <CardHeader>
+                                <CardTitle className="heading-3 flex items-center gap-2">
+                                    <BookOpen className="h-5 w-5 text-primary" />
+                                    Subject Analysis
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {loading ? (
+                                    <Skeleton className="h-[300px] w-full rounded-xl" />
+                                ) : (
+                                    <SubjectComparisonChart data={data?.subjectComparison || []} />
+                                )}
+                            </CardContent>
+                        </Card>
+                    </AnimatedWrapper>
+
+                    {/* Recent Grades Table */}
+                    <AnimatedWrapper delay={0.4}>
+                        <Card className="glass-panel overflow-hidden border-border/50">
+                            <CardHeader>
+                                <CardTitle className="heading-3">Recent Grades</CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <div className="overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="border-border/50 bg-muted/20 hover:bg-muted/20">
+                                                <TableHead className="w-[180px]">Subject</TableHead>
+                                                <TableHead>Type</TableHead>
+                                                <TableHead>Date</TableHead>
+                                                <TableHead className="text-right">Marks</TableHead>
+                                                <TableHead className="text-right">Grade</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {loading ? (
+                                                Array.from({ length: 5 }).map((_, i) => (
+                                                    <TableRow key={i} className="border-border/50">
+                                                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                                                        <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                                                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                                        <TableCell><Skeleton className="ml-auto h-4 w-12" /></TableCell>
+                                                        <TableCell><Skeleton className="ml-auto h-6 w-8 rounded" /></TableCell>
+                                                    </TableRow>
+                                                ))
+                                            ) : (
+                                                // API Data
+                                                data?.recentGrades && data.recentGrades.length > 0 ? (
+                                                    data.recentGrades.map((item: any, i: number) => (
+                                                        <TableRow key={i} className="group border-border/50 transition-colors hover:bg-primary/5">
+                                                            <TableCell className="font-medium">{item.sub}</TableCell>
+                                                            <TableCell className="text-muted-foreground">{item.type}</TableCell>
+                                                            <TableCell className="text-muted-foreground">{item.date}</TableCell>
+                                                            <TableCell className="text-right font-medium">{item.marks}</TableCell>
+                                                            <TableCell className="text-right">
+                                                                <Badge variant={item.grade?.startsWith("A") ? "default" : "secondary"} className="font-bold w-8 justify-center">
+                                                                    {item.grade}
+                                                                </Badge>
+                                                            </TableCell>
                                                         </TableRow>
                                                     ))
                                                 ) : (
-                                                    // API Data
-                                                    data?.recentGrades && data.recentGrades.length > 0 ? (
-                                                        data.recentGrades.map((item: any, i: number) => (
-                                                            <TableRow key={i} className="group border-border/50 transition-colors hover:bg-primary/5">
-                                                                <TableCell className="font-medium">{item.sub}</TableCell>
-                                                                <TableCell className="text-muted-foreground">{item.type}</TableCell>
-                                                                <TableCell className="text-muted-foreground">{item.date}</TableCell>
-                                                                <TableCell className="text-right font-medium">{item.marks}</TableCell>
-                                                                <TableCell className="text-right">
-                                                                    <Badge variant={item.grade?.startsWith("A") ? "default" : "secondary"} className="font-bold w-8 justify-center">
-                                                                        {item.grade}
-                                                                    </Badge>
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        ))
-                                                    ) : (
-                                                        <TableRow>
-                                                            <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                                                                No recent grades available.
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    )
-                                                )}
-                                            </TableBody>
-                                        </Table>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </AnimatedWrapper>
-
-                    </div>
-
-                    {/* Right Column - Side Panel */}
-                    <div className="flex flex-col gap-6 lg:col-span-1">
-
-                        {/* Class Info */}
-                        <AnimatedWrapper delay={0.4}>
-                            <Card className="glass-panel border-border/50 bg-gradient-to-br from-primary/5 to-transparent">
-                                <CardHeader className="pb-3">
-                                    <CardTitle className="heading-3 flex items-center gap-2">
-                                        <ShieldCheck className="h-5 w-5 text-primary" />
-                                        My Class
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    {loading ? (
-                                        <div className="space-y-3">
-                                            <Skeleton className="h-4 w-3/4" />
-                                            <Skeleton className="h-4 w-1/2" />
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <div className="flex flex-col gap-1">
-                                                <h4 className="font-bold text-foreground">{data?.classInfo?.name || "Not Assigned"}</h4>
-                                                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                                                    <User size={12} className="text-primary" />
-                                                    Teacher: {data?.classInfo?.teacher || "Unassigned"}
-                                                </p>
-                                            </div>
-                                            {data?.classInfo?.subjects && (
-                                                <div className="space-y-2">
-                                                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">My Subjects</p>
-                                                    <div className="flex flex-wrap gap-1.5">
-                                                        {data.classInfo.subjects.split(',').map((s: string, i: number) => (
-                                                            <Badge key={i} variant="secondary" className="bg-primary/10 text-primary border-none text-[10px] py-0 h-5">
-                                                                {s.trim()}
-                                                            </Badge>
-                                                        ))}
-                                                    </div>
-                                                </div>
+                                                    <TableRow>
+                                                        <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                                                            No recent grades available.
+                                                        </TableCell>
+                                                    </TableRow>
+                                                )
                                             )}
-                                        </>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </AnimatedWrapper>
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </AnimatedWrapper>
 
-                        {/* Upcoming Events */}
-                        <AnimatedWrapper delay={0.5} className="h-full">
-                            <Card className="glass-panel h-full border-border/50">
-                                <CardHeader>
-                                    <CardTitle className="heading-3">Upcoming Events</CardTitle>
-                                </CardHeader>
-                                <CardContent className="flex flex-col gap-4">
-                                    {loading ? (
-                                        Array.from({ length: 3 }).map((_, i) => (
-                                            <div key={i} className="flex gap-4">
-                                                <Skeleton className="h-12 w-12 rounded-xl" />
-                                                <div className="space-y-2 flex-1">
-                                                    <Skeleton className="h-4 w-3/4" />
-                                                    <Skeleton className="h-3 w-1/2" />
+                </div>
+
+                {/* Right Column - Side Panel */}
+                <div className="flex flex-col gap-6 lg:col-span-1">
+
+                    {/* Class Info */}
+                    <AnimatedWrapper delay={0.4}>
+                        <Card className="glass-panel border-border/50 bg-gradient-to-br from-primary/5 to-transparent">
+                            <CardHeader className="pb-3">
+                                <CardTitle className="heading-3 flex items-center gap-2">
+                                    <ShieldCheck className="h-5 w-5 text-primary" />
+                                    My Class
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {loading ? (
+                                    <div className="space-y-3">
+                                        <Skeleton className="h-4 w-3/4" />
+                                        <Skeleton className="h-4 w-1/2" />
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="flex flex-col gap-1">
+                                            <h4 className="font-bold text-foreground">{data?.classInfo?.name || "Not Assigned"}</h4>
+                                            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                                                <User size={12} className="text-primary" />
+                                                Teacher: {data?.classInfo?.teacher || "Unassigned"}
+                                            </p>
+                                        </div>
+                                        {data?.classInfo?.subjects && (
+                                            <div className="space-y-2">
+                                                <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">My Subjects</p>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {data.classInfo.subjects.split(',').map((s: string, i: number) => (
+                                                        <Badge key={i} variant="secondary" className="bg-primary/10 text-primary border-none text-[10px] py-0 h-5">
+                                                            {s.trim()}
+                                                        </Badge>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </AnimatedWrapper>
+
+                    {/* Upcoming Events */}
+                    <AnimatedWrapper delay={0.5} className="h-full">
+                        <Card className="glass-panel h-full border-border/50">
+                            <CardHeader>
+                                <CardTitle className="heading-3">Upcoming Events</CardTitle>
+                            </CardHeader>
+                            <CardContent className="flex flex-col gap-4">
+                                {loading ? (
+                                    Array.from({ length: 3 }).map((_, i) => (
+                                        <div key={i} className="flex gap-4">
+                                            <Skeleton className="h-12 w-12 rounded-xl" />
+                                            <div className="space-y-2 flex-1">
+                                                <Skeleton className="h-4 w-3/4" />
+                                                <Skeleton className="h-3 w-1/2" />
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    data?.upcomingEvents ? (
+                                        data.upcomingEvents.map((evt: any) => (
+                                            <div key={evt.title} className="flex items-start gap-4 rounded-xl border border-transparent p-3 transition-colors hover:border-border/50 hover:bg-muted/30">
+                                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                                                    <CalendarCheck className="h-5 w-5" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold text-foreground text-sm">{evt.title}</p>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 border-primary/20 text-primary">{evt.type}</Badge>
+                                                        <span className="text-xs text-muted-foreground">{evt.date}</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))
                                     ) : (
-                                        data?.upcomingEvents ? (
-                                            data.upcomingEvents.map((evt: any) => (
-                                                <div key={evt.title} className="flex items-start gap-4 rounded-xl border border-transparent p-3 transition-colors hover:border-border/50 hover:bg-muted/30">
-                                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                                                        <CalendarCheck className="h-5 w-5" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-semibold text-foreground text-sm">{evt.title}</p>
-                                                        <div className="flex items-center gap-2 mt-1">
-                                                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 border-primary/20 text-primary">{evt.type}</Badge>
-                                                            <span className="text-xs text-muted-foreground">{evt.date}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <div className="text-center text-muted-foreground py-4">No upcoming events.</div>
-                                        )
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </AnimatedWrapper>
+                                        <div className="text-center text-muted-foreground py-4">No upcoming events.</div>
+                                    )
+                                )}
+                            </CardContent>
+                        </Card>
+                    </AnimatedWrapper>
 
-                        {/* Announcements */}
-                        <AnimatedWrapper delay={0.6}>
-                            <Card className="glass-panel border-border/50 bg-gradient-to-br from-primary/5 to-transparent">
-                                <CardHeader>
-                                    <CardTitle className="heading-3 flex items-center gap-2">
-                                        <Megaphone className="h-4 w-4" />
-                                        Announcements
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    {loading ? (
-                                        <div className="space-y-3">
-                                            <Skeleton className="h-4 w-full" />
-                                            <Skeleton className="h-4 w-5/6" />
-                                            <Skeleton className="h-20 w-full rounded-md" />
-                                        </div>
-                                    ) : data?.announcement ? (
-                                        <div className="space-y-3">
-                                            <h4 className="text-sm font-semibold">{data.announcement.title}</h4>
-                                            <p className="text-xs text-muted-foreground leading-relaxed">
-                                                {data.announcement.content}
-                                            </p>
-                                            <Badge
-                                                className="w-fit bg-primary text-white hover:bg-primary/90 cursor-pointer"
-                                                onClick={() => window.location.href = '/portal/student/announcements'}
-                                            >
-                                                Read More
-                                            </Badge>
-                                        </div>
-                                    ) : (
-                                        <div className="flex flex-col items-center justify-center py-4 text-center">
-                                            <Megaphone className="h-8 w-8 text-muted/20 mb-2" />
-                                            <p className="text-xs text-muted-foreground">No new announcements</p>
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </AnimatedWrapper>
-
-                    </div>
+                    {/* Announcements */}
+                    <AnimatedWrapper delay={0.6}>
+                        <Card className="glass-panel border-border/50 bg-gradient-to-br from-primary/5 to-transparent">
+                            <CardHeader>
+                                <CardTitle className="heading-3 flex items-center gap-2">
+                                    <Megaphone className="h-4 w-4" />
+                                    Announcements
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {loading ? (
+                                    <div className="space-y-3">
+                                        <Skeleton className="h-4 w-full" />
+                                        <Skeleton className="h-4 w-5/6" />
+                                        <Skeleton className="h-20 w-full rounded-md" />
+                                    </div>
+                                ) : data?.announcement ? (
+                                    <div className="space-y-3">
+                                        <h4 className="text-sm font-semibold">{data.announcement.title}</h4>
+                                        <p className="text-xs text-muted-foreground leading-relaxed">
+                                            {data.announcement.content}
+                                        </p>
+                                        <Badge
+                                            className="w-fit bg-primary text-white hover:bg-primary/90 cursor-pointer"
+                                            onClick={() => window.location.href = '/portal/student/announcements'}
+                                        >
+                                            Read More
+                                        </Badge>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center py-4 text-center">
+                                        <Megaphone className="h-8 w-8 text-muted/20 mb-2" />
+                                        <p className="text-xs text-muted-foreground">No new announcements</p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </AnimatedWrapper>
 
                 </div>
+
             </div>
-        </AppLayout>
+        </div>
     )
 }
 

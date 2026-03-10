@@ -1,9 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { AppLayout } from "@/components/layout/app-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { LayoutDashboard, BookOpen, CalendarCheck, Clock, Megaphone, User, CheckCircle2, XCircle, AlertCircle, ShieldCheck } from "lucide-react"
+import { CalendarCheck, CheckCircle2, XCircle, AlertCircle, ShieldCheck } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import dynamic from "next/dynamic"
@@ -15,7 +14,6 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay,
 const API_BASE = "/api";
 
 import { useSession } from "next-auth/react"
-import { STUDENT_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
 import { ACADEMIC_YEARS, ASSESSMENT_MONTHS } from "@/lib/academic-constants"
 
 type AttendanceStatus = "present" | "absent" | "late" | "excused" | "none";
@@ -157,195 +155,188 @@ export default function AttendancePage() {
   const stats = calculateStats(currentCalendar)
 
   return (
-    <AppLayout
-      sidebarItems={sidebarItems}
-      userName={session?.user?.name || "Student"}
-      userRole="student"
-      userImage={session?.user?.image || undefined}
-    >
-      <div className="flex flex-col gap-8 pb-8">
+    <div className="flex flex-col gap-8 pb-8">
 
-        {/* Header Section */}
-        <AnimatedWrapper direction="down">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h1 className="heading-1 text-burgundy-gradient">Attendance</h1>
-              <p className="text-sm text-muted-foreground">Track your attendance record and statistics.</p>
-            </div>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <Select value={activeMonth} onValueChange={setActiveMonth}>
-                <SelectTrigger className="w-full sm:w-[180px] bg-background">
-                  <SelectValue placeholder="Select Month" />
-                </SelectTrigger>
-                <SelectContent>
-                  {months.map(month => <SelectItem key={month} value={month}>{month}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+      {/* Header Section */}
+      <AnimatedWrapper direction="down">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="heading-1 text-burgundy-gradient">Attendance</h1>
+            <p className="text-sm text-muted-foreground">Track your attendance record and statistics.</p>
           </div>
-        </AnimatedWrapper>
-
-        {/* Summary Cards */}
-        <AnimatedWrapper delay={0.1}>
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <Card className="glass-panel overflow-hidden border-border/50">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Present</p>
-                    {loading ? (
-                      <Skeleton className="mt-2 h-8 w-16" />
-                    ) : (
-                      <p className="mt-2 text-3xl font-bold text-green-600 dark:text-green-400">{stats.present}</p>
-                    )}
-                  </div>
-                  <div className="rounded-full bg-green-100 p-3 dark:bg-green-900/30">
-                    <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="glass-panel overflow-hidden border-border/50">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Absent</p>
-                    {loading ? (
-                      <Skeleton className="mt-2 h-8 w-16" />
-                    ) : (
-                      <p className="mt-2 text-3xl font-bold text-red-600 dark:text-red-400">{stats.absent}</p>
-                    )}
-                  </div>
-                  <div className="rounded-full bg-red-100 p-3 dark:bg-red-900/30">
-                    <XCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="glass-panel overflow-hidden border-border/50">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Late</p>
-                    {loading ? (
-                      <Skeleton className="mt-2 h-8 w-16" />
-                    ) : (
-                      <p className="mt-2 text-3xl font-bold text-amber-600 dark:text-amber-400">{stats.late}</p>
-                    )}
-                  </div>
-                  <div className="rounded-full bg-amber-100 p-3 dark:bg-amber-900/30">
-                    <AlertCircle className="h-6 w-6 text-amber-600 dark:text-amber-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="glass-panel overflow-hidden border-border/50">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Excused</p>
-                    {loading ? (
-                      <Skeleton className="mt-2 h-8 w-16" />
-                    ) : (
-                      <p className="mt-2 text-3xl font-bold text-blue-600 dark:text-blue-400">{stats.excused}</p>
-                    )}
-                  </div>
-                  <div className="rounded-full bg-blue-100 p-3 dark:bg-blue-900/30">
-                    <ShieldCheck className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <Select value={activeMonth} onValueChange={setActiveMonth}>
+              <SelectTrigger className="w-full sm:w-[180px] bg-background">
+                <SelectValue placeholder="Select Month" />
+              </SelectTrigger>
+              <SelectContent>
+                {months.map(month => <SelectItem key={month} value={month}>{month}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
-        </AnimatedWrapper>
+        </div>
+      </AnimatedWrapper>
 
-        {/* Calendar and Chart Grid */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      {/* Summary Cards */}
+      <AnimatedWrapper delay={0.1}>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <Card className="glass-panel overflow-hidden border-border/50">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Present</p>
+                  {loading ? (
+                    <Skeleton className="mt-2 h-8 w-16" />
+                  ) : (
+                    <p className="mt-2 text-3xl font-bold text-green-600 dark:text-green-400">{stats.present}</p>
+                  )}
+                </div>
+                <div className="rounded-full bg-green-100 p-3 dark:bg-green-900/30">
+                  <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Calendar */}
-          <AnimatedWrapper delay={0.2}>
-            <Card className="glass-panel overflow-hidden border-border/50">
-              <CardHeader>
-                <CardTitle className="heading-3 flex items-center gap-2">
-                  <CalendarCheck className="h-5 w-5 text-primary" />
-                  {activeMonth}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <Skeleton className="h-[320px] w-full rounded-xl" />
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[360px]">
-                      <thead>
-                        <tr>
-                          {days.map((d) => (
-                            <th key={d} className="pb-3 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">{d}</th>
+          <Card className="glass-panel overflow-hidden border-border/50">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Absent</p>
+                  {loading ? (
+                    <Skeleton className="mt-2 h-8 w-16" />
+                  ) : (
+                    <p className="mt-2 text-3xl font-bold text-red-600 dark:text-red-400">{stats.absent}</p>
+                  )}
+                </div>
+                <div className="rounded-full bg-red-100 p-3 dark:bg-red-900/30">
+                  <XCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="glass-panel overflow-hidden border-border/50">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Late</p>
+                  {loading ? (
+                    <Skeleton className="mt-2 h-8 w-16" />
+                  ) : (
+                    <p className="mt-2 text-3xl font-bold text-amber-600 dark:text-amber-400">{stats.late}</p>
+                  )}
+                </div>
+                <div className="rounded-full bg-amber-100 p-3 dark:bg-amber-900/30">
+                  <AlertCircle className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="glass-panel overflow-hidden border-border/50">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Excused</p>
+                  {loading ? (
+                    <Skeleton className="mt-2 h-8 w-16" />
+                  ) : (
+                    <p className="mt-2 text-3xl font-bold text-blue-600 dark:text-blue-400">{stats.excused}</p>
+                  )}
+                </div>
+                <div className="rounded-full bg-blue-100 p-3 dark:bg-blue-900/30">
+                  <ShieldCheck className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </AnimatedWrapper>
+
+      {/* Calendar and Chart Grid */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+
+        {/* Calendar */}
+        <AnimatedWrapper delay={0.2}>
+          <Card className="glass-panel overflow-hidden border-border/50">
+            <CardHeader>
+              <CardTitle className="heading-3 flex items-center gap-2">
+                <CalendarCheck className="h-5 w-5 text-primary" />
+                {activeMonth}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <Skeleton className="h-[320px] w-full rounded-xl" />
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[360px]">
+                    <thead>
+                      <tr>
+                        {days.map((d) => (
+                          <th key={d} className="pb-3 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">{d}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentCalendar.map((week, wi) => (
+                        <tr key={wi}>
+                          {week.map((cell, ci) => (
+                            <td key={ci} className="p-1 text-center">
+                              {cell.day > 0 ? (
+                                <div className={`flex h-12 w-full items-center justify-center rounded-md text-sm font-medium transition-all hover:scale-105 ${statusColors[cell.status]}`}>
+                                  {cell.day}
+                                </div>
+                              ) : null}
+                            </td>
                           ))}
                         </tr>
-                      </thead>
-                      <tbody>
-                        {currentCalendar.map((week, wi) => (
-                          <tr key={wi}>
-                            {week.map((cell, ci) => (
-                              <td key={ci} className="p-1 text-center">
-                                {cell.day > 0 ? (
-                                  <div className={`flex h-12 w-full items-center justify-center rounded-md text-sm font-medium transition-all hover:scale-105 ${statusColors[cell.status]}`}>
-                                    {cell.day}
-                                  </div>
-                                ) : null}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    {/* Legend */}
-                    <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-border/50 pt-4">
-                      <div className="flex items-center gap-2">
-                        <span className="h-3 w-3 rounded-sm bg-green-100 dark:bg-green-900/30" />
-                        <span className="text-xs text-muted-foreground">Present</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="h-3 w-3 rounded-sm bg-amber-100 dark:bg-amber-900/30" />
-                        <span className="text-xs text-muted-foreground">Late</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="h-3 w-3 rounded-sm bg-red-100 dark:bg-red-900/30" />
-                        <span className="text-xs text-muted-foreground">Absent</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="h-3 w-3 rounded-sm bg-blue-100 dark:bg-blue-900/30" />
-                        <span className="text-xs text-muted-foreground">Excused</span>
-                      </div>
+                      ))}
+                    </tbody>
+                  </table>
+                  {/* Legend */}
+                  <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-border/50 pt-4">
+                    <div className="flex items-center gap-2">
+                      <span className="h-3 w-3 rounded-sm bg-green-100 dark:bg-green-900/30" />
+                      <span className="text-xs text-muted-foreground">Present</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="h-3 w-3 rounded-sm bg-amber-100 dark:bg-amber-900/30" />
+                      <span className="text-xs text-muted-foreground">Late</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="h-3 w-3 rounded-sm bg-red-100 dark:bg-red-900/30" />
+                      <span className="text-xs text-muted-foreground">Absent</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="h-3 w-3 rounded-sm bg-blue-100 dark:bg-blue-900/30" />
+                      <span className="text-xs text-muted-foreground">Excused</span>
                     </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </AnimatedWrapper>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </AnimatedWrapper>
 
-          {/* Attendance Distribution Chart */}
-          <AnimatedWrapper delay={0.3}>
-            <Card className="glass-panel overflow-hidden border-border/50">
-              <CardHeader>
-                <CardTitle className="heading-3">Attendance Distribution</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <Skeleton className="h-[320px] w-full rounded-xl" />
-                ) : (
-                  <AttendanceDistributionChart data={stats} />
-                )}
-              </CardContent>
-            </Card>
-          </AnimatedWrapper>
-        </div>
-
+        {/* Attendance Distribution Chart */}
+        <AnimatedWrapper delay={0.3}>
+          <Card className="glass-panel overflow-hidden border-border/50">
+            <CardHeader>
+              <CardTitle className="heading-3">Attendance Distribution</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <Skeleton className="h-[320px] w-full rounded-xl" />
+              ) : (
+                <AttendanceDistributionChart data={stats} />
+              )}
+            </CardContent>
+          </Card>
+        </AnimatedWrapper>
       </div>
-    </AppLayout>
+
+    </div>
   )
 }
