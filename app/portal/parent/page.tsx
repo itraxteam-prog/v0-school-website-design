@@ -15,6 +15,7 @@ import {
     Megaphone,
     TrendingUp,
     Users,
+    User,
 } from "lucide-react"
 import { getTermDisplayLabel } from "@/lib/academic-constants"
 
