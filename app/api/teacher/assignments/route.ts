@@ -11,7 +11,7 @@ const createAssignmentSchema = z.object({
     title: z.string().min(1, "Title is required"),
     description: z.string().optional(),
     dueDate: z.coerce.date(),
-    maxMarks: z.coerce.number().min(0).default(100),
+    maxMarks: z.coerce.number().optional().nullable(),
     classId: z.string().min(1, "Class ID is required"),
     subject: z.string().optional(),
 });

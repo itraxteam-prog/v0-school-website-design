@@ -51,6 +51,7 @@ export const STUDENT_SIDEBAR = [
     { href: "/portal/student/timetable", label: "Timetable", icon: Clock },
     { href: "/portal/student/attendance", label: "Attendance", icon: CalendarCheck },
     { href: "/portal/student/grades", label: "My Grades", icon: GraduationCap },
+    { href: "/portal/student/assignments", label: "Assignments", icon: BookOpen },
     { href: "/portal/student/announcements", label: "Announcements", icon: Megaphone },
     { href: "/portal/student/profile", label: "My Profile", icon: User },
     { href: "/portal/student/security", label: "Security", icon: ShieldCheck },

@@ -147,7 +147,7 @@ model Assignment {
   title       String
   description String?
   dueDate     DateTime
-  maxMarks    Float        @default(100)
+  maxMarks    Float?
   classId     String
   subject     String?
   createdAt   DateTime     @default(now())

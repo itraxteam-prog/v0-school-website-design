@@ -52,7 +52,7 @@ const assignmentSchema = z.object({
     title: z.string().min(2, { message: "Title must be at least 2 characters." }),
     description: z.string().optional(),
     dueDate: z.string().min(1, { message: "Please select a due date." }),
-    maxPoints: z.string().min(1, { message: "Please enter max points." }),
+    maxPoints: z.string().optional(),
     classId: z.string().min(1, { message: "Please select a class." }),
     subject: z.string().min(1, { message: "Please select a subject." }),
 })
@@ -64,7 +64,7 @@ interface Assignment {
     title: string;
     description: string;
     dueDate: string;
-    maxMarks: number;
+    maxMarks: number | null;
     classId: string;
     subject?: string;
     class?: { name: string };
@@ -90,7 +90,7 @@ export function AssignmentsManager({ initialClasses }: AssignmentsManagerProps) 
             title: "",
             description: "",
             dueDate: "",
-            maxPoints: "100",
+            maxPoints: "",
             classId: initialClasses[0]?.id || "",
             subject: "",
         },
@@ -126,7 +126,7 @@ export function AssignmentsManager({ initialClasses }: AssignmentsManagerProps) 
                 title: data.title,
                 description: data.description,
                 dueDate: data.dueDate,
-                maxMarks: parseFloat(data.maxPoints),
+                maxMarks: data.maxPoints ? parseFloat(data.maxPoints) : null,
                 classId: data.classId,
                 subject: data.subject
             }
@@ -384,7 +384,7 @@ export function AssignmentsManager({ initialClasses }: AssignmentsManagerProps) 
                                                 </div>
                                                 <div className="flex items-center gap-2 text-muted-foreground">
                                                     <CheckCircle2 size={14} />
-                                                    <span>{a.maxMarks} Points</span>
+                                                    <span>{a.maxMarks ? `${a.maxMarks} Points` : 'Ungraded Task'}</span>
                                                 </div>
                                             </div>
                                             <div className="pt-2 flex items-center justify-end border-t border-border/50">
