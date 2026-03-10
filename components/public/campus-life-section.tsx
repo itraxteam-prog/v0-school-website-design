@@ -1,12 +1,13 @@
 "use client"
 
 import { useScrollAnimation } from "@/hooks/use-scroll-animation"
+import Image from "next/image"
 
 const campusItems = [
-  { title: "Science Labs", category: "Academics", aspect: "aspect-[4/3]" },
-  { title: "School Library", category: "Resources", aspect: "aspect-[4/3]" },
-  { title: "Sports Complex", category: "Athletics", aspect: "aspect-[4/3]" },
-  { title: "Computer Lab", category: "Technology", aspect: "aspect-[4/3]" },
+  { title: "Science Labs", image: "/images/campus-life/campus-1.jpg", aspect: "aspect-[4/3]" },
+  { title: "School Library", image: "/images/campus-life/campus-2.jpg", aspect: "aspect-[4/3]" },
+  { title: "Sports Complex", image: "/images/campus-life/campus-3.jpg", aspect: "aspect-[4/3]" },
+  { title: "Computer Lab", image: "/images/campus-life/campus-4.jpg", aspect: "aspect-[4/3]" },
 ]
 
 export function CampusLifeSection() {
@@ -31,22 +32,18 @@ export function CampusLifeSection() {
               className="animate-on-scroll group relative overflow-hidden rounded-lg bg-muted"
               style={{ transitionDelay: `${i * 80}ms` }}
             >
-              {/* Placeholder */}
-              <div className={`${item.aspect} w-full bg-border transition-transform duration-300 group-hover:scale-105`}>
-                <div className="flex h-full items-center justify-center">
-                  <span className="text-sm text-muted-foreground">Image Placeholder</span>
-                </div>
+              {/* Image Container with Original Aspect Ratio */}
+              <div className={`${item.aspect} relative w-full overflow-hidden`}>
+                <Image
+                  src={item.image}
+                  alt={item.title}
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
               </div>
 
-              {/* Overlay */}
-              <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent p-5 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                <p className="text-xs font-medium uppercase tracking-wider text-primary-foreground/60">
-                  {item.category}
-                </p>
-                <p className="font-serif text-lg font-semibold text-primary-foreground">
-                  {item.title}
-                </p>
-              </div>
+              {/* No Overlay/Title as requested */}
             </div>
           ))}
         </div>
