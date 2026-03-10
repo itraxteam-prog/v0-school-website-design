@@ -25,8 +25,8 @@ export function PerformanceTrendChart({ data }: ChartProps) {
                 <AreaChart data={data || []}>
                     <defs>
                         <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#800020" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="#800020" stopOpacity={0} />
+                            <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
                         </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" strokeOpacity={0.1} />
@@ -56,7 +56,7 @@ export function PerformanceTrendChart({ data }: ChartProps) {
                     <Area
                         type="monotone"
                         dataKey="score"
-                        stroke="#800020"
+                        stroke="hsl(var(--chart-1))"
                         strokeWidth={3}
                         fillOpacity={1}
                         fill="url(#colorScore)"
@@ -88,7 +88,7 @@ export function SubjectComparisonChart({ data }: ChartProps) {
                         hide
                     />
                     <Tooltip
-                        cursor={{ fill: 'rgba(128, 0, 32, 0.05)' }}
+                        cursor={{ fill: 'hsl(var(--primary) / 0.05)' }}
                         contentStyle={{
                             borderRadius: '8px',
                             border: 'none',
@@ -100,7 +100,7 @@ export function SubjectComparisonChart({ data }: ChartProps) {
                     />
                     <Bar
                         dataKey="score"
-                        fill="#800020"
+                        fill="hsl(var(--chart-1))"
                         radius={[4, 4, 4, 4]}
                         barSize={32}
                     />

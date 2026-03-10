@@ -27,7 +27,10 @@ export async function GET(
         }
 
         const grades = await prisma.grade.findMany({
-            where: { studentId },
+            where: { 
+                studentId,
+                NOT: { term: { endsWith: "-draft" } }
+            },
             include: {
                 class: { select: { name: true, subjects: true, subject: true } },
                 submission: { select: { assignment: { select: { title: true } } } }
