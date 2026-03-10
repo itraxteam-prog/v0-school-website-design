@@ -20,6 +20,10 @@ export function SecurityDashboardClient({ user }: { user: any }) {
     const [isDark, setIsDark] = useState(false)
     const [isSavingTheme, setIsSavingTheme] = useState(false)
 
+    // Identify portal specifically for scoped theme keys
+    const portalSegment = typeof window !== 'undefined' ? window.location.pathname.split('/')[2] : 'student';
+    const themeKey = `darkMode_${portalSegment}`;
+
     useEffect(() => {
         // Sync setting from DB on mount
         const fetchPreferences = async () => {
@@ -27,43 +31,36 @@ export function SecurityDashboardClient({ user }: { user: any }) {
                 const res = await fetch("/api/user/preferences");
                 if (res.ok) {
                     const data = await res.json();
-                    if (data.darkMode !== undefined) {
-                        setIsDark(!!data.darkMode);
-                        // Apply to portal root only (AppLayout handles this on its own mount too)
-                        const portalRoot = document.querySelector<HTMLElement>('[data-portal-root]');
-                        if (portalRoot) {
-                            portalRoot.classList.toggle('portal-dark', !!data.darkMode);
-                        }
-                    }
+                    // Check scoped key first, then fallback to global darkMode
+                    const isPortalDark = data[themeKey] === true || (data[themeKey] === undefined && data.darkMode === true);
+                    setIsDark(isPortalDark);
                 }
             } catch (err) {
                 console.error("Failed to fetch preferences", err);
             }
         };
         fetchPreferences();
-    }, []);
+    }, [themeKey]);
 
     const handleThemeToggle = async (checked: boolean) => {
         setIsSavingTheme(true);
         setIsDark(checked);
 
-        // Apply portal-dark class to the portal root container only
-        const portalRoot = document.querySelector<HTMLElement>('[data-portal-root]');
-        if (portalRoot) {
-            portalRoot.classList.toggle('portal-dark', checked);
-        }
+        // 1. Notify the AppLayout immediately via custom event (prevent refresh need)
+        window.dispatchEvent(new CustomEvent('theme-update', { detail: { isDark: checked } }));
 
         try {
+            // 2. Persist to DB using the portal-specific key
             const res = await fetch("/api/user/preferences", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ darkMode: checked })
+                body: JSON.stringify({ [themeKey]: checked })
             });
 
             if (!res.ok) throw new Error("Failed to save preference");
 
             const label = checked ? "Dark" : "Light";
-            toast.success(`${label} mode saved to profile.`);
+            toast.success(`${label} mode saved for ${portalSegment} portal.`);
         } catch (err) {
             toast.error("Preference saved locally, but failed to sync to account.");
         } finally {

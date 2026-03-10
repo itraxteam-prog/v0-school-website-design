@@ -15,10 +15,8 @@ export async function GET() {
             select: { academicHistory: true }
         });
 
-        const history = (profile?.academicHistory as any) || {};
-        return NextResponse.json({
-            darkMode: history.darkMode === true || history.darkMode === 'true'
-        });
+        // Return the whole history so the client can pick the specific portal-scoped key
+        return NextResponse.json(profile?.academicHistory || {});
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
@@ -29,23 +27,23 @@ export async function PATCH(req: Request) {
         const session = await getServerSession(authOptions);
         if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-        const { darkMode } = await req.json();
+        const body = await req.json();
 
         const profile = await prisma.profile.findUnique({
-            where: { userId: session.user.id }
+            where: { userId: session.user.id },
+            select: { academicHistory: true }
         });
 
-        let history = (profile?.academicHistory as any) || {};
-        if (typeof history !== 'object') history = {};
+        const history = (profile?.academicHistory as any) || {};
 
         await prisma.profile.upsert({
             where: { userId: session.user.id },
             create: {
                 userId: session.user.id,
-                academicHistory: { ...history, darkMode }
+                academicHistory: { ...history, ...body }
             },
             update: {
-                academicHistory: { ...history, darkMode }
+                academicHistory: { ...history, ...body }
             }
         });
 

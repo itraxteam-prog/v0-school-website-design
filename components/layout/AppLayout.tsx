@@ -47,12 +47,25 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [notifications, setNotifications] = useState<any[]>([])
   const [settings, setSettings] = useState<any>(cachedSettings)
+  const [isDark, setIsDark] = useState(false)
   const pathname = usePathname()
   const { logout } = useAuth()
   const portalRef = useRef<HTMLDivElement>(null)
 
+  // Identify portal and its specific theme key
+  const portalSegment = pathname?.split('/')[2] || (pathname?.startsWith('/portal') ? pathname?.split('/')[1] : null);
+  const themeKey = portalSegment ? `darkMode_${portalSegment}` : 'darkMode';
+
   useEffect(() => {
-    // 1. Fetch Global Settings (Logo, School Name) - Use Cache if available
+    // 1. Listen for theme-update events (emitted by individual portal components)
+    const handleThemeUpdate = (e: any) => {
+      if (e.detail?.isDark !== undefined) {
+        setIsDark(e.detail.isDark);
+      }
+    };
+    window.addEventListener('theme-update', handleThemeUpdate);
+
+    // 2. Fetch Global Settings (Logo, School Name) - Use Cache if available
     if (cachedSettings) {
       setSettings(cachedSettings);
     } else {
@@ -67,26 +80,20 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
         .catch(console.error)
     }
 
-    // 2. Fetch Personal Preferences (Theme, etc.) - Apply as portal-scoped class only
-    if (cachedPreferences) {
-      if (portalRef.current) {
-        portalRef.current.classList.toggle('portal-dark', !!cachedPreferences.darkMode)
-      }
-    } else {
-      fetch('/api/user/preferences')
-        .then(res => res.json())
-        .then(data => {
-          if (!data.error && data.darkMode !== undefined) {
-            cachedPreferences = data;
-            if (portalRef.current) {
-              portalRef.current.classList.toggle('portal-dark', !!data.darkMode)
-            }
-          }
-        })
-        .catch(console.error)
-    }
+    // 3. Fetch Personal Preferences (Theme, etc.) - Apply to state
+    fetch('/api/user/preferences')
+      .then(res => res.json())
+      .then(data => {
+        if (!data.error) {
+          cachedPreferences = data;
+          // Use portal-specific key if it exists, otherwise fallback to universal darkMode
+          const isPortalDark = data[themeKey] === true || (data[themeKey] === undefined && data.darkMode === true);
+          setIsDark(isPortalDark);
+        }
+      })
+      .catch(console.error)
 
-    // 3. Fetch Real-time Notifications/Announcements (Always fetch latest)
+    // 4. Fetch Real-time Notifications/Announcements
     fetch('/api/notifications')
       .then(res => res.json())
       .then(data => {
@@ -95,7 +102,9 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
         }
       })
       .catch(console.error)
-  }, [])
+
+    return () => window.removeEventListener('theme-update', handleThemeUpdate);
+  }, [themeKey])
 
   const handleLogout = async () => {
     await logout()
@@ -109,7 +118,11 @@ export function AppLayout({ children, sidebarItems, userName: propUserName, user
         '/portal/student';
 
   return (
-    <div ref={portalRef} data-portal-root className="flex h-[100dvh] overflow-hidden bg-secondary">
+    <div
+      ref={portalRef}
+      data-portal-root
+      className={`flex h-[100dvh] overflow-hidden bg-secondary ${isDark ? 'portal-dark' : ''}`}
+    >
       {/* Sidebar Overlay (mobile) */}
       <AnimatePresence>
         {sidebarOpen && (
