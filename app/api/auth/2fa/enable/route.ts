@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth-options";
 import { prisma } from "@/lib/prisma";
 import speakeasy from "speakeasy";
 import { logAudit } from "@/lib/audit";
+import { decrypt } from "@/lib/utils/encryption";
 
 export const dynamic = 'force-dynamic';
 export const runtime = "nodejs";
@@ -25,7 +26,7 @@ export async function POST(req: Request) {
         }
 
         const verified = speakeasy.totp.verify({
-            secret: user.two_factor_secret,
+            secret: decrypt(user.two_factor_secret),
             encoding: "base32",
             token: code,
         });

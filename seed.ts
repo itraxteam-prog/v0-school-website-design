@@ -3,7 +3,22 @@ import { hashPassword } from "./lib/utils/auth-crypto";
 
 async function main() {
     console.log("Starting seed...");
-    const hashedPassword = await hashPassword("Password123!");
+    
+    // Task 7: Dynamic Seed Passwords
+    const adminPassword = process.env.INITIAL_ADMIN_PASSWORD || "Admin!" + Math.random().toString(36).substring(2, 10);
+    const teacherPassword = "Teacher!" + Math.random().toString(36).substring(2, 10);
+    const studentPassword = "Student!" + Math.random().toString(36).substring(2, 10);
+
+    const hashedAdminPassword = await hashPassword(adminPassword);
+    const hashedTeacherPassword = await hashPassword(teacherPassword);
+    const hashedStudentPassword = await hashPassword(studentPassword);
+
+    console.log("-----------------------------------------");
+    console.log(`ADMIN EMAIL: admin@school.com`);
+    console.log(`ADMIN PASSWORD: ${adminPassword}`);
+    console.log(`TEACHER PASSWORD (Shared for seed): ${teacherPassword}`);
+    console.log(`STUDENT PASSWORD (Shared for seed): ${studentPassword}`);
+    console.log("-----------------------------------------");
 
     // 1. Settings
     await prisma.setting.upsert({
@@ -25,11 +40,11 @@ async function main() {
     // 3. Admin
     const admin = await prisma.user.upsert({
         where: { email: "admin@school.com" },
-        update: { password: hashedPassword },
+        update: { password: hashedAdminPassword },
         create: {
             email: "admin@school.com",
             name: "Admin User",
-            password: hashedPassword,
+            password: hashedAdminPassword,
             role: "ADMIN",
             status: "ACTIVE",
         },
@@ -42,7 +57,7 @@ async function main() {
             data: {
                 email: `teacher${i}@school.com`,
                 name: i === 1 ? "Sarah Jenkins" : `Teacher ${i}`,
-                password: hashedPassword,
+                password: hashedTeacherPassword,
                 role: "TEACHER",
                 status: "ACTIVE",
                 profile: {
@@ -81,7 +96,7 @@ async function main() {
             data: {
                 email: `student${i}@school.com`,
                 name: i === 1 ? "Ahmed Khan" : `Student ${i}`,
-                password: hashedPassword,
+                password: hashedStudentPassword,
                 role: "STUDENT",
                 status: "ACTIVE",
                 classes: { connect: { id: i % 2 === 0 ? class1.id : class2.id } },

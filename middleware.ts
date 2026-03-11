@@ -28,8 +28,8 @@ export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
 
   // 3️⃣ Before redirecting unauthenticated users, ensure login is excluded
-  if (!token && pathname !== "/portal/login") {
-    return NextResponse.redirect(new URL("/portal/login", request.url));
+  if ((!token || !token.id) && pathname !== "/portal/login") {
+    return NextResponse.redirect(new URL("/portal/login?error=SessionExpired", request.url));
   }
 
   // RBAC checks for API routes

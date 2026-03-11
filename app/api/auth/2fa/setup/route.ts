@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth-options";
 import { prisma } from "@/lib/prisma";
 import speakeasy from "speakeasy";
 import QRCode from "qrcode";
+import { encrypt } from "@/lib/utils/encryption";
 
 export const dynamic = 'force-dynamic';
 export const runtime = "nodejs";
@@ -27,10 +28,10 @@ export async function POST() {
             name: `SchoolPortal:${user.email}`,
         });
 
-        // Store the secret temporarily
+        // Store the secret temporarily (ENCRYPTED)
         await prisma.user.update({
             where: { id: user.id },
-            data: { two_factor_secret: secret.base32 }
+            data: { two_factor_secret: encrypt(secret.base32) }
         });
 
         const qrCodeUrl = await QRCode.toDataURL(secret.otpauth_url || "");

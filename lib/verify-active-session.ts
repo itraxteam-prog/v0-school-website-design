@@ -1,13 +1,15 @@
 import { prisma } from "@/lib/prisma";
 import { UserStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { cache } from "react";
 
 /**
  * Reusable helper to verify if a user's account is valid and active in the database.
  * This checks both the account status and compares the session issuance time 
  * against the user's last update time to handle password-reset invalidation.
+ * Wrapped in React cache() to prevent redundant DB calls in a single request.
  */
-export async function isSessionValid(userId: string, sessionIat?: number): Promise<boolean> {
+export const isSessionValid = cache(async (userId: string, sessionIat?: number): Promise<boolean> => {
     if (!userId) return false;
 
     try {
@@ -32,7 +34,7 @@ export async function isSessionValid(userId: string, sessionIat?: number): Promi
     } catch (error) {
         return false;
     }
-}
+});
 
 /**
  * Helper to generate a logout response that clears authentication cookies

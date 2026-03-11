@@ -42,9 +42,9 @@ export function TeacherDashboardClient({ user }: TeacherDashboardClientProps) {
                 ]);
 
                 let stats = { totalClasses: 0, totalStudents: 0, attendanceToday: "0%", pendingGrades: 0 };
-                let classes = [];
-                let schedule = [];
-                let announcements = [];
+                let classes: any[] = [];
+                let schedule: any[] = [];
+                let announcements: any[] = [];
 
                 if (statsRes.ok) {
                     const result = await statsRes.json();

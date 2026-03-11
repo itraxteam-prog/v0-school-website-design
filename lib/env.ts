@@ -7,6 +7,7 @@ const envSchema = z.object({
     DIRECT_URL: z.string().url().optional(),
     NEXTAUTH_SECRET: z.string().min(1),
     NEXTAUTH_URL: z.string().url(),
+    ENCRYPTION_KEY: z.string().min(32),
     CSRF_SECRET: z.string().min(1).optional(),
     SMTP_HOST: z.string().min(1),
     SMTP_PORT: z.coerce.number().int().positive(),

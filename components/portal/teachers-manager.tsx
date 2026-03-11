@@ -264,14 +264,11 @@ export function TeachersManager({ initialTeachers }: TeachersManagerProps) {
                         finalImageUrl = uploadData.url
                     } else {
                         const errData = await uploadRes.json().catch(() => ({}))
-                        console.error("Upload failed server-side:", errData)
-                        // Fallback to preview if upload fails but we have it. 
-                        // Note: Base64 might be too long for some DB fields, but we try anyway.
-                        finalImageUrl = imagePreview
+                        throw new Error(errData.error || "Image upload failed. Please try again.")
                     }
-                } catch (err) {
-                    console.error("Upload network error, falling back to base64 preview", err)
-                    finalImageUrl = imagePreview
+                } catch (err: any) {
+                    console.error("Upload failed:", err)
+                    throw new Error(err.message || "Failed to upload image. Please check your connection.")
                 }
             }
 

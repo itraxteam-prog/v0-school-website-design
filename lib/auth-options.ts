@@ -13,6 +13,7 @@ import { logAudit } from "@/lib/audit";
 
 const isProd = process.env.NODE_ENV === "production";
 
+import { decrypt } from "@/lib/utils/encryption";
 import speakeasy from "speakeasy";
 
 export const authOptions: NextAuthOptions = {
@@ -111,7 +112,7 @@ export const authOptions: NextAuthOptions = {
                     }
 
                     const verified = speakeasy.totp.verify({
-                        secret: user.two_factor_secret!,
+                        secret: decrypt(user.two_factor_secret!),
                         encoding: "base32",
                         token: credentials.code,
                     });
@@ -179,13 +180,8 @@ export const authOptions: NextAuthOptions = {
                 const now = Math.floor(Date.now() / 1000);
                 const eightHours = 8 * 60 * 60;
                 if (now - (token.iat as number) > eightHours) {
-                    return {
-                        ...token,
-                        id: "",
-                        role: "STUDENT",
-                        accountStatus: "SUSPENDED",
-                        status: "SUSPENDED",
-                    } as JWT;
+                    logger.warn({ email: token.email }, "ADMIN_SESSION_EXPIRED_FORCE_LOGOUT");
+                    return null as any;
                 }
             }
 

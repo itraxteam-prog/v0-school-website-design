@@ -1,18 +1,34 @@
-import { z, ZodSchema } from "zod";
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextRequest, NextResponse } from "next/server";
 
 // ---------- Centralized Validator ----------
-export function validateRequest<T extends ZodSchema>(
+export async function validateRequest<T extends ZodSchema>(
     schema: T,
-    req: NextApiRequest,
-    res: NextApiResponse
-) {
+    req: NextRequest | NextApiRequest
+): Promise<{ data: z.infer<T> | null; errorResponse?: NextResponse | null }> {
     try {
-        return schema.parse(req.body);
+        let body;
+        if ("json" in req && typeof req.json === "function") {
+            body = await req.json();
+        } else {
+            body = (req as NextApiRequest).body;
+        }
+
+        const data = schema.parse(body);
+        return { data, errorResponse: null };
     } catch (error) {
-        // Return 400 and null to satisfy "if (!data) return" check in the handler
-        res.status(400).json({ error: (error as any).errors || error });
-        return null;
+        const errorDetails = (error as any).errors || error;
+        
+        // If it's an App Router request, we return a pre-built NextResponse
+        if ("json" in req && typeof req.json === "function") {
+            return {
+                data: null,
+                errorResponse: NextResponse.json({ error: errorDetails, success: false }, { status: 400 })
+            };
+        }
+        
+        // For Pages Router, we can't easily return a response here without res object
+        // So we return the error details for the handler to use
+        return { data: null, errorResponse: errorDetails as any };
     }
 }
 
