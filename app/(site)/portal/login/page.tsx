@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { signIn, useSession } from "next-auth/react";
+import { signIn, useSession, getSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { EyeIcon, EyeOffIcon, Mail, Lock, Loader2, ArrowLeft } from "lucide-react";
@@ -69,7 +69,9 @@ function LoginContent() {
 
       if (res?.ok) {
         toast.success("Success", { description: "Logged in successfully!" });
-        router.push("/portal");
+        const session = await getSession();
+        const role = (session?.user as any)?.role || "STUDENT";
+        router.push(getRedirectPathByRole(role));
       } else {
         if (res?.error === "2FA_REQUIRED") {
           setShowOTP(true);
