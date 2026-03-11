@@ -46,15 +46,27 @@ export async function requireRole(roles: Role | Role[], context?: AuthContext) {
 
     const userRole = (session.user.role as string)?.toUpperCase();
 
+    const checkRoleMismatch = (requiredRole: string) => {
+        if (userRole !== requiredRole.toUpperCase()) {
+            if (!context) {
+                const targetPortal = userRole ? `/portal/${userRole.toLowerCase()}` : "/portal/login";
+                redirect(`${targetPortal}?error=AccessDenied`);
+            }
+            throw new Error("FORBIDDEN");
+        }
+    }
+
     if (Array.isArray(roles)) {
         const upperRoles = roles.map(r => r.toUpperCase());
         if (!upperRoles.includes(userRole)) {
+            if (!context) {
+                const targetPortal = userRole ? `/portal/${userRole.toLowerCase()}` : "/portal/login";
+                redirect(`${targetPortal}?error=AccessDenied`);
+            }
             throw new Error("FORBIDDEN");
         }
     } else {
-        if (userRole !== roles.toUpperCase()) {
-            throw new Error("FORBIDDEN");
-        }
+        checkRoleMismatch(roles);
     }
 
     return session;

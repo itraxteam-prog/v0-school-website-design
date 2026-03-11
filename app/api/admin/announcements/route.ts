@@ -9,6 +9,8 @@ import { z } from "zod";
 import { rateLimit, getIP } from "@/lib/rate-limit";
 import { sendAnnouncementEmail } from "@/lib/email";
 
+import { logger } from "@/lib/logger";
+
 const announcementSchema = z.object({
     title: z.string().min(1, "Title is required"),
     content: z.string().min(1, "Content is required"),
@@ -77,7 +79,7 @@ export async function POST(req: Request) {
                 });
 
                 if (!check) {
-                    console.log(`[Email skipped] Announcement ${announcement.id} was deleted before processing.`);
+                    logger.warn({ announcementId: announcement.id }, "Announcement was deleted before email processing.");
                     return;
                 }
 
@@ -95,13 +97,13 @@ export async function POST(req: Request) {
                 const finalEmails = Array.from(new Set(emails));
 
                 if (finalEmails.length > 0) {
-                    console.log(`[Email queue] Sending announcement ${announcement.id} to ${finalEmails.length} recipients.`);
+                    logger.info({ announcementId: announcement.id, recipientCount: finalEmails.length }, "Sending announcement emails.");
                     sendAnnouncementEmail(finalEmails, title, content);
                 } else {
-                    console.log(`[Email skipped] No active users found for role: ${targetRole}`);
+                    logger.info({ targetRole }, "No active users found for role; skipping emails.");
                 }
             } catch (err) {
-                console.error("Failed to trigger announcement emails:", err);
+                logger.error({ err, announcementId: announcement.id }, "Failed to trigger announcement emails.");
             }
         })();
 

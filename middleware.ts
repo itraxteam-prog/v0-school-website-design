@@ -50,20 +50,22 @@ export async function middleware(request: NextRequest) {
 
   // RBAC checks for Portal routes
   const userRole = (token?.role as string)?.toUpperCase();
+  
+  // If we have a token but no role, the session is malformed
+  if (!userRole && !PUBLIC_PATHS.some(path => pathname.startsWith(path))) {
+    return NextResponse.redirect(new URL("/portal/login?error=InvalidSession", request.url));
+  }
+
   let response = NextResponse.next();
 
   if (pathname.startsWith("/portal/admin") && userRole !== "ADMIN") {
-    const role = userRole?.toLowerCase() || "student";
-    response = NextResponse.redirect(new URL(`/portal/${role}?error=AccessDenied`, request.url), 307);
+    response = NextResponse.redirect(new URL(`/portal/${userRole.toLowerCase()}?error=AccessDenied`, request.url), 307);
   } else if (pathname.startsWith("/portal/teacher") && userRole !== "TEACHER") {
-    const role = userRole?.toLowerCase() || "student";
-    response = NextResponse.redirect(new URL(`/portal/${role}?error=AccessDenied`, request.url), 307);
+    response = NextResponse.redirect(new URL(`/portal/${userRole.toLowerCase()}?error=AccessDenied`, request.url), 307);
   } else if (pathname.startsWith("/portal/student") && userRole !== "STUDENT") {
-    const role = userRole?.toLowerCase() || "admin";
-    response = NextResponse.redirect(new URL(`/portal/${role}?error=AccessDenied`, request.url), 307);
+    response = NextResponse.redirect(new URL(`/portal/${userRole.toLowerCase()}?error=AccessDenied`, request.url), 307);
   } else if (pathname.startsWith("/portal/parent") && userRole !== "PARENT") {
-    const role = userRole?.toLowerCase() || "student";
-    response = NextResponse.redirect(new URL(`/portal/${role}?error=AccessDenied`, request.url), 307);
+    response = NextResponse.redirect(new URL(`/portal/${userRole.toLowerCase()}?error=AccessDenied`, request.url), 307);
   }
 
   // Anti-caching for portal pages

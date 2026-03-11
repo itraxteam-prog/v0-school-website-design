@@ -11,12 +11,18 @@ export default async function AdminLayout({
     const session = await requireRole("ADMIN");
 
     // Fetch initial preferences for server-side theme detection
-    const profile = await prisma.profile.findUnique({
-        where: { userId: session.user.id },
-        select: { academicHistory: true }
-    });
-    const preferences = (profile?.academicHistory as any) || {};
-    const initialIsDark = preferences['darkMode_admin'] === true || (preferences['darkMode_admin'] === undefined && preferences.darkMode === true);
+    let preferences = {};
+    try {
+        const profile = await prisma.profile.findUnique({
+            where: { userId: session.user.id },
+            select: { academicHistory: true }
+        });
+        preferences = (profile?.academicHistory as any) || {};
+    } catch (e) {
+        console.error("Failed to fetch user preferences", e);
+    }
+
+    const initialIsDark = (preferences as any)['darkMode_admin'] === true || ((preferences as any)['darkMode_admin'] === undefined && (preferences as any).darkMode === true);
 
     return (
         <AppLayout
