@@ -75,6 +75,11 @@ export function AppLayout({
     const handleThemeUpdate = (e: any) => {
       if (e.detail?.isDark !== undefined) {
         setIsDark(e.detail.isDark);
+        if (cachedPreferences) {
+          cachedPreferences[themeKey] = e.detail.isDark;
+        } else {
+          cachedPreferences = { [themeKey]: e.detail.isDark };
+        }
       }
     };
     window.addEventListener('theme-update', handleThemeUpdate);

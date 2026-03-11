@@ -14,8 +14,8 @@ export function SecurityDashboardClient({ user }: { user: any }) {
     const [isDark, setIsDark] = useState(false)
     const [isSavingTheme, setIsSavingTheme] = useState(false)
 
-    // Identify portal specifically for scoped theme keys
-    const portalSegment = typeof window !== 'undefined' ? window.location.pathname.split('/')[2] : 'student';
+    // Derive from user.role — always correct, no SSR fallback needed
+    const portalSegment = (user?.role || 'student').toLowerCase();
     const themeKey = `darkMode_${portalSegment}`;
 
     useEffect(() => {
