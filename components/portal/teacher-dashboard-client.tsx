@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import dynamic from "next/dynamic"
 const ClassPerformanceChart = dynamic(() => import("@/components/portal/teacher-charts").then(mod => mod.ClassPerformanceChart), { ssr: false });
-import { formatName } from "@/lib/utils"
+import { formatName, safeDate } from "@/lib/utils"
 
 interface TeacherDashboardClientProps {
     user: {
@@ -58,13 +58,13 @@ export function TeacherDashboardClient({ user }: TeacherDashboardClientProps) {
 
                 if (timetableRes.ok) {
                     const result = await timetableRes.json();
-                    schedule = result.map((entry: any) => ({
+                    schedule = Array.isArray(result) ? result.map((entry: any) => ({
                         time: `${entry.startTime} - ${entry.endTime}`,
                         class: entry.class?.name || "N/A",
                         subject: entry.subjectName,
                         room: entry.room || "N/A",
                         dayOfWeek: entry.dayOfWeek
-                    }));
+                    })) : [];
                 }
 
                 if (announcementsRes.ok) {
@@ -85,7 +85,7 @@ export function TeacherDashboardClient({ user }: TeacherDashboardClientProps) {
                         students: c.studentCount,
                     })),
                     schedule: todaySchedule.length > 0 ? todaySchedule : schedule.slice(0, 4),
-                    announcements: announcements.slice(0, 3)
+                    announcements: Array.isArray(announcements) ? announcements.slice(0, 3) : []
                 });
 
             } catch (error: any) {
@@ -344,7 +344,7 @@ export function TeacherDashboardClient({ user }: TeacherDashboardClientProps) {
                                             <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{a.content}</p>
                                             <div className="flex items-center gap-2 mt-2 text-[10px] text-muted-foreground">
                                                 <Calendar className="h-3 w-3" />
-                                                {new Date(a.createdAt).toLocaleDateString()}
+                                                {safeDate(a.createdAt)}
                                             </div>
                                         </div>
                                     ))

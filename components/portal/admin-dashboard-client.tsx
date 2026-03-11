@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { toast } from "sonner"
-import { cn, formatName } from "@/lib/utils"
+import { cn, formatName, safeDate } from "@/lib/utils"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -195,7 +195,7 @@ export function AdminDashboardClient() {
                                             label: "REGISTERED", key: "createdAt", render: (val) => (
                                                 <div className="flex items-center gap-2 text-xs">
                                                     <Calendar size={12} className="opacity-50 text-primary" />
-                                                    {val ? new Date(val).toLocaleDateString() : 'N/A'}
+                                                    {safeDate(val)}
                                                 </div>
                                             )
                                         },
@@ -239,7 +239,7 @@ export function AdminDashboardClient() {
                                                         <TableCell className="py-4 text-sm text-muted-foreground">
                                                             <div className="flex items-center gap-2">
                                                                 <Calendar size={14} className="opacity-50" />
-                                                                {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                                                                {safeDate(user.createdAt)}
                                                             </div>
                                                         </TableCell>
                                                         <TableCell className="pr-6 text-right py-4">

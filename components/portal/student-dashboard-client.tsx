@@ -10,7 +10,7 @@ const PerformanceTrendChart = dynamic(() => import("@/components/portal/dashboar
 const SubjectComparisonChart = dynamic(() => import("@/components/portal/dashboard-charts").then(mod => mod.SubjectComparisonChart), { ssr: false });
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { formatName } from "@/lib/utils"
+import { formatName, safeDate } from "@/lib/utils"
 
 
 interface StudentDashboardClientProps {
@@ -180,8 +180,8 @@ export function StudentDashboardClient({ user }: StudentDashboardClientProps) {
                                                     data.recentGrades.map((item: any, i: number) => (
                                                         <TableRow key={i} className="group border-border/50 transition-colors hover:bg-primary/5">
                                                             <TableCell className="font-medium">{item.sub}</TableCell>
-                                                            <TableCell className="text-muted-foreground">{item.type}</TableCell>
-                                                            <TableCell className="text-muted-foreground">{item.date}</TableCell>
+                                                            <TableCell className="text-muted-foreground">{item.type || "Result"}</TableCell>
+                                                            <TableCell className="text-muted-foreground">{safeDate(item.date)}</TableCell>
                                                             <TableCell className="text-right font-medium">{item.marks}</TableCell>
                                                             <TableCell className="text-right">
                                                                 <Badge variant={item.grade?.startsWith("A") ? "default" : "secondary"} className="font-bold w-8 justify-center">
@@ -238,7 +238,7 @@ export function StudentDashboardClient({ user }: StudentDashboardClientProps) {
                                             <div className="space-y-2">
                                                 <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">My Subjects</p>
                                                 <div className="flex flex-wrap gap-1.5">
-                                                    {data.classInfo.subjects.split(',').map((s: string, i: number) => (
+                                                    {data.classInfo.subjects?.split(',').map((s: string, i: number) => (
                                                         <Badge key={i} variant="secondary" className="bg-primary/10 text-primary border-none text-[10px] py-0 h-5">
                                                             {s.trim()}
                                                         </Badge>
@@ -279,8 +279,8 @@ export function StudentDashboardClient({ user }: StudentDashboardClientProps) {
                                                 <div>
                                                     <p className="font-semibold text-foreground text-sm">{evt.title}</p>
                                                     <div className="flex items-center gap-2 mt-1">
-                                                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 border-primary/20 text-primary">{evt.type}</Badge>
-                                                        <span className="text-xs text-muted-foreground">{evt.date}</span>
+                                                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 border-primary/20 text-primary">{evt.type || "Event"}</Badge>
+                                                        <span className="text-xs text-muted-foreground">{safeDate(evt.date)}</span>
                                                     </div>
                                                 </div>
                                             </div>

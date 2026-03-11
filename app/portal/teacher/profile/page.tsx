@@ -137,7 +137,11 @@ export default function TeacherProfilePage() {
                       <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Date of Birth</span>
                       <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2.5 shadow-sm">
                         <Calendar className="h-4 w-4 text-primary/60" />
-                        <span className="text-sm font-medium">{displayData.dateOfBirth ? new Date(displayData.dateOfBirth).toLocaleDateString() : "Not Specified"}</span>
+                        <span className="text-sm font-medium">
+                          {displayData.dateOfBirth && !isNaN(new Date(displayData.dateOfBirth).getTime()) 
+                            ? new Date(displayData.dateOfBirth).toLocaleDateString() 
+                            : "Not Specified"}
+                        </span>
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -202,7 +206,11 @@ export default function TeacherProfilePage() {
                       <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Joining Date</span>
                       <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2.5 shadow-sm">
                         <Calendar className="h-4 w-4 text-primary/60" />
-                        <span className="text-sm font-medium">{displayData.joiningDate ? new Date(displayData.joiningDate).toLocaleDateString() : "Not Specified"}</span>
+                        <span className="text-sm font-medium">
+                          {displayData.joiningDate && !isNaN(new Date(displayData.joiningDate).getTime()) 
+                            ? new Date(displayData.joiningDate).toLocaleDateString() 
+                            : "Not Specified"}
+                        </span>
                       </div>
                     </div>
                   </div>

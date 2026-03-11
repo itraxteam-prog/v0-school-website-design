@@ -65,6 +65,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
+import { safeDate } from "@/lib/utils"
 
 
 const userSchema = z.object({
@@ -462,7 +463,7 @@ export function UserManagementDashboardClient({ user: currentUser }: { user: any
                                                             </Badge>
                                                         </TableCell>
                                                         <TableCell className="py-4 text-xs font-medium text-muted-foreground uppercase">
-                                                            {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown'}
+                                                            {safeDate(user.createdAt)}
                                                         </TableCell>
                                                         <TableCell className="pr-6 text-right py-4">
                                                             <DropdownMenu>

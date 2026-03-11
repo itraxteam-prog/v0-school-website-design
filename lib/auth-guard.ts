@@ -12,9 +12,16 @@ type AuthContext =
     | undefined;
 
 export async function requireAuth(context?: AuthContext) {
-    const session = context
-        ? await getServerSession(context.req, context.res, authOptions)
-        : await getServerSession(authOptions);
+    let session;
+    try {
+        session = context
+            ? await getServerSession(context.req, context.res, authOptions)
+            : await getServerSession(authOptions);
+    } catch (error) {
+        logger.error({ error }, "AUTH_SESSION_FETCH_ERROR");
+        if (!context) redirect("/portal/login?error=ConnectionError");
+        throw new Error("UNAUTHORIZED");
+    }
 
     if (!session) {
         if (!context) redirect("/portal/login?error=SessionExpired");
@@ -30,9 +37,16 @@ export async function requireAuth(context?: AuthContext) {
 }
 
 export async function requireRole(roles: Role | Role[], context?: AuthContext) {
-    const session = context
-        ? await getServerSession(context.req, context.res, authOptions)
-        : await getServerSession(authOptions);
+    let session;
+    try {
+        session = context
+            ? await getServerSession(context.req, context.res, authOptions)
+            : await getServerSession(authOptions);
+    } catch (error) {
+        logger.error({ error }, "ROLE_SESSION_FETCH_ERROR");
+        if (!context) redirect("/portal/login?error=ConnectionError");
+        throw new Error("UNAUTHORIZED");
+    }
 
     if (!session) {
         if (!context) redirect("/portal/login?error=SessionExpired");
@@ -73,9 +87,16 @@ export async function requireRole(roles: Role | Role[], context?: AuthContext) {
 }
 
 export async function requireActiveUser(context?: AuthContext) {
-    const session = context
-        ? await getServerSession(context.req, context.res, authOptions)
-        : await getServerSession(authOptions);
+    let session;
+    try {
+        session = context
+            ? await getServerSession(context.req, context.res, authOptions)
+            : await getServerSession(authOptions);
+    } catch (error) {
+        logger.error({ error }, "ACTIVE_USER_SESSION_FETCH_ERROR");
+        if (!context) redirect("/portal/login?error=ConnectionError");
+        throw new Error("UNAUTHORIZED");
+    }
 
     if (!session) {
         if (!context) redirect("/portal/login?error=SessionExpired");

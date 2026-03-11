@@ -153,7 +153,11 @@ export default function ProfilePage() {
                       <label className="text-sm font-medium text-muted-foreground">Date of Birth</label>
                       <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{displayData.dateOfBirth ? new Date(displayData.dateOfBirth).toLocaleDateString() : "N/A"}</span>
+                        <span className="text-sm">
+                          {displayData.dateOfBirth && !isNaN(new Date(displayData.dateOfBirth).getTime()) 
+                            ? new Date(displayData.dateOfBirth).toLocaleDateString() 
+                            : "N/A"}
+                        </span>
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -179,7 +183,11 @@ export default function ProfilePage() {
                       <label className="text-sm font-medium text-muted-foreground">Admission Date</label>
                       <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{displayData.admissionDate ? new Date(displayData.admissionDate).toLocaleDateString() : "N/A"}</span>
+                        <span className="text-sm">
+                          {displayData.admissionDate && !isNaN(new Date(displayData.admissionDate).getTime()) 
+                            ? new Date(displayData.admissionDate).toLocaleDateString() 
+                            : "N/A"}
+                        </span>
                       </div>
                     </div>
                   </div>
