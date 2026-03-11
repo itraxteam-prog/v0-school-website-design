@@ -46,9 +46,14 @@ export default function ParentDashboard() {
                 const res = await fetch("/api/parent/children")
                 if (res.ok) {
                     const data = await res.json()
-                    setChildren(data)
-                    if (data.length > 0) {
-                        setSelectedChild(data[0])
+                    if (Array.isArray(data)) {
+                        setChildren(data)
+                        if (data.length > 0) {
+                            setSelectedChild(data[0])
+                        }
+                    } else {
+                        console.error("Children API returned non-array data:", data)
+                        setChildren([])
                     }
                 }
             } catch (error) {
@@ -74,12 +79,17 @@ export default function ParentDashboard() {
                     fetch(`/api/parent/child/${selectedChild.id}/announcements`),
                 ])
 
-                const [grades, attendance, timetable, announcements] = await Promise.all([
+                const [gradesData, attendanceData, timetableData, announcementsData] = await Promise.all([
                     gradesRes.ok ? gradesRes.json() : [],
                     attendanceRes.ok ? attendanceRes.json() : [],
                     timetableRes.ok ? timetableRes.json() : [],
                     announcementsRes.ok ? announcementsRes.json() : [],
                 ])
+
+                const grades = Array.isArray(gradesData) ? gradesData : []
+                const attendance = Array.isArray(attendanceData) ? attendanceData : []
+                const timetable = Array.isArray(timetableData) ? timetableData : []
+                const announcements = Array.isArray(announcementsData) ? announcementsData : []
 
                 // Calculate attendance %
                 const presentCount = attendance.filter((a: any) => a.status === "PRESENT").length
