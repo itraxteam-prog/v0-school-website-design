@@ -59,7 +59,7 @@ export function StudentDashboardClient({ user }: StudentDashboardClientProps) {
             {/* Welcome Section */}
             <AnimatedWrapper direction="down">
                 <div className="flex flex-col gap-1">
-                    <h1 className="heading-1 text-burgundy-gradient">Welcome back, {formatName(user?.name?.split(' ')[0]) || 'Student'}</h1>
+                    <h1 className="heading-1 text-burgundy-gradient">Welcome back, {formatName(user?.name?.split(' ')?.[0]) || 'Student'}</h1>
                     <p className="text-sm text-muted-foreground">Here is your academic overview for today.</p>
                 </div>
             </AnimatedWrapper>

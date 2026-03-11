@@ -165,7 +165,7 @@ export default function ParentDashboard() {
             {/* Welcome Header */}
             <AnimatedWrapper direction="down">
                 <div className="flex flex-col gap-1">
-                    <h1 className="heading-1 text-burgundy-gradient">Welcome, {session?.user?.name?.split(" ")[0]}</h1>
+                    <h1 className="heading-1 text-burgundy-gradient">Welcome, {session?.user?.name?.split(" ")?.[0]}</h1>
                     <p className="text-sm text-muted-foreground">
                         Monitor your children&apos;s academic progress at a glance.
                     </p>
@@ -322,7 +322,7 @@ export default function ParentDashboard() {
                         </div>
                         <p className="text-sm text-muted-foreground mt-6">
                             Use the sidebar to view detailed grades, attendance records, timetable, and
-                            announcements for {selectedChild?.name?.split(" ")[0]}.
+                            announcements for {selectedChild?.name?.split(" ")?.[0]}.
                         </p>
                     </CardContent>
                 </Card>

@@ -355,10 +355,14 @@ export function AppLayout({
                       </div>
                       <div className="flex-1 overflow-y-auto">
                         {notifications.length > 0 ? (
-                          notifications.map((n, i) => (
+                          notifications.map((n: any, i: number) => (
                             <div key={n.id || i} className="p-4 border-b border-border hover:bg-muted/50">
                               <p className="text-sm font-semibold">{n.title}</p>
-                              <p className="text-[10px] text-muted-foreground mt-1">{formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}</p>
+                              <p className="text-[10px] text-muted-foreground mt-1">
+                                {n.createdAt && !isNaN(new Date(n.createdAt).getTime()) 
+                                  ? formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })
+                                  : 'Recently'}
+                              </p>
                               <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{n.content}</p>
                             </div>
                           ))

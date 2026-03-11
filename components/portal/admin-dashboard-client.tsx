@@ -111,7 +111,7 @@ export function AdminDashboardClient() {
         <div className="p-4 sm:p-6 space-y-6">
                 <AnimatedWrapper direction="down">
                     <div className="flex flex-col gap-1 mb-6">
-                        <h1 className="heading-1 text-burgundy-gradient">Welcome back, {formatName(session?.user?.name?.split(' ')[0]) || 'Admin'}</h1>
+                        <h1 className="heading-1 text-burgundy-gradient">Welcome back, {formatName(session?.user?.name?.split(' ')?.[0]) || 'Admin'}</h1>
                         <p className="text-sm text-muted-foreground">Manage user roles and system-level permissions.</p>
                     </div>
                 </AnimatedWrapper>
