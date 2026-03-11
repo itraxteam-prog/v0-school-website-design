@@ -4,6 +4,7 @@ import { Role } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next";
 import { isSessionValid } from "./verify-active-session";
+import { redirect } from "next/navigation";
 
 type AuthContext =
     | { req: NextApiRequest; res: NextApiResponse }
@@ -16,10 +17,12 @@ export async function requireAuth(context?: AuthContext) {
         : await getServerSession(authOptions);
 
     if (!session) {
+        if (!context) redirect("/portal/login?error=SessionExpired");
         throw new Error("UNAUTHORIZED");
     }
 
     if (!(await isSessionValid(session.user.id))) {
+        if (!context) redirect("/portal/login?error=Suspended");
         throw new Error("SUSPENDED");
     }
 
@@ -32,10 +35,12 @@ export async function requireRole(roles: Role | Role[], context?: AuthContext) {
         : await getServerSession(authOptions);
 
     if (!session) {
+        if (!context) redirect("/portal/login?error=SessionExpired");
         throw new Error("UNAUTHORIZED");
     }
 
     if (!(await isSessionValid(session.user.id))) {
+        if (!context) redirect("/portal/login?error=Suspended");
         throw new Error("SUSPENDED");
     }
 
@@ -61,10 +66,12 @@ export async function requireActiveUser(context?: AuthContext) {
         : await getServerSession(authOptions);
 
     if (!session) {
+        if (!context) redirect("/portal/login?error=SessionExpired");
         throw new Error("UNAUTHORIZED");
     }
 
     if (!(await isSessionValid(session.user.id))) {
+        if (!context) redirect("/portal/login?error=Suspended");
         throw new Error("SUSPENDED");
     }
 
@@ -78,6 +85,10 @@ import * as Sentry from "@sentry/nextjs";
 const isProd = process.env.NODE_ENV === "production";
 
 export function handleAuthError(error: unknown) {
+    if (error instanceof Error && error.message === "NEXT_REDIRECT") {
+        throw error;
+    }
+
     if (error instanceof Error) {
         if (error.message === "UNAUTHORIZED") {
             return NextResponse.json({

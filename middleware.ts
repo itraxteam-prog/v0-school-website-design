@@ -5,26 +5,7 @@ import type { NextRequest } from "next/server";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // --- COOKIE JANITOR: Purge fragmented headers that cause 431/494 ---
-  const allCookies = request.cookies.getAll();
-  const nextAuthFragments = allCookies.filter(c =>
-    c.name.includes("next-auth.session-token.") ||
-    c.name.includes("__Secure-next-auth.session-token.")
-  );
 
-  if (nextAuthFragments.length > 0) {
-    const cleanUrl = request.nextUrl.clone();
-    // Use standard status 307 for redirect
-    const response = NextResponse.redirect(cleanUrl, 307);
-    nextAuthFragments.forEach(c => {
-      response.cookies.delete(c.name);
-    });
-    // Never run on the auth API itself to avoid loops
-    if (!pathname.includes("/api/auth")) {
-      return response;
-    }
-  }
-  // -----------------------------------------------------------------
 
 
   // 1️⃣ Add public route bypass
