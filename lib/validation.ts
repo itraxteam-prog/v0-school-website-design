@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { NextApiRequest } from "next";
+import { z, ZodSchema } from "zod";
 
 // ---------- Centralized Validator ----------
 export async function validateRequest<T extends ZodSchema>(
