@@ -14,7 +14,7 @@ import {
     Loader2,
     MessageSquare
 } from "lucide-react"
-import { AppLayout } from "@/components/layout/app-layout"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -30,7 +30,7 @@ import { format } from "date-fns"
 import { useSession } from "next-auth/react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { MobileCardView } from "@/components/ui/mobile-card-view"
-import { TEACHER_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+
 
 type AttendanceStatus = "present" | "absent" | "late" | "excused";
 
@@ -186,13 +186,7 @@ export function AttendanceManager({ initialClasses }: AttendanceManagerProps) {
     )
 
     return (
-        <AppLayout
-            sidebarItems={sidebarItems}
-            userName={session?.user?.name || "Teacher"}
-            userRole="teacher"
-            userImage={session?.user?.image || undefined}
-        >
-            <div className={`p-4 sm:p-6 space-y-6 ${isMobile ? 'pb-24' : ''}`}>
+        <div className={`p-4 sm:p-6 space-y-6 ${isMobile ? 'pb-24' : ''}`}>
                 <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                     <div>
                         <h1 className="heading-1 text-burgundy-gradient">Attendance</h1>
@@ -374,9 +368,8 @@ export function AttendanceManager({ initialClasses }: AttendanceManagerProps) {
                         )}
                     </CardContent>
                 </Card>
-            </div>
-        </AppLayout>
-    )
+        </div>
+    );
 }
 
 function SummaryCard({ title, count, icon: Icon, color }: any) {

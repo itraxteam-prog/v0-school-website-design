@@ -12,7 +12,7 @@ import {
     AlertCircle,
     Loader2,
 } from "lucide-react"
-import { AppLayout } from "@/components/layout/app-layout"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -24,7 +24,7 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useSession } from "next-auth/react"
 import { ASSESSMENT_PERIOD_OPTIONS, ACADEMIC_YEARS } from "@/lib/academic-constants"
-import { TEACHER_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+
 import { useIsMobile } from "@/hooks/use-mobile"
 import { MobileCardView } from "@/components/ui/mobile-card-view"
 
@@ -188,13 +188,7 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
     )
 
     return (
-        <AppLayout
-            sidebarItems={sidebarItems}
-            userName={session?.user?.name || "Teacher"}
-            userRole="teacher"
-            userImage={session?.user?.image || undefined}
-        >
-            <div className={`p-4 sm:p-6 space-y-6 ${isMobile ? 'pb-24' : ''}`}>
+        <div className={`p-4 sm:p-6 space-y-6 ${isMobile ? 'pb-24' : ''}`}>
                 <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                     <div>
                         <h1 className="heading-1 text-burgundy-gradient">Assessments</h1>
@@ -376,7 +370,6 @@ export function GradebookManager({ initialClasses, initialSubjects }: GradebookM
                     <Button variant="outline" className="flex-1 h-12 rounded-xl text-xs font-bold uppercase tracking-wider glass-card" onClick={handleSaveDraft}>Draft</Button>
                     <Button className="flex-[2] h-12 rounded-xl bg-primary text-white text-xs font-bold uppercase tracking-wider shadow-burgundy-glow/20" onClick={handleSubmitFinal}>Submit Final</Button>
                 </div>
-            </div>
-        </AppLayout>
-    )
+        </div>
+    );
 }

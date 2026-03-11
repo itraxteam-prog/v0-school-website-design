@@ -47,8 +47,8 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
-import { AppLayout } from "@/components/layout/app-layout"
-import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+
+
 import { Badge } from "@/components/ui/badge"
 import { NotifyParentsToggle } from "@/components/portal/admin/notify-parents-toggle"
 
@@ -156,8 +156,7 @@ export function AnnouncementsManager({ initialAnnouncements }: AnnouncementsMana
     )
 
     return (
-        <AppLayout sidebarItems={sidebarItems} userName="Admin" userRole="admin">
-            <div className="flex flex-col gap-8 pb-8">
+        <div className="flex flex-col gap-8 pb-8">
                 <AnimatedWrapper direction="down">
                     <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                         <div>
@@ -346,7 +345,6 @@ export function AnnouncementsManager({ initialAnnouncements }: AnnouncementsMana
                         </CardContent>
                     </Card>
                 </AnimatedWrapper>
-            </div>
-        </AppLayout>
-    )
+        </div>
+    );
 }

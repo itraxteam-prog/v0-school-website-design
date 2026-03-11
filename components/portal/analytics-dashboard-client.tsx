@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { AppLayout } from "@/components/layout/app-layout"
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
@@ -29,7 +29,7 @@ const GradeDistributionChart = dynamic(() => import("@/components/portal/analyti
 const EnrollmentStatsChart = dynamic(() => import("@/components/portal/analytics-charts").then(mod => mod.EnrollmentStatsChart), { ssr: false });
 const SubjectPerformanceChart = dynamic(() => import("@/components/portal/analytics-charts").then(mod => mod.SubjectPerformanceChart), { ssr: false });
 
-import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+
 import { ACADEMIC_YEARS, ASSESSMENT_PERIOD_OPTIONS } from "@/lib/academic-constants"
 
 const chartConfig = {
@@ -96,8 +96,7 @@ export function AnalyticsDashboardClient({ user }: { user: any }) {
 
 
     return (
-        <AppLayout sidebarItems={sidebarItems} userName={user?.name || "Admin"} userRole="admin">
-            <div className="flex flex-col gap-8 pb-8">
+        <div className="flex flex-col gap-8 pb-8">
 
                 {/* Header Section */}
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -249,7 +248,6 @@ export function AnalyticsDashboardClient({ user }: { user: any }) {
                     </Card>
 
                 </div>
-            </div>
-        </AppLayout>
-    )
+        </div>
+    );
 }

@@ -2,13 +2,13 @@
 
 import { useSearchParams } from "next/navigation"
 import { useState, useEffect } from "react"
-import { AppLayout } from "@/components/layout/app-layout"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Search, GraduationCap, Users, BarChart3, Settings, UserCheck, ChevronRight } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+
 
 export function SearchManager() {
     const searchParams = useSearchParams()
@@ -36,8 +36,7 @@ export function SearchManager() {
     )
 
     return (
-        <AppLayout sidebarItems={sidebarItems} userName="Super Admin" userRole="Admin">
-            <div className="flex flex-col gap-8 pb-8">
+        <div className="flex flex-col gap-8 pb-8">
                 <div className="flex flex-col gap-4">
                     <div className="flex flex-col gap-2">
                         <h1 className="heading-1 text-burgundy-gradient">Admin Search</h1>
@@ -99,7 +98,6 @@ export function SearchManager() {
                         )}
                     </div>
                 </div>
-            </div>
-        </AppLayout>
-    )
+        </div>
+    );
 }

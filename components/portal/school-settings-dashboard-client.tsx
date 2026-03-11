@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useToast } from "@/components/ui/use-toast"
-import { AppLayout } from "@/components/layout/app-layout"
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -47,7 +47,7 @@ import * as z from "zod"
 import { motion } from "framer-motion"
 import { useTheme } from "next-themes"
 
-import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+
 
 const settingsSchema = z.object({
     schoolName: z.string().min(2, "School name is required"),
@@ -220,8 +220,7 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
 
     if (loading) {
         return (
-            <AppLayout sidebarItems={sidebarItems} userName={user?.name || "Admin"} userRole="admin">
-                <div className="flex flex-col gap-8 pb-10">
+            <div className="flex flex-col gap-8 pb-10">
                     <div>
                         <Skeleton className="h-10 w-64 mb-2" />
                         <Skeleton className="h-4 w-96" />
@@ -245,15 +244,13 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
                             </CardContent>
                         </Card>
                     </div>
-                </div>
-            </AppLayout>
+            </div>
         )
     }
 
     if (error) {
         return (
-            <AppLayout sidebarItems={sidebarItems} userName={user?.name || "Admin"} userRole="admin">
-                <div className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-4">
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-4">
                     <div className="h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center text-destructive">
                         <AlertCircle className="h-8 w-8" />
                     </div>
@@ -265,15 +262,13 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
                         <RefreshCcw className="h-4 w-4" /> Try Again
                     </Button>
                 </div>
-            </AppLayout>
-        )
+        );
     }
 
     if (!settings) return null
 
     return (
-        <AppLayout sidebarItems={sidebarItems} userName={user?.name || "Admin"} userRole="admin">
-            <div className="flex flex-col gap-8 pb-10">
+        <div className="flex flex-col gap-8 pb-10">
                 {/* Header Section */}
                 <div className="flex justify-between items-start">
                     <div>
@@ -558,7 +553,6 @@ export function SchoolSettingsDashboardClient({ user }: { user: any }) {
                         </div>
                     </form>
                 </Form>
-            </div>
-        </AppLayout>
-    )
+        </div>
+    );
 }

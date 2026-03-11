@@ -48,8 +48,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { AppLayout } from "@/components/layout/app-layout"
-import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+
+
 
 const roleSchema = z.object({
     name: z.string().min(2, { message: "Role name must be at least 2 characters." }),
@@ -202,8 +202,7 @@ export function RolesManager({ initialRoles }: RolesManagerProps) {
     )
 
     return (
-        <AppLayout sidebarItems={sidebarItems} userName="Dr. Ahmad Raza" userRole="admin">
-            <div className="flex flex-col gap-8 pb-8">
+        <div className="flex flex-col gap-8 pb-8">
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
                         <h1 className="heading-1 text-burgundy-gradient">Roles & Permissions</h1>
@@ -400,7 +399,6 @@ export function RolesManager({ initialRoles }: RolesManagerProps) {
                         <span className="text-2xl font-black text-emerald-600">{availablePermissions.length}</span>
                     </Card>
                 </div>
-            </div>
-        </AppLayout>
-    )
+        </div>
+    );
 }

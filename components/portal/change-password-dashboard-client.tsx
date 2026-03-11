@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { AppLayout } from "@/components/layout/app-layout"
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -75,12 +75,7 @@ export function ChangePasswordDashboardClient({ user }: { user: any }) {
     const safeUserRole = user?.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase()) : "User";
 
     return (
-        <AppLayout
-            sidebarItems={getSidebarItems(user?.role)}
-            userName={safeUserName}
-            userRole={safeUserRole}
-        >
-            <div className="max-w-2xl mx-auto py-8 px-4">
+        <div className="max-w-2xl mx-auto py-8 px-4">
                 <AnimatedWrapper direction="down">
                     <div className="mb-8">
                         <h1 className="heading-1 text-burgundy-gradient">Account Security</h1>
@@ -191,7 +186,6 @@ export function ChangePasswordDashboardClient({ user }: { user: any }) {
                         </CardContent>
                     </Card>
                 </AnimatedWrapper>
-            </div>
-        </AppLayout>
-    )
+        </div>
+    );
 }

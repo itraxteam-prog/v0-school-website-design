@@ -67,8 +67,8 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
-import { AppLayout } from "@/components/layout/app-layout"
-import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+
+
 
 const studentSchema = z.object({
     name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -379,8 +379,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
     )
 
     return (
-        <AppLayout sidebarItems={sidebarItems} userName={session?.user?.name || "Admin"} userRole="admin">
-            <div className="flex flex-col gap-8 pb-8">
+        <div className="flex flex-col gap-8 pb-8">
                 <AnimatedWrapper direction="down">
                     <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                         <div className="flex flex-col gap-1">
@@ -920,7 +919,6 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                     </div>
                 </AnimatedWrapper>
 
-            </div>
-        </AppLayout>
-    )
+        </div>
+    );
 }

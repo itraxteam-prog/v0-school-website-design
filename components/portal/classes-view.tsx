@@ -15,13 +15,13 @@ import {
     ExternalLink,
     ShieldCheck,
 } from "lucide-react"
-import { AppLayout } from "@/components/layout/app-layout"
+
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { useSession } from "next-auth/react"
-import { TEACHER_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+
 
 interface ClassesViewProps {
     initialClasses: any[];
@@ -30,13 +30,7 @@ interface ClassesViewProps {
 export function ClassesView({ initialClasses }: ClassesViewProps) {
     const { data: session } = useSession()
     return (
-        <AppLayout
-            sidebarItems={sidebarItems}
-            userName={session?.user?.name || "Teacher"}
-            userRole="teacher"
-            userImage={session?.user?.image || undefined}
-        >
-            <div className="flex flex-col gap-8 pb-8">
+        <div className="flex flex-col gap-8 pb-8">
                 <div className="flex flex-col gap-1">
                     <h1 className="heading-2 text-burgundy-gradient">My Classes</h1>
                     <p className="text-sm text-muted-foreground">Manage your assigned classes and monitor student progress.</p>
@@ -100,7 +94,6 @@ export function ClassesView({ initialClasses }: ClassesViewProps) {
                     </div>
                     <Button className="mt-4 lg:mt-0 w-full lg:w-auto bg-primary text-white hover:bg-primary/90" onClick={() => window.location.href = '/portal/teacher'}>View Full Timetable</Button>
                 </div>
-            </div>
-        </AppLayout>
-    )
+        </div>
+    );
 }

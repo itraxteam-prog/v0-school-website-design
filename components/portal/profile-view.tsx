@@ -20,7 +20,7 @@ import {
     BadgeCheck,
     ShieldCheck,
 } from "lucide-react"
-import { AppLayout } from "@/components/layout/app-layout"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -28,7 +28,6 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
 import { useSession } from "next-auth/react"
-import { ADMIN_SIDEBAR, TEACHER_SIDEBAR, STUDENT_SIDEBAR } from "@/lib/navigation-config"
 
 interface ProfileViewProps {
     data: any;
@@ -142,13 +141,7 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
     };
 
     return (
-        <AppLayout
-            sidebarItems={finalSidebarItems}
-            userName={session?.user?.name || profileData.name}
-            userRole={userRole}
-            userImage={profileData.avatarUrl || session?.user?.image}
-        >
-            <div className="flex flex-col gap-8 pb-8">
+        <div className="flex flex-col gap-8 pb-8">
                 <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                     <div className="flex flex-col gap-1">
                         <h1 className="heading-2 text-burgundy-gradient">My Profile</h1>
@@ -342,9 +335,8 @@ export function ProfileView({ data: initialData, sidebarItems: propSidebarItems,
                         </ProfileInfoSection>
                     </div>
                 </div>
-            </div>
-        </AppLayout>
-    )
+        </div>
+    );
 }
 
 function formatDateDisplay(dateStr: string) {

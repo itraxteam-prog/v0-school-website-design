@@ -14,7 +14,7 @@ import {
     Search,
     ShieldCheck,
 } from "lucide-react"
-import { AppLayout } from "@/components/layout/app-layout"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -31,7 +31,7 @@ const TeacherAttendanceTrendChart = dynamic(() => import("@/components/portal/te
 const TeacherPerformanceOverviewChart = dynamic(() => import("@/components/portal/teacher-reports-charts").then(mod => mod.TeacherPerformanceOverviewChart), { ssr: false });
 
 import { useSession } from "next-auth/react"
-import { TEACHER_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+
 import { ASSESSMENT_PERIOD_OPTIONS, ACADEMIC_YEARS } from "@/lib/academic-constants"
 
 interface TeacherReportsManagerProps {
@@ -166,13 +166,7 @@ export function TeacherReportsManager({
     }
 
     return (
-        <AppLayout
-            sidebarItems={sidebarItems}
-            userName={session?.user?.name || "Teacher"}
-            userRole="teacher"
-            userImage={session?.user?.image || undefined}
-        >
-            <div className="flex flex-col gap-8 pb-8">
+        <div className="flex flex-col gap-8 pb-8">
                 <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                     <div>
                         <h1 className="heading-2 text-burgundy-gradient">Academic Reports</h1>
@@ -323,7 +317,6 @@ export function TeacherReportsManager({
                         </Table>
                     </CardContent>
                 </Card>
-            </div>
-        </AppLayout>
-    )
+        </div>
+    );
 }

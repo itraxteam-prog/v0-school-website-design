@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Users, ShieldCheck, Calendar, Loader2, Mail, CheckCircle, Search, Save } from "lucide-react"
-import { AppLayout } from "@/components/layout/app-layout"
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner"
 import { cn, formatName } from "@/lib/utils"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
-import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+
 import { useIsMobile } from "@/hooks/use-mobile"
 import { MobileCardView } from "@/components/ui/mobile-card-view"
 
@@ -108,8 +108,7 @@ export function AdminDashboardClient() {
     );
 
     return (
-        <AppLayout sidebarItems={sidebarItems} userName={session?.user?.name || "Admin"} userRole="admin">
-            <div className="p-4 sm:p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-6">
                 <AnimatedWrapper direction="down">
                     <div className="flex flex-col gap-1 mb-6">
                         <h1 className="heading-1 text-burgundy-gradient">Welcome back, {formatName(session?.user?.name?.split(' ')[0]) || 'Admin'}</h1>
@@ -264,8 +263,7 @@ export function AdminDashboardClient() {
                         </CardContent>
                     </Card>
                 </AnimatedWrapper>
-            </div>
-        </AppLayout>
+        </div>
     );
 }
 

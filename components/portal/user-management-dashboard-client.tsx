@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { AppLayout } from "@/components/layout/app-layout"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -65,7 +65,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
-import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+
 
 const userSchema = z.object({
     fullName: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -204,8 +204,7 @@ export function UserManagementDashboardClient({ user: currentUser }: { user: any
     })
 
     return (
-        <AppLayout sidebarItems={sidebarItems} userName={currentUser?.name || "Admin"} userRole="admin">
-            <div className="flex flex-col gap-8 pb-8">
+        <div className="flex flex-col gap-8 pb-8">
                 <AnimatedWrapper direction="down">
                     <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                         <div className="flex flex-col gap-1">
@@ -558,7 +557,6 @@ export function UserManagementDashboardClient({ user: currentUser }: { user: any
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
-            </div>
-        </AppLayout>
-    )
+        </div>
+    );
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { AppLayout } from "@/components/layout/app-layout"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { AnimatedWrapper } from "@/components/ui/animated-wrapper"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Users, PlusCircle, Pencil, Trash2, Loader2 } from "lucide-react"
-import { ADMIN_SIDEBAR } from "@/lib/navigation-config"
+
 import { AddParentDialog } from "@/components/portal/admin/add-parent-dialog"
 import { toast } from "sonner"
 
@@ -89,8 +89,7 @@ export default function AdminParentsPage() {
     }
 
     return (
-        <AppLayout sidebarItems={ADMIN_SIDEBAR} userName="Admin" userRole="Admin">
-            <div className="flex flex-col gap-8 pb-8">
+        <div className="flex flex-col gap-8 pb-8">
                 {/* Header */}
                 <AnimatedWrapper direction="down">
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -225,14 +224,13 @@ export default function AdminParentsPage() {
                         </CardContent>
                     </Card>
                 </AnimatedWrapper>
-            </div>
 
-            <AddParentDialog
-                open={dialogOpen}
-                onOpenChange={handleDialogChange}
-                onSuccess={fetchParents}
-                initialData={editingParent}
-            />
-        </AppLayout>
-    )
+                <AddParentDialog
+                    open={dialogOpen}
+                    onOpenChange={handleDialogChange}
+                    onSuccess={fetchParents}
+                    initialData={editingParent}
+                />
+        </div>
+    );
 }

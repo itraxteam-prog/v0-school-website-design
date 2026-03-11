@@ -33,8 +33,8 @@ import {
     Clock,
 } from "lucide-react"
 import dynamic from "next/dynamic"
-import { AppLayout } from "@/components/layout/app-layout"
-import { ADMIN_SIDEBAR as sidebarItems } from "@/lib/navigation-config"
+
+
 import { ASSESSMENT_PERIOD_OPTIONS } from "@/lib/academic-constants"
 
 const ReportAttendanceChart = dynamic(() => import("@/components/portal/report-charts").then(mod => mod.ReportAttendanceChart), { ssr: false });
@@ -110,8 +110,7 @@ export function ReportsManager({ initialData, classes, currentFilters }: Reports
 
 
     return (
-        <AppLayout sidebarItems={sidebarItems} userName="Dr. Ahmad Raza" userRole="admin">
-            <div className="flex flex-col gap-8 pb-8">
+        <div className="flex flex-col gap-8 pb-8">
                 <div>
                     <h1 className="heading-1 text-burgundy-gradient">Institutional Reports</h1>
                     <p className="text-sm text-muted-foreground">Generate comprehensive performance and operational summaries.</p>
@@ -326,7 +325,6 @@ export function ReportsManager({ initialData, classes, currentFilters }: Reports
                         </div>
                     </div>
                 )}
-            </div>
-        </AppLayout>
-    )
+        </div>
+    );
 }
