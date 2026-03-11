@@ -34,7 +34,25 @@ export function StudentDashboardClient({ user }: StudentDashboardClientProps) {
                 if (!res.ok) throw new Error("Failed to fetch dashboard stats");
 
                 const result = await res.json();
-                setData(result);
+                
+                if (result && !result.error) {
+                    setData({
+                        stats: {
+                            performance: result.stats?.performance ?? "N/A",
+                            attendance: result.stats?.attendance ?? "N/A",
+                            totalSubjects: result.stats?.totalSubjects ?? 0,
+                            assignments: result.stats?.assignments ?? 0
+                        },
+                        recentGrades: Array.isArray(result.recentGrades) ? result.recentGrades : [],
+                        upcomingEvents: Array.isArray(result.upcomingEvents) ? result.upcomingEvents : [],
+                        performanceTrend: Array.isArray(result.performanceTrend) ? result.performanceTrend : [],
+                        subjectComparison: Array.isArray(result.subjectComparison) ? result.subjectComparison : [],
+                        classInfo: result.classInfo || { name: "Not Assigned", teacher: "Unassigned" },
+                        announcement: result.announcement || null
+                    });
+                } else {
+                    throw new Error(result?.error || "Invalid response format");
+                }
             } catch (error: any) {
                 console.error("Failed to fetch dashboard data", error);
                 setData({
@@ -42,7 +60,9 @@ export function StudentDashboardClient({ user }: StudentDashboardClientProps) {
                     recentGrades: [],
                     upcomingEvents: [],
                     performanceTrend: [],
-                    subjectComparison: []
+                    subjectComparison: [],
+                    classInfo: { name: "Not Assigned", teacher: "Unassigned" },
+                    announcement: null
                 });
             } finally {
                 setLoading(false);

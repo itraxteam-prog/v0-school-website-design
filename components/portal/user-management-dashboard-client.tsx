@@ -124,7 +124,13 @@ export function UserManagementDashboardClient({ user: currentUser }: { user: any
             const response = await fetch("/api/admin/users")
             if (!response.ok) throw new Error("Failed to fetch users")
             const data = await response.json()
-            setUsers(data)
+            if (Array.isArray(data)) {
+                setUsers(data)
+            } else {
+                console.error("User list is not an array:", data)
+                setUsers([])
+                throw new Error(data?.error || "Invalid user data received")
+            }
         } catch (err: any) {
             setError(err.message || "An unexpected error occurred")
             toast.error("Could not load users. Please try again.")

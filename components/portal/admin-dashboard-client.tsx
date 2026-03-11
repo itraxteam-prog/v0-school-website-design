@@ -39,26 +39,40 @@ export function AdminDashboardClient() {
     useEffect(() => {
         // Fetch users
         fetch("/api/admin/users")
-            .then((res) => res.json())
-            .then((data) => {
-                setUsers(data);
+            .then(async (res) => {
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    setUsers(data);
+                } else {
+                    console.error("Users API returned non-array data:", data);
+                    setUsers([]);
+                    // Show specific error if provided by API
+                    if (data?.error) toast.error(data.error);
+                }
                 setLoading(false);
             })
             .catch((err) => {
                 console.error("Failed to fetch users", err);
                 toast.error("Failed to load users");
+                setUsers([]);
                 setLoading(false);
             });
 
         // Fetch stats
         fetch("/api/admin/stats")
-            .then((res) => res.json())
-            .then((data) => {
-                setStats(data);
+            .then(async (res) => {
+                const data = await res.json();
+                if (data && !data.error) {
+                    setStats(data);
+                } else {
+                    console.error("Stats API error or invalid data:", data);
+                    setStats({ stats: { totalStudents: 0, totalTeachers: 0, attendanceToday: "0%", totalClasses: 0 } });
+                }
                 setStatsLoading(false);
             })
             .catch((err) => {
                 console.error("Failed to fetch admin stats", err);
+                setStats({ stats: { totalStudents: 0, totalTeachers: 0, attendanceToday: "0%", totalClasses: 0 } });
                 setStatsLoading(false);
             });
     }, []);

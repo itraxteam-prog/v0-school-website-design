@@ -82,9 +82,25 @@ export function AnalyticsDashboardClient({ user }: { user: any }) {
                 const res = await fetch(`/api/admin/analytics?${params.toString()}`, { credentials: "include" })
                 if (!res.ok) throw new Error("Failed to fetch analytics")
                 const result = await res.json()
-                setData(result)
+                
+                if (result && !result.error) {
+                    setData({
+                        attendanceData: Array.isArray(result.attendanceData) ? result.attendanceData : [],
+                        gradeDistribution: Array.isArray(result.gradeDistribution) ? result.gradeDistribution : [],
+                        enrollmentData: Array.isArray(result.enrollmentData) ? result.enrollmentData : [],
+                        subjectPerformance: Array.isArray(result.subjectPerformance) ? result.subjectPerformance : []
+                    })
+                } else {
+                    throw new Error(result?.error || "Invalid data format")
+                }
             } catch (error) {
                 console.error("Analytics fetch error:", error)
+                setData({
+                    attendanceData: [],
+                    gradeDistribution: [],
+                    enrollmentData: [],
+                    subjectPerformance: []
+                })
             } finally {
                 setLoading(false)
             }

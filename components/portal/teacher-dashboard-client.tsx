@@ -48,27 +48,35 @@ export function TeacherDashboardClient({ user }: TeacherDashboardClientProps) {
 
                 if (statsRes.ok) {
                     const result = await statsRes.json();
-                    stats = result.stats || stats;
+                    if (result && !result.error) {
+                        stats = result.stats || stats;
+                    }
                 }
 
                 if (classesRes.ok) {
                     const result = await classesRes.json();
-                    classes = result.data || [];
+                    if (result && Array.isArray(result.data)) {
+                        classes = result.data;
+                    } else if (Array.isArray(result)) {
+                        classes = result;
+                    }
                 }
 
                 if (timetableRes.ok) {
                     const result = await timetableRes.json();
-                    schedule = Array.isArray(result) ? result.map((entry: any) => ({
+                    const rawSchedule = Array.isArray(result) ? result : (Array.isArray(result.data) ? result.data : []);
+                    schedule = rawSchedule.map((entry: any) => ({
                         time: `${entry.startTime} - ${entry.endTime}`,
                         class: entry.class?.name || "N/A",
                         subject: entry.subjectName,
                         room: entry.room || "N/A",
                         dayOfWeek: entry.dayOfWeek
-                    })) : [];
+                    }));
                 }
 
                 if (announcementsRes.ok) {
-                    announcements = await announcementsRes.json();
+                    const result = await announcementsRes.json();
+                    announcements = Array.isArray(result) ? result : (Array.isArray(result.data) ? result.data : []);
                 }
 
                 // Map current day to enum
