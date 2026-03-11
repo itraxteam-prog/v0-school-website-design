@@ -62,20 +62,6 @@ export function SecurityDashboardClient({ user }: { user: any }) {
         }
     };
 
-    // Get sidebar items based on role - robust version
-    const getSidebarItems = () => {
-        if (!user || !user.role) return STUDENT_SIDEBAR;
-        const role = String(user.role).toUpperCase()
-
-        if (role === 'ADMIN') return ADMIN_SIDEBAR
-        if (role === 'TEACHER') return TEACHER_SIDEBAR
-        if (role === 'STUDENT') return STUDENT_SIDEBAR
-
-        return STUDENT_SIDEBAR
-    }
-
-    const safeUserName = user?.name || user?.email?.split('@')[0] || "User";
-    const safeUserRole = (user?.role || "user").toLowerCase();
 
     return (
         <div className="flex flex-col gap-6 pb-8">
