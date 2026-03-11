@@ -28,6 +28,7 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
 import { useSession } from "next-auth/react"
+import { TEACHER_SIDEBAR, ADMIN_SIDEBAR, STUDENT_SIDEBAR } from "@/lib/navigation-config"
 
 interface ProfileViewProps {
     data: any;
