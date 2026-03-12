@@ -120,11 +120,14 @@
 
   html {
     scroll-behavior: smooth;
+    height: 100%;
   }
 
   body {
     @apply bg-background text-foreground;
     -webkit-overflow-scrolling: touch;
+    height: 100%;
+    margin: 0;
   }
 
   h1,
@@ -233,6 +236,10 @@
   .bg-burgundy-glow {
     background: radial-gradient(circle at center, #800020 0%, #4D0013 100%);
     box-shadow: 0 0 20px rgba(128, 0, 32, 0.3);
+  }
+
+  .bg-burgundy-overflow {
+    box-shadow: 0 100vh 0 100vh #4D0013;
   }
 
   .text-burgundy-gradient {

@@ -172,7 +172,7 @@ export function AppLayout({
     <div
       ref={portalRef}
       data-portal-root
-      className={`flex h-[100dvh] overflow-hidden bg-secondary ${isDark ? 'portal-dark' : ''}`}
+      className={`flex h-[100dvh] w-screen overflow-hidden bg-background ${isDark ? 'portal-dark' : ''}`}
     >
       {/* Sidebar Overlay (mobile) */}
       <AnimatePresence>
@@ -278,7 +278,7 @@ export function AppLayout({
       </motion.aside>
 
       {/* Main Content Area */}
-      <div className="flex flex-1 flex-col overflow-hidden relative">
+      <div className="flex flex-col flex-1 min-w-0 bg-secondary">
         {/* Top Bar */}
         <header className="flex h-14 items-center justify-between border-b border-border bg-background px-4 lg:px-6 shrink-0 z-30">
           <div className="flex items-center gap-3">
