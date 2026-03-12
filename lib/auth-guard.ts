@@ -5,6 +5,10 @@ import { NextResponse } from "next/server";
 import { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next";
 import { isSessionValid } from "./verify-active-session";
 import { redirect } from "next/navigation";
+import { logger } from "./logger";
+import * as Sentry from "@sentry/nextjs";
+
+const isProd = process.env.NODE_ENV === "production";
 
 type AuthContext =
     | { req: NextApiRequest; res: NextApiResponse }
@@ -25,7 +29,8 @@ export async function requirePortalAuth(allowedRoles: Role | Role[], context?: A
             ? await getServerSession(context.req, context.res, authOptions)
             : await getServerSession(authOptions);
     } catch (error) {
-        logger.error({ error }, "PORTAL_AUTH_SESSION_FETCH_ERROR");
+        if (logger) logger.error({ error }, "PORTAL_AUTH_SESSION_FETCH_ERROR");
+        // If it's a connection error, it's safer to redirect than to throw 500
         if (!context) redirect("/portal/login?error=ConnectionError");
         throw new Error("UNAUTHORIZED");
     }
@@ -36,12 +41,14 @@ export async function requirePortalAuth(allowedRoles: Role | Role[], context?: A
     }
 
     // Verify account status (isActive)
-    if (!(await isSessionValid(session.user.id))) {
+    const isValid = await isSessionValid(session.user.id);
+    if (!isValid) {
         if (!context) redirect("/portal/login?error=Suspended");
         throw new Error("SUSPENDED");
     }
 
     const userRole = (session.user.role as string)?.toUpperCase();
+    if (!userRole) throw new Error("UNAUTHORIZED");
 
     const roles = Array.isArray(allowedRoles) 
         ? allowedRoles.map(r => r.toUpperCase()) 
@@ -49,7 +56,7 @@ export async function requirePortalAuth(allowedRoles: Role | Role[], context?: A
 
     if (!roles.includes(userRole)) {
         if (!context) {
-            const redirectPath = userRole ? `/portal/${userRole.toLowerCase()}` : "/portal/login";
+            const redirectPath = `/portal/${userRole.toLowerCase()}`;
             redirect(`${redirectPath}?error=AccessDenied`);
         }
         throw new Error("FORBIDDEN");
@@ -69,13 +76,6 @@ export async function requireRole(roles: Role | Role[], context?: AuthContext) {
 export async function requireActiveUser(context?: AuthContext) {
     return await requirePortalAuth(["ADMIN", "TEACHER", "STUDENT", "PARENT"], context);
 }
-
-
-import { logger } from "./logger";
-
-import * as Sentry from "@sentry/nextjs";
-
-const isProd = process.env.NODE_ENV === "production";
 
 export function handleAuthError(error: unknown) {
     if (error instanceof Error && error.message === "NEXT_REDIRECT") {
@@ -118,7 +118,7 @@ export function handleAuthError(error: unknown) {
     }
 
     // Log the full error for internal tracking
-    logger.error({ error }, "API_ROUTE_ERROR");
+    if (logger) logger.error({ error }, "API_ROUTE_ERROR");
     Sentry.captureException(error);
 
     return NextResponse.json({
@@ -141,7 +141,7 @@ export function handlePagesAuthError(res: NextApiResponse, error: unknown) {
         }
     }
 
-    logger.error({ error }, "Pages API Error");
+    if (logger) logger.error({ error }, "Pages API Error");
     return res.status(500).json({ success: false, error: "Internal server error" });
 }
 

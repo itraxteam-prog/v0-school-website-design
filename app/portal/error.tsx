@@ -33,8 +33,13 @@ export default function Error({
             </p>
           </CardHeader>
           <CardContent className="pb-8 pt-2">
-            <div className="rounded-lg bg-muted/30 p-3 text-[10px] font-mono text-muted-foreground/70 break-all select-all">
-              ID: {error.digest || "An internal error occurred"}
+            <div className="rounded-lg bg-muted/30 p-3 text-left space-y-2">
+              <div className="text-[10px] font-mono text-muted-foreground/70 break-all select-all">
+                ID: {error.digest || "N/A"}
+              </div>
+              <div className="text-xs font-semibold text-destructive/80 break-words">
+                {error.message || "An unexpected error occurred"}
+              </div>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-3 sm:flex-row sm:justify-center pb-8 px-8">
