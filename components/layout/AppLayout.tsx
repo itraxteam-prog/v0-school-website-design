@@ -18,7 +18,28 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 export interface SidebarItem {
   href: string
   label: string
-  icon: LucideIcon
+  icon: any // Now accepting string icon names
+}
+
+import * as Icons from "lucide-react"
+
+const IconMap: Record<string, Icons.LucideIcon> = {
+  LayoutDashboard: Icons.LayoutDashboard,
+  GraduationCap: Icons.GraduationCap,
+  Users: Icons.Users,
+  School: Icons.School,
+  Clock: Icons.Clock,
+  BarChart3: Icons.BarChart3,
+  FileBarChart: Icons.FileBarChart,
+  Settings: Icons.Settings,
+  ShieldCheck: Icons.ShieldCheck,
+  BookMarked: Icons.BookMarked,
+  CalendarCheck: Icons.CalendarCheck,
+  User: Icons.User,
+  FileText: Icons.FileText,
+  Megaphone: Icons.Megaphone,
+  Calendar: Icons.Calendar,
+  BookOpen: Icons.BookOpen,
 }
 
 interface AppLayoutProps {
@@ -227,7 +248,14 @@ export function AppLayout({
                       className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${isActive ? "text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
                         }`}
                     >
-                      <item.icon className="h-[18px] w-[18px]" />
+                      {typeof item.icon === 'string' ? (
+                        (() => {
+                          const IconComp = IconMap[item.icon] || Icons.HelpCircle;
+                          return <IconComp className="h-[18px] w-[18px]" />;
+                        })()
+                      ) : (
+                        <item.icon className="h-[18px] w-[18px]" />
+                      )}
                       {item.label}
                     </span>
                   </Link>

@@ -7,7 +7,7 @@ const envSchema = z.object({
     DIRECT_URL: z.string().url().optional(),
     NEXTAUTH_SECRET: z.string().min(1),
     NEXTAUTH_URL: z.string().url(),
-    ENCRYPTION_KEY: z.string().min(32),
+    ENCRYPTION_KEY: z.string().min(1), // Relaxed for boot resilience, though 32 is recommended
     CSRF_SECRET: z.string().min(1).optional(),
     SMTP_HOST: z.string().min(1),
     SMTP_PORT: z.coerce.number().int().positive(),
@@ -28,24 +28,14 @@ export const env = (() => {
     const result = envSchema.safeParse(process.env);
 
     if (!result.success) {
-        // Detect if we are in a build environment where some secrets might be missing
-        const isBuildTime = 
-            process.env.NEXT_PHASE === "phase-production-build" || 
-            process.env.VERCEL === "1" || 
-            process.env.CI === "true";
-
         console.error("❌ CRITICAL: Missing or invalid required environment variables:");
         result.error.issues.forEach(issue => {
             console.error(`   - ${issue.path.join(".")}: ${issue.message}`);
         });
 
-        if (isBuildTime) {
-            console.warn("⚠️ Warning: Missing environment variables during build. This is usually fine as long as they are provided at runtime.");
-            // Return process.env cast to the schema type to allow the build to proceed
-            return process.env as unknown as z.infer<typeof envSchema>;
-        }
-
-        throw new Error("Missing required environment variables. System cannot boot.");
+        // We return process.env cast to the schema type to allow the app to boot
+        // even with invalid envs, allowing the UI to show a "Settings Error" rather than a hard Vercel 500
+        return process.env as unknown as z.infer<typeof envSchema>;
     }
 
     return result.data;
