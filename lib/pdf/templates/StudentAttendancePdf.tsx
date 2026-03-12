@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 8,
         borderRadius: 4,
-        backgroundColor: "#f3f4f6",
+        backgroundColor: "#FDF2F4",
         alignItems: "center",
     },
     summaryLabel: { fontSize: 8, color: "#6b7280", marginBottom: 2 },
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     table: { width: "100%" },
     tableHeader: {
         flexDirection: "row",
-        backgroundColor: "#1a1a2e",
+        backgroundColor: "#800020",
         padding: 6,
         borderRadius: 4,
         marginBottom: 2,
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     tableRowAlt: {
         flexDirection: "row",
         padding: 6,
-        backgroundColor: "#f9fafb",
+        backgroundColor: "#FFF9FA",
         borderBottomWidth: 1,
         borderBottomColor: "#f3f4f6",
     },

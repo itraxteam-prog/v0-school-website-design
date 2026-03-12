@@ -33,8 +33,8 @@ const styles = StyleSheet.create({
         fontSize: 10,
         color: "#1a1a2e"
     },
-    header: { flexDirection: "row", marginBottom: 20, alignItems: "flex-start" },
-    logo: { width: 50, height: 50, marginRight: 15 },
+    header: { flexDirection: "row", marginBottom: 20, alignItems: "center" },
+    logo: { width: 80, height: 80, marginRight: 20 },
     headerText: { flex: 1 },
     schoolName: { fontSize: 18, fontFamily: "Helvetica-Bold", color: "#1a1a2e", marginBottom: 4 },
     reportTitle: { fontSize: 13, color: "#4b5563", marginBottom: 2 },
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
     table: { width: "100%", marginBottom: 14 },
     tableHeader: {
         flexDirection: "row",
-        backgroundColor: "#1a1a2e",
+        backgroundColor: "#800020",
         padding: 6,
         borderRadius: 4,
         marginBottom: 2,
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     tableRowAlt: {
         flexDirection: "row",
         padding: 6,
-        backgroundColor: "#f9fafb",
+        backgroundColor: "#FFF9FA",
         borderBottomWidth: 1,
         borderBottomColor: "#f3f4f6",
     },
