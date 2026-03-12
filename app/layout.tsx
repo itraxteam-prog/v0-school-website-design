@@ -44,6 +44,7 @@ export const viewport: Viewport = {
 import { AuthProvider } from '@/context/AuthContext';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from "@/components/ui/sonner";
+import { Analytics } from "@vercel/analytics/react"
 
 export default async function RootLayout({
   children,
@@ -67,6 +68,7 @@ export default async function RootLayout({
           </AuthProvider>
           <Toaster />
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   )
