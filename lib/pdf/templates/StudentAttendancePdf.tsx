@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
         color: "#1a1a2e"
     },
     header: { flexDirection: "row", marginBottom: 20, alignItems: "center" },
-    logo: { width: 80, height: 80, marginRight: 20 },
+    logo: { width: 110, height: 110, marginRight: 25 },
     headerText: { flex: 1 },
     schoolName: { fontSize: 18, fontFamily: "Helvetica-Bold", color: "#1a1a2e", marginBottom: 4 },
     reportTitle: { fontSize: 13, color: "#4b5563", marginBottom: 2 },
