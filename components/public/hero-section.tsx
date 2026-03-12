@@ -16,7 +16,7 @@ export function HeroSection() {
       <div className="absolute inset-0 bg-burgundy-gradient opacity-90" />
       <div className="absolute inset-0 bg-black/40" />
 
-      <div className="relative z-10 mx-auto w-full max-w-[1280px] px-4 py-16 md:px-6 md:py-24 lg:px-8">
+      <div className="relative z-10 mx-auto w-full max-w-[1280px] px-4 md:px-6 lg:px-8">
         <div className="max-w-2xl">
           <AnimatedWrapper direction="down" delay={0.1}>
             <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-white/50">

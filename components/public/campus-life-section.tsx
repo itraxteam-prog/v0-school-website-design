@@ -14,7 +14,7 @@ export function CampusLifeSection() {
   const ref = useScrollAnimation()
 
   return (
-    <section ref={ref} className="bg-secondary">
+    <section ref={ref} className="bg-secondary py-16 md:py-24">
       <div className="mx-auto max-w-[1280px] px-4 md:px-6 lg:px-8">
         <div className="animate-on-scroll mb-12 text-center">
           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">

@@ -17,7 +17,7 @@ export async function NoticeBoard() {
     })
 
     return (
-        <section className="bg-background relative overflow-hidden">
+        <section className="bg-background py-16 md:py-24 relative overflow-hidden">
             <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
             <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
