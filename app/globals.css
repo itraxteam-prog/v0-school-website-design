@@ -121,6 +121,12 @@
   html {
     scroll-behavior: smooth;
     height: 100%;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+  }
+
+  html::-webkit-scrollbar {
+    display: none; /* Chrome/Safari/Webkit */
   }
 
   body {
@@ -128,6 +134,21 @@
     -webkit-overflow-scrolling: touch;
     height: 100%;
     margin: 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  body::-webkit-scrollbar {
+    display: none;
+  }
+
+  * {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  *::-webkit-scrollbar {
+    display: none;
   }
 
   h1,
@@ -249,7 +270,7 @@
     top: 100%;
     left: 0;
     right: 0;
-    height: 100vh;
+    height: 200px; /* Reduced height to prevent extra section scroll */
     background-color: #4D0013;
     z-index: -1;
   }
