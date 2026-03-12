@@ -1,10 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import path from "path";
-import fs from "fs";
 
 /**
- * Fetches the school logo from dynamic settings or a local fallback.
- * Returns a Base64 data URI string suitable for @react-pdf/renderer.
+ * Fetches the school logo from dynamic settings or an absolute URL fallback.
+ * Returns a Base64 data URI string or URL suitable for @react-pdf/renderer.
  */
 export async function getSchoolLogo(): Promise<string> {
     try {
@@ -17,23 +15,9 @@ export async function getSchoolLogo(): Promise<string> {
             return logoSetting.value;
         }
 
-        // 2. Fallback to high-quality local logo
-        const fallbackPath = path.join(process.cwd(), "public", "images", "logo.png");
-        if (fs.existsSync(fallbackPath)) {
-            const buffer = fs.readFileSync(fallbackPath);
-            const base64 = buffer.toString("base64");
-            return `data:image/png;base64,${base64}`;
-        }
-
-        // 3. Absolute final fallback (placeholder if everything else fails)
-        const placeholderPath = path.join(process.cwd(), "public", "placeholder-logo.png");
-        if (fs.existsSync(placeholderPath)) {
-            const buffer = fs.readFileSync(placeholderPath);
-            const base64 = buffer.toString("base64");
-            return `data:image/png;base64,${base64}`;
-        }
-
-        return "";
+        // 2. Fallback to high-quality absolute URL
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+        return `${baseUrl}/images/logo.png`;
     } catch (error) {
         console.error("[getSchoolLogo] Error retrieving logo:", error);
         return "";
