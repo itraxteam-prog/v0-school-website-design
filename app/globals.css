@@ -238,8 +238,20 @@
     box-shadow: 0 0 20px rgba(128, 0, 32, 0.3);
   }
 
-  .bg-burgundy-overflow {
-    box-shadow: 0 100vh 0 100vh #4D0013;
+  /* Extends the footer color downward indefinitely to hide page gaps */
+  .bg-footer-extension {
+    position: relative;
+  }
+
+  .bg-footer-extension::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 100vh;
+    background-color: #4D0013;
+    z-index: -1;
   }
 
   .text-burgundy-gradient {

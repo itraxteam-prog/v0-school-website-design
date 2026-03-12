@@ -172,7 +172,7 @@ export function AppLayout({
     <div
       ref={portalRef}
       data-portal-root
-      className={`flex h-[100dvh] w-screen overflow-hidden bg-background ${isDark ? 'portal-dark' : ''}`}
+      className={`flex h-[100dvh] w-screen overflow-hidden bg-secondary ${isDark ? 'portal-dark' : ''}`}
     >
       {/* Sidebar Overlay (mobile) */}
       <AnimatePresence>
