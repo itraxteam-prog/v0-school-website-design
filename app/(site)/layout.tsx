@@ -3,10 +3,10 @@ import { Footer } from "@/components/public/footer"
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
     return (
-        <>
+        <div className="flex flex-col min-h-[100dvh]">
             <Navbar />
-            <main className="min-h-screen">{children}</main>
+            <main className="flex-grow">{children}</main>
             <Footer />
-        </>
+        </div>
     )
 }

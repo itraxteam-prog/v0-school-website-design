@@ -443,11 +443,12 @@ export function AppLayout({
         </header>
 
         {/* Main Content Body */}
-        <main className={`flex-1 overflow-y-auto p-4 lg:p-6 scroll-smooth ${isMobile ? 'pb-24' : ''}`} style={{ WebkitOverflowScrolling: "touch" }}>
+        <main className={`flex-1 overflow-y-auto p-4 pb-0 lg:p-6 lg:pb-0 scroll-smooth ${isMobile ? 'pb-24' : ''}`} style={{ WebkitOverflowScrolling: "touch" }}>
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: isMobile ? 0.15 : 0.3, ease: "easeOut" }}
+            className="pb-8"
           >
             {children}
           </motion.div>
@@ -455,7 +456,7 @@ export function AppLayout({
 
         {/* Mobile Bottom Navigation - Sticky at bottom */}
         {isMobile && (
-          <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-lg border-t border-border flex items-center justify-between px-2 pb-safe-a pt-2">
+          <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-lg border-t border-border flex items-center justify-between px-2 pb-safe pt-2">
             <BottomNavLink href={portalBase} active={safePathname === portalBase} icon={LayoutDashboard} label="Home" />
             <BottomNavLink href={`${portalBase}/announcements`} active={safePathname.includes('/announcements')} icon={Megaphone} label="Alerts" />
             <div className="flex flex-col items-center justify-center flex-1 py-1" onClick={() => setSidebarOpen(true)}>

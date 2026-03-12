@@ -171,6 +171,10 @@
     padding-bottom: env(safe-area-inset-bottom, 1rem);
   }
 
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
   .mobile-only {
     @apply lg:hidden;
   }
