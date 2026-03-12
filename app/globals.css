@@ -259,21 +259,7 @@
     box-shadow: 0 0 20px rgba(128, 0, 32, 0.3);
   }
 
-  /* Extends the footer color downward indefinitely to hide page gaps */
-  .bg-footer-extension {
-    position: relative;
-  }
 
-  .bg-footer-extension::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    height: 200px; /* Reduced height to prevent extra section scroll */
-    background-color: #4D0013;
-    z-index: -1;
-  }
 
   .text-burgundy-gradient {
     @apply bg-clip-text text-transparent;
@@ -294,7 +280,7 @@
   }
 
   /* Fluid Section Spacing */
-  section {
+  main > section {
     padding-top: clamp(3rem, 8vw, 6rem);
     padding-bottom: clamp(3rem, 8vw, 6rem);
   }
