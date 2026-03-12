@@ -1,5 +1,4 @@
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth-options";
+import { requireRole } from "@/lib/auth-guard";
 import { Role } from "@prisma/client";
 
 type SessionUser = {
@@ -8,20 +7,14 @@ type SessionUser = {
     role: Role;
 };
 
+/**
+ * Legacy wrapper for requireRole to maintain compatibility.
+ * Now uses the unified portal auth logic.
+ */
 export async function requireServerAuth(
     allowedRoles: Role[]
 ): Promise<SessionUser> {
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user) {
-        throw new Error("Unauthorized");
-    }
-
-    const user = session.user as SessionUser;
-
-    if (!allowedRoles.includes(user.role)) {
-        throw new Error("Unauthorized");
-    }
-
-    return user;
+    const session = await requireRole(allowedRoles);
+    return session.user as SessionUser;
 }
+

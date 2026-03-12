@@ -8,7 +8,7 @@ export async function middleware(request: NextRequest) {
 
 
 
-  // 1️⃣ Add public route bypass
+  // 1️⃣ Public route bypass
   const PUBLIC_PATHS = [
     "/",
     "/portal/login",
@@ -24,49 +24,19 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2️⃣ Ensure middleware imports only JWT logic from NextAuth, no Prisma or DB code.
+  // 2️⃣ Get Token
   const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
 
-  // 3️⃣ Before redirecting unauthenticated users, ensure login is excluded
-  if ((!token || !token.id) && pathname !== "/portal/login") {
-    return NextResponse.redirect(new URL("/portal/login?error=SessionExpired", request.url));
+  // 3️⃣ Basic Authentication Check
+  if (!token || !token.id) {
+    const url = new URL("/portal/login", request.url);
+    url.searchParams.set("error", "SessionExpired");
+    return NextResponse.redirect(url);
   }
 
-  // RBAC checks for API routes
-  if (pathname.startsWith("/api")) {
-    if (
-      (pathname.startsWith("/api/register") ||
-        pathname.startsWith("/api/admin") ||
-        pathname.startsWith("/api/users")) &&
-      token?.role !== "ADMIN"
-    ) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-
-    if (pathname.startsWith("/api/parent") && token?.role !== "PARENT") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    return NextResponse.next();
-  }
-
-  // RBAC checks for Portal routes
-  const userRole = (token?.role as string)?.toUpperCase();
-  
-  // If we have a token but no role, the session is malformed
-  if (!userRole && !PUBLIC_PATHS.some(path => pathname.startsWith(path))) {
-    return NextResponse.redirect(new URL("/portal/login?error=InvalidSession", request.url));
-  }
-
-  let response = NextResponse.next();
-
-  if (pathname.startsWith("/portal/admin") && userRole !== "ADMIN") {
-    response = NextResponse.redirect(new URL(`/portal/${userRole.toLowerCase()}?error=AccessDenied`, request.url), 307);
-  } else if (pathname.startsWith("/portal/teacher") && userRole !== "TEACHER") {
-    response = NextResponse.redirect(new URL(`/portal/${userRole.toLowerCase()}?error=AccessDenied`, request.url), 307);
-  } else if (pathname.startsWith("/portal/student") && userRole !== "STUDENT") {
-    response = NextResponse.redirect(new URL(`/portal/${userRole.toLowerCase()}?error=AccessDenied`, request.url), 307);
-  } else if (pathname.startsWith("/portal/parent") && userRole !== "PARENT") {
-    response = NextResponse.redirect(new URL(`/portal/${userRole.toLowerCase()}?error=AccessDenied`, request.url), 307);
-  }
+  // Session-only middleware. 
+  // Detailed RBAC is handled at the Page/API level for maximum reliability.
+  const response = NextResponse.next();
 
   // Anti-caching for portal pages
   if (pathname.startsWith("/portal")) {

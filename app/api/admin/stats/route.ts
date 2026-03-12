@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 export const dynamic = 'force-dynamic';
 export const runtime = "nodejs";
-import { requireRole } from "@/lib/auth-guard";
+import { requireRole, handleAuthError } from "@/lib/auth-guard";
 import { NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { withTimeout } from "@/lib/server-timeout";
@@ -39,7 +39,7 @@ const getCachedAdminStats = unstable_cache(
                 totalStudents,
                 totalTeachers,
                 totalClasses,
-                attendanceToday: attendanceToday > 0 ? `${Math.round((attendanceToday / totalStudents) * 100)}%` : "0%"
+                attendanceToday: (totalStudents > 0 && attendanceToday > 0) ? `${Math.round((attendanceToday / totalStudents) * 100)}%` : "0%"
             },
             recentLogs
         };
@@ -60,15 +60,8 @@ export async function GET() {
 
         return NextResponse.json(data);
     } catch (error: any) {
-        logger.error({
-            error: error.message,
-            context: "GET /api/admin/stats"
-        }, "Stats fetch failed");
-
-        return NextResponse.json(
-            { error: "Internal Server Error", message: error.message },
-            { status: error.status || 500 }
-        );
+        return handleAuthError(error);
     }
 }
+
 
