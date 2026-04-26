@@ -1,0 +1,148 @@
+import React from "react";
+import {
+    Document,
+    Page,
+    Text,
+    View,
+    StyleSheet,
+    Image,
+} from "@react-pdf/renderer";
+
+export interface ClassSummaryRow {
+    rollNo: string;
+    name: string;
+    attendance: string;
+    grade: string;
+    remarks: string;
+}
+
+export interface ClassSummaryReportPdfProps {
+    generatedAt: string;
+    schoolName: string;
+    userEmail: string;
+    logoUrl: string;
+    rows: ClassSummaryRow[];
+    className: string;
+    term: string;
+}
+
+const styles = StyleSheet.create({
+    page: {
+        paddingTop: 40,
+        paddingHorizontal: 40,
+        paddingBottom: 60,
+        fontFamily: "Helvetica",
+        fontSize: 10,
+        color: "#1a1a2e"
+    },
+    header: { flexDirection: "row", marginBottom: 20, alignItems: "center" },
+    logo: { width: 110, height: 110, marginRight: 25 },
+    headerText: { flex: 1 },
+    schoolName: { fontSize: 18, fontFamily: "Helvetica-Bold", color: "#1a1a2e", marginBottom: 4 },
+    reportTitle: { fontSize: 13, color: "#4b5563", marginBottom: 2 },
+    meta: { fontSize: 9, color: "#6b7280", marginTop: 4 },
+    divider: { borderBottomWidth: 1, borderBottomColor: "#e5e7eb", marginVertical: 12 },
+    table: { width: "100%", marginBottom: 14 },
+    tableHeader: {
+        flexDirection: "row",
+        backgroundColor: "#800020",
+        padding: 6,
+        borderRadius: 4,
+        marginBottom: 2,
+    },
+    tableRow: {
+        flexDirection: "row",
+        padding: 6,
+        borderBottomWidth: 1,
+        borderBottomColor: "#f3f4f6",
+    },
+    tableRowAlt: {
+        flexDirection: "row",
+        padding: 6,
+        backgroundColor: "#FFF9FA",
+        borderBottomWidth: 1,
+        borderBottomColor: "#f3f4f6",
+    },
+    colHeader: { color: "#ffffff", fontFamily: "Helvetica-Bold", fontSize: 9 },
+    col: { fontSize: 9, color: "#374151" },
+    colRoll: { width: "15%" },
+    colName: { width: "35%" },
+    colAtt: { width: "15%" },
+    colGrade: { width: "10%", textAlign: "center" },
+    colRemarks: { width: "25%" },
+    footer: {
+        marginTop: 20,
+        fontSize: 8,
+        color: "#9ca3af",
+        textAlign: "center"
+    },
+    watermark: {
+        position: 'absolute',
+        bottom: 30,
+        left: 0,
+        right: 0,
+        fontSize: 8,
+        color: "#9ca3af",
+        textAlign: "center",
+    }
+});
+
+export function ClassSummaryReportPdf({
+    generatedAt,
+    schoolName,
+    userEmail,
+    logoUrl,
+    rows,
+    className,
+    term,
+}: ClassSummaryReportPdfProps) {
+    const timestamp = new Date().toISOString();
+    return (
+        <Document title="Class Summary Report" author={schoolName}>
+            <Page size="A4" style={styles.page}>
+                <View style={styles.header}>
+                    <Image style={styles.logo} src={logoUrl} />
+                    <View style={styles.headerText}>
+                        <Text style={styles.schoolName}>{schoolName}</Text>
+                        <Text style={styles.reportTitle}>Class Summary Report</Text>
+                        <Text style={styles.meta}>Class: {className}</Text>
+                        <Text style={styles.meta}>Term: {term || "All Terms"}</Text>
+                        <Text style={styles.meta}>Generated: {generatedAt}</Text>
+                        <Text style={styles.meta}>Exported by: {userEmail}</Text>
+                    </View>
+                </View>
+                <View style={styles.divider} />
+
+                <View style={styles.table}>
+                    <View style={styles.tableHeader}>
+                        <Text style={[styles.colHeader, styles.colRoll]}>Roll No</Text>
+                        <Text style={[styles.colHeader, styles.colName]}>Student Name</Text>
+                        <Text style={[styles.colHeader, styles.colAtt]}>Attendance</Text>
+                        <Text style={[styles.colHeader, styles.colGrade]}>Grade</Text>
+                        <Text style={[styles.colHeader, styles.colRemarks]}>Remarks</Text>
+                    </View>
+                    {rows.map((row, i) => (
+                        <View key={i} style={i % 2 === 0 ? styles.tableRow : styles.tableRowAlt}>
+                            <Text style={[styles.col, styles.colRoll]}>{row.rollNo}</Text>
+                            <Text style={[styles.col, styles.colName, { fontFamily: "Helvetica-Bold" }]}>{row.name}</Text>
+                            <Text style={[styles.col, styles.colAtt]}>{row.attendance}</Text>
+                            <Text style={[styles.col, styles.colGrade]}>{row.grade}</Text>
+                            <Text style={[styles.col, styles.colRemarks, { fontStyle: "italic" }]}>{row.remarks}</Text>
+                        </View>
+                    ))}
+                    {rows.length === 0 && (
+                        <View style={styles.tableRow}><Text style={styles.col}>No data found for this class and period.</Text></View>
+                    )}
+                </View>
+
+                <Text style={styles.footer}>
+                    This is a system-generated report from {schoolName}. Confidential.
+                </Text>
+
+                <Text style={styles.watermark} fixed>
+                    Generated by {schoolName} • {className} • {timestamp}
+                </Text>
+            </Page>
+        </Document>
+    );
+}

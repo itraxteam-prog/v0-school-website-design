@@ -13,15 +13,15 @@ export async function fetchReportData(filters: ReportFilters) {
     // Build filters
     const studentWhere: any = { role: "STUDENT" };
     if (classId && classId !== "all") {
-        studentWhere.classId = classId;
+        studentWhere.classes = { some: { id: classId } };
     }
 
     const gradeWhere: any = { NOT: { term: { endsWith: "-draft" } } };
     if (term) gradeWhere.term = term;
-    if (classId && classId !== "all") gradeWhere.student = { classId };
+    if (classId && classId !== "all") gradeWhere.classId = classId;
 
     const attendanceWhere: any = {};
-    if (classId && classId !== "all") attendanceWhere.student = { classId };
+    if (classId && classId !== "all") attendanceWhere.classId = classId;
     if (startDate && endDate) {
         attendanceWhere.date = { gte: new Date(startDate), lte: new Date(endDate) };
     } else {

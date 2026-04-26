@@ -5,6 +5,7 @@ import { createPdf } from "@/lib/pdf/createPdf";
 import { AdminAnalyticsPdf } from "@/lib/pdf/templates/AdminAnalyticsPdf";
 import { StudentPerformanceReportPdf } from "@/lib/pdf/templates/StudentPerformanceReportPdf";
 import { TeacherPerformanceReportPdf } from "@/lib/pdf/templates/TeacherPerformanceReportPdf";
+import { ClassSummaryReportPdf } from "@/lib/pdf/templates/ClassSummaryReportPdf";
 import React from "react";
 
 import { exportGuard } from "@/lib/pdf/export-guard";
@@ -14,6 +15,7 @@ import { createPdfResponse } from "@/lib/pdf/pdf-response";
 import { assertNodeRuntime } from "@/lib/runtime-assert";
 import { fetchReportData } from "@/lib/reports-utils";
 import { getSchoolLogo } from "@/lib/pdf/pdf-assets";
+import { prisma } from "@/lib/prisma";
 
 const SCHOOL_NAME = "The Pioneers High School";
 
@@ -80,25 +82,29 @@ export async function GET(req: NextRequest) {
                     subjectPerformance: [],
                 });
                 break;
-            default:
-                // Default to original analytics view for attendance or others
-                pdfElement = React.createElement(AdminAnalyticsPdf, {
+            case "class-summary": {
+                // Look up class name for the header
+                let className = "All Classes";
+                if (classId && classId !== "all") {
+                    const cls = await prisma.class.findUnique({ where: { id: classId }, select: { name: true } });
+                    className = cls?.name ?? "Unknown Class";
+                }
+                pdfElement = React.createElement(ClassSummaryReportPdf, {
                     generatedAt,
                     schoolName: SCHOOL_NAME,
                     logoUrl,
                     userEmail: user.email ?? "unknown",
-                    stats: {
-                        totalStudents: data.summary.totalStudents,
-                        totalTeachers: data.summary.totalTeachers,
-                        totalClasses: data.summary.totalClasses,
-                        attendanceToday: data.summary.overallAttendance,
-                    },
-                    attendanceData: data.attendanceChart.map(day => ({ month: day.day, attendance: day.attendance })),
-                    gradeDistribution: [],
-                    enrollmentData: [],
-                    subjectPerformance: [],
+                    rows: data.studentPerformance,
+                    className,
+                    term: term ?? "All Terms",
                 });
                 break;
+            }
+            default:
+                return NextResponse.json(
+                    { error: "Invalid report type", message: `Unknown type: "${type}". Valid types are: student-performance, teacher-performance, attendance-report, class-summary.` },
+                    { status: 400 }
+                );
         }
 
         const pdfBuffer = await createPdf(pdfElement);
