@@ -32,21 +32,31 @@ const adminLimiter = redis ? new Ratelimit({
 
 export async function checkExportRateLimit(userId: string, role: string) {
     if (!redis) {
-        console.warn("Redis not configured – skipping rate limit for PDF export.");
+        console.warn("[PDF RateLimit] Redis not configured – skipping rate limit.");
         return;
     }
 
-    let result;
+    try {
+        let result;
 
-    if (role === "ADMIN") {
-        result = await adminLimiter!.limit(userId);
-    } else if (role === "TEACHER") {
-        result = await teacherLimiter!.limit(userId);
-    } else {
-        result = await studentLimiter!.limit(userId);
-    }
+        if (role === "ADMIN") {
+            result = await adminLimiter!.limit(userId);
+        } else if (role === "TEACHER") {
+            result = await teacherLimiter!.limit(userId);
+        } else {
+            result = await studentLimiter!.limit(userId);
+        }
 
-    if (!result.success) {
-        throw new Error("PDF export rate limit exceeded. Please wait.");
+        if (!result.success) {
+            throw new Error("PDF export rate limit exceeded. Please wait.");
+        }
+    } catch (err: any) {
+        // Re-throw intentional rate-limit blocks so the route can return 429
+        if (err.message === "PDF export rate limit exceeded. Please wait.") {
+            throw err;
+        }
+        // For network/connection errors (Upstash paused, DNS failure, etc.)
+        // degrade gracefully — allow the PDF export through rather than crashing
+        console.warn("[PDF RateLimit] Upstash unreachable, skipping rate limit:", err.message);
     }
 }
