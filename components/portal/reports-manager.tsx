@@ -33,6 +33,8 @@ import {
     Clock,
 } from "lucide-react"
 import dynamic from "next/dynamic"
+import { exportAdminReportToPdf } from "@/lib/utils/pdf/admin-reports"
+import { useSession } from "next-auth/react"
 
 
 import { ASSESSMENT_PERIOD_OPTIONS } from "@/lib/academic-constants"
@@ -62,6 +64,7 @@ interface ReportsManagerProps {
 export function ReportsManager({ initialData, classes, currentFilters }: ReportsManagerProps) {
     const router = useRouter()
     const searchParams = useSearchParams()
+    const { data: session } = useSession()
 
     const [reportType, setReportType] = useState("student-performance")
     const [loading, setLoading] = useState(false)
@@ -291,16 +294,40 @@ export function ReportsManager({ initialData, classes, currentFilters }: Reports
                             <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => {
-                                    const params = new URLSearchParams();
-                                    params.set("type", reportType);
-                                    if (filters.term) params.set("term", filters.term);
-                                    if (filters.classId) params.set("classId", filters.classId);
-                                    if (filters.startDate) params.set("startDate", filters.startDate);
-                                    if (filters.endDate) params.set("endDate", filters.endDate);
+                                onClick={async () => {
+                                    try {
+                                        toast.loading("Preparing PDF...");
+                                        
+                                        // Get School settings (simulated or fetched)
+                                        const settingsRes = await fetch('/api/settings');
+                                        const settings = await settingsRes.json();
+                                        
+                                        await exportAdminReportToPdf({
+                                            type: reportType,
+                                            schoolName: settings?.schoolName || "The Pioneers High School",
+                                            logoUrl: settings?.schoolLogo || "/images/logo.png",
+                                            userEmail: session?.user?.email || "admin@pioneers.edu",
+                                            data: initialData,
+                                            filters: filters
+                                        });
 
-                                    toast.success("Downloading PDF...");
-                                    window.open(`/api/admin/reports/export?${params.toString()}`, "_blank");
+                                        // Log Audit
+                                        fetch('/api/audit', {
+                                            method: 'POST',
+                                            body: JSON.stringify({
+                                                action: 'PDF_EXPORT',
+                                                entity: 'ADMIN_REPORTS',
+                                                metadata: { type: reportType, filters }
+                                            })
+                                        }).catch(console.error);
+
+                                        toast.dismiss();
+                                        toast.success("PDF Downloaded!");
+                                    } catch (e) {
+                                        console.error(e);
+                                        toast.dismiss();
+                                        toast.error("Export failed");
+                                    }
                                 }}
                                 className="gap-2 glass-card"
                             >
@@ -308,16 +335,20 @@ export function ReportsManager({ initialData, classes, currentFilters }: Reports
                             </Button>
                             <Button
                                 className="h-10 px-6 bg-primary text-white shadow-burgundy-glow"
-                                onClick={() => {
-                                    const params = new URLSearchParams();
-                                    params.set("type", reportType);
-                                    if (filters.term) params.set("term", filters.term);
-                                    if (filters.classId) params.set("classId", filters.classId);
-                                    if (filters.startDate) params.set("startDate", filters.startDate);
-                                    if (filters.endDate) params.set("endDate", filters.endDate);
-
-                                    toast.success("Preparing Print...");
-                                    window.open(`/api/admin/reports/export?${params.toString()}`, "_blank");
+                                onClick={async () => {
+                                    // Reuse export logic for print (it downloads, which is the standard "Print to PDF" flow)
+                                    toast.loading("Preparing for Print...");
+                                    const settingsRes = await fetch('/api/settings');
+                                    const settings = await settingsRes.json();
+                                    await exportAdminReportToPdf({
+                                        type: reportType,
+                                        schoolName: settings?.schoolName || "The Pioneers High School",
+                                        logoUrl: settings?.schoolLogo || "/images/logo.png",
+                                        userEmail: session?.user?.email || "admin@pioneers.edu",
+                                        data: initialData,
+                                        filters: filters
+                                    });
+                                    toast.dismiss();
                                 }}
                             >
                                 <Printer className="mr-2 h-4 w-4" /> Print Report

@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useSession } from "next-auth/react"
 import { ACADEMIC_YEARS, getTermDisplayLabel, ASSESSMENT_PERIOD_OPTIONS } from "@/lib/academic-constants"
 import { toast } from "sonner"
+import { exportGradesToPdf } from "@/lib/utils/pdf/student-reports"
 
 // Internal API base path
 const API_BASE = "/api";
@@ -129,9 +130,51 @@ export default function GradesPage() {
               </SelectContent>
             </Select>
 
-            <Button variant="outline" className="gap-2" onClick={() => {
-              toast.success("Generating Grades PDF...");
-              window.open('/api/student/grades/export', '_blank');
+            <Button variant="outline" className="gap-2" onClick={async () => {
+              try {
+                toast.loading("Preparing Grades PDF...");
+                
+                // Get School Logo
+                let logoUrl = "/images/logo.png";
+                if (schoolSettings?.schoolLogo) {
+                  logoUrl = schoolSettings.schoolLogo;
+                }
+
+                const reportRows = filteredGrades.map(g => ({
+                  subject: g.subject,
+                  className: g.class?.name || null,
+                  term: getTermDisplayLabel(g.term),
+                  marks: `${g.marks}/${g.total || 100}`,
+                  grade: g.grade
+                }));
+
+                await exportGradesToPdf({
+                  studentName: session?.user?.name || "Student",
+                  studentEmail: session?.user?.email || "",
+                  schoolName: schoolSettings?.schoolName || "The Pioneers High School",
+                  userEmail: session?.user?.email || "unknown",
+                  logoUrl,
+                  rows: reportRows
+                });
+
+                // Log Audit
+                fetch('/api/audit', {
+                  method: 'POST',
+                  body: JSON.stringify({
+                    action: 'PDF_EXPORT',
+                    entity: 'STUDENT',
+                    entityId: session?.user?.id,
+                    metadata: { type: 'grades', filterCount: filteredGrades.length }
+                  })
+                }).catch(console.error);
+
+                toast.dismiss();
+                toast.success("PDF Downloaded successfully!");
+              } catch (error) {
+                console.error("PDF Export failed:", error);
+                toast.dismiss();
+                toast.error("Failed to generate PDF. Please try again.");
+              }
             }}>
               <Download className="h-4 w-4" />
               <span className="hidden sm:inline">Export PDF</span>
